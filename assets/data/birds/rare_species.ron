@@ -1,0 +1,146 @@
+// Rare and legendary bird species configuration (Tier 3-4)
+// RON format for external data configuration
+
+BirdSpeciesConfig(
+    species: [
+        // Red-tailed Hawk (Tier 3)
+        (
+            name: "RedTailedHawk",
+            tier: 3,
+            size_category: 8,
+            max_flock_size: 1,
+            territory_radius: 500.0,
+            aggression_level: 1.0,
+            spawn_probability: 0.02,
+            feeding_preferences: {
+                "Seed": 0.0,
+                "Suet": 0.4,
+                "Nectar": 0.0,
+                "Fruit": 0.0,
+            },
+            behavioral_traits: {
+                "social_compatibility_bonus": 0.0,
+                "territorial_aggression": 1.0,
+                "flight_speed": 300.0,
+                "feeding_duration": 15.0,
+            },
+            audio_config: {
+                "call_range": 800.0,
+                "volume": 0.8,
+                "call_frequency": 0.1,
+                "song_duration": 3.0,
+            },
+            seasonal_availability: {
+                "Spring": 0.8,
+                "Summer": 1.0,
+                "Fall": 0.9,
+                "Winter": 0.6,
+            },
+        ),
+        
+        // Great Horned Owl (Tier 3)
+        (
+            name: "GreatHornedOwl",
+            tier: 3,
+            size_category: 8,
+            max_flock_size: 1,
+            territory_radius: 500.0,
+            aggression_level: 0.95,
+            spawn_probability: 0.01,
+            feeding_preferences: {
+                "Seed": 0.0,
+                "Suet": 0.3,
+                "Nectar": 0.0,
+                "Fruit": 0.0,
+            },
+            behavioral_traits: {
+                "social_compatibility_bonus": 0.0,
+                "territorial_aggression": 0.95,
+                "flight_speed": 250.0,
+                "feeding_duration": 20.0,
+            },
+            audio_config: {
+                "call_range": 600.0,
+                "volume": 0.7,
+                "call_frequency": 0.05,
+                "song_duration": 4.0,
+            },
+            seasonal_availability: {
+                "Spring": 1.0,
+                "Summer": 1.0,
+                "Fall": 1.0,
+                "Winter": 1.0,
+            },
+        ),
+        
+        // Bald Eagle (Tier 4 - Legendary)
+        (
+            name: "BaldEagle",
+            tier: 4,
+            size_category: 8,
+            max_flock_size: 1,
+            territory_radius: 500.0,
+            aggression_level: 1.0,
+            spawn_probability: 0.005,
+            feeding_preferences: {
+                "Seed": 0.0,
+                "Suet": 0.2,
+                "Nectar": 0.0,
+                "Fruit": 0.0,
+            },
+            behavioral_traits: {
+                "social_compatibility_bonus": 0.0,
+                "territorial_aggression": 1.0,
+                "flight_speed": 350.0,
+                "feeding_duration": 25.0,
+            },
+            audio_config: {
+                "call_range": 800.0,
+                "volume": 0.8,
+                "call_frequency": 0.03,
+                "song_duration": 3.0,
+            },
+            seasonal_availability: {
+                "Spring": 0.6,
+                "Summer": 0.8,
+                "Fall": 1.0,
+                "Winter": 0.9,
+            },
+        ),
+        
+        // Ruby-throated Hummingbird (Tier 2)
+        (
+            name: "RubyThroatedHummingbird",
+            tier: 2,
+            size_category: 1,
+            max_flock_size: 1,
+            territory_radius: 80.0,
+            aggression_level: 0.8,
+            spawn_probability: 0.08,
+            feeding_preferences: {
+                "Seed": 0.0,
+                "Suet": 0.0,
+                "Nectar": 1.0,
+                "Fruit": 0.1,
+            },
+            behavioral_traits: {
+                "social_compatibility_bonus": 0.0,
+                "territorial_aggression": 0.8,
+                "flight_speed": 400.0,
+                "feeding_duration": 3.0,
+            },
+            audio_config: {
+                "call_range": 80.0,
+                "volume": 0.15,
+                "call_frequency": 0.8,
+                "song_duration": 1.0,
+            },
+            seasonal_availability: {
+                "Spring": 1.0,
+                "Summer": 1.0,
+                "Fall": 0.6,
+                "Winter": 0.0,
+            },
+        ),
+    ]
+)

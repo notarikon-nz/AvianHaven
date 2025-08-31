@@ -8,7 +8,17 @@ pub struct PhotoTarget;
 pub struct ViewfinderUI;
 
 #[derive(Component)]
-pub struct ScoreToast;
+pub struct ScoreToast {
+    pub timer: Timer,
+}
+
+impl Default for ScoreToast {
+    fn default() -> Self {
+        Self {
+            timer: Timer::from_seconds(3.0, TimerMode::Once),
+        }
+    }
+}
 
 #[derive(Event)]
 pub struct PhotoTakenEvent {

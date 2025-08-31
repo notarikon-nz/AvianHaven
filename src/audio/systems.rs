@@ -20,6 +20,8 @@ pub fn audio_setup_system(
             AudioSinkComponent {
                 sink_handle: Handle::default(),
                 command: None,
+                start_time: 0.0,
+                expected_duration: 0.0,
             },
             Name::new(format!("AudioSink_{}", i)),
         )).id();
@@ -37,6 +39,7 @@ pub fn audio_event_system(
     mut sink_query: Query<&mut AudioSinkComponent>,
     audio_settings: Res<AudioSettings>,
     asset_server: Res<AssetServer>,
+    time: Res<Time>,
 ) {
     for event in audio_events.read() {
         // Check if we have available sinks
@@ -60,9 +63,11 @@ pub fn audio_event_system(
             crate::audio::resources::AudioSource::UiSound(handle) => handle.clone(),
         };
         
-        // Update sink component
+        // Update sink component with timing info
         if let Ok(mut sink_component) = sink_query.get_mut(sink_entity) {
             sink_component.command = Some(event.command.clone());
+            sink_component.start_time = time.elapsed_secs();
+            sink_component.expected_duration = estimate_audio_duration(&event.source);
             
             // Play the audio based on command type
             match &event.command {
@@ -148,16 +153,20 @@ pub fn audio_cleanup_system(
     mut commands: Commands,
     mut audio_manager: ResMut<AudioManager>,
     sink_query: Query<(Entity, &AudioSinkComponent, Option<&AudioPlayer>)>,
+    time: Res<Time>,
 ) {
     let mut completed_sinks = Vec::new();
+    let current_time = time.elapsed_secs();
     
-    for (sink_entity, _sink_component, audio_player) in sink_query.iter() {
-        // Check if audio has finished playing
-        let is_finished = audio_player.map(|player| {
-            // In a real implementation, we'd check if the AudioPlayer has finished
-            // For now, we'll use a simple heuristic or timer
-            false // Placeholder - would need proper sink state checking
-        }).unwrap_or(true);
+    for (sink_entity, sink_component, audio_player) in sink_query.iter() {
+        // Check if audio has finished playing using duration-based detection
+        let is_finished = if let Some(_player) = audio_player {
+            // Audio is considered finished if it's been playing longer than expected duration
+            current_time - sink_component.start_time > sink_component.expected_duration
+        } else {
+            // No AudioPlayer component means it was already cleaned up or never started
+            true
+        };
         
         if is_finished && audio_manager.in_use_sinks.contains_key(&sink_entity) {
             completed_sinks.push(sink_entity);
@@ -175,7 +184,8 @@ pub fn audio_cleanup_system(
             entity_commands.remove::<PlaybackSettings>();
         }
         
-        debug!("Cleaned up completed audio sink {:?}", sink_entity);
+        debug!("Cleaned up completed audio sink {:?} after {:.2}s", 
+               sink_entity, current_time);
     }
 }
 
@@ -413,6 +423,37 @@ fn calculate_positional_audio(source_pos: Vec2, listener_pos: Vec2, attenuation:
     let final_gain = (gain * 0.3 + realistic_gain * 0.7).min(1.0);
     
     (final_gain, panning)
+}
+
+fn estimate_audio_duration(source: &crate::audio::resources::AudioSource) -> f32 {
+    match source {
+        crate::audio::resources::AudioSource::BirdVocalization(_, species) => {
+            match species {
+                // Longer vocalizations for songbirds
+                BirdSpecies::Robin | BirdSpecies::BaltimoreOriole | BirdSpecies::WoodThrush => 4.0,
+                BirdSpecies::Cardinal | BirdSpecies::ScarletTanager => 3.5,
+                
+                // Shorter calls for most species
+                BirdSpecies::Chickadee | BirdSpecies::TuftedTitmouse => 2.0,
+                BirdSpecies::BlueJay | BirdSpecies::CommonCrow => 2.5,
+                
+                // Very short for woodpeckers (drumming)
+                BirdSpecies::DownyWoodpecker | BirdSpecies::HairyWoodpecker => 1.5,
+                BirdSpecies::PileatedWoodpecker => 2.0,
+                
+                // Raptors have distinctive longer calls
+                BirdSpecies::RedTailedHawk | BirdSpecies::BaldEagle => 3.0,
+                BirdSpecies::GreatHornedOwl | BirdSpecies::BarredOwl => 4.0,
+                
+                // Hummingbird buzz
+                BirdSpecies::RubyThroatedHummingbird => 1.0,
+                
+                _ => 2.5, // Default duration
+            }
+        },
+        crate::audio::resources::AudioSource::AmbientTrack(_) => 30.0, // Longer ambient tracks
+        crate::audio::resources::AudioSource::UiSound(_) => 1.0,      // Quick UI feedback
+    }
 }
 
 pub fn ambient_feeder_audio_system(

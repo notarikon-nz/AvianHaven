@@ -70,7 +70,7 @@ pub fn setup_photo_ui(mut commands: Commands) {
         },
         BackgroundColor(Color::srgba(0.0, 0.0, 0.0, 0.8)),
         BorderColor(Color::WHITE),
-        ScoreToast,
+        ScoreToast::default(),
         Visibility::Hidden,
     )).with_children(|parent| {
         parent.spawn((
@@ -187,7 +187,7 @@ pub fn photo_reward_system(
     mut currency: ResMut<CurrencyResource>,
     mut discovered_species: ResMut<DiscoveredSpecies>,
     mut photo_collection: ResMut<PhotoCollection>,
-    mut toast_query: Query<(&mut Visibility, &Children), With<ScoreToast>>,
+    mut toast_query: Query<(&mut Visibility, &Children, &mut ScoreToast)>,
     mut text_query: Query<&mut Text>,
     time: Res<Time>,
 ) {
@@ -213,9 +213,10 @@ pub fn photo_reward_system(
             bonus_text.push_str(" Multi-Bird!");
         }
         
-        // Show toast
-        for (mut visibility, children) in &mut toast_query {
+        // Show toast and reset timer
+        for (mut visibility, children, mut score_toast) in &mut toast_query {
             *visibility = Visibility::Inherited;
+            score_toast.timer.reset();
             
             for child in children.iter() {
                 if let Ok(mut text) = text_query.get_mut(child) {
@@ -239,19 +240,15 @@ pub fn photo_reward_system(
 
 pub fn photo_ui_system(
     time: Res<Time>,
-    mut toast_query: Query<&mut Visibility, With<ScoreToast>>,
+    mut toast_query: Query<(&mut Visibility, &mut ScoreToast)>,
 ) {
-    // Simple toast auto-hide after 3 seconds (in real implementation, would use a timer)
-    static mut TOAST_TIMER: f32 = 0.0;
-    
-    for mut visibility in &mut toast_query {
+    for (mut visibility, mut score_toast) in &mut toast_query {
         if *visibility == Visibility::Inherited {
-            unsafe {
-                TOAST_TIMER += time.delta().as_secs_f32();
-                if TOAST_TIMER > 3.0 {
-                    *visibility = Visibility::Hidden;
-                    TOAST_TIMER = 0.0;
-                }
+            score_toast.timer.tick(time.delta());
+            
+            if score_toast.timer.finished() {
+                *visibility = Visibility::Hidden;
+                score_toast.timer.reset();
             }
         }
     }

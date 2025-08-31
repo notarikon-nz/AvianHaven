@@ -20,4 +20,11 @@ pub enum AudioVolumeCurve {
 pub struct AudioSinkComponent {
     pub sink_handle: Handle<bevy::audio::AudioSource>,
     pub command: Option<AudioCommand>,
+    pub start_time: f32,
+    pub expected_duration: f32,
+}
+
+#[derive(Component)]
+pub struct AudioCleanupTimer {
+    pub timer: Timer,
 }

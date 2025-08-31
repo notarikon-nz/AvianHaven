@@ -1,0 +1,181 @@
+// Common bird species configuration (Tier 1)
+// RON (Rusty Object Notation) format for easy editing and balancing
+
+BirdSpeciesConfig(
+    species: [
+        // Cardinals
+        (
+            name: "Cardinal",
+            tier: 1,
+            size_category: 4,
+            max_flock_size: 2,
+            territory_radius: 120.0,
+            aggression_level: 0.6,
+            spawn_probability: 0.15,
+            feeding_preferences: {
+                "Seed": 0.9,
+                "Suet": 0.3,
+                "Nectar": 0.1,
+                "Fruit": 0.2,
+            },
+            behavioral_traits: {
+                "social_compatibility_bonus": 0.1,
+                "territorial_aggression": 0.6,
+                "flight_speed": 150.0,
+                "feeding_duration": 8.0,
+            },
+            audio_config: {
+                "call_range": 300.0,
+                "volume": 0.5,
+                "call_frequency": 0.3,
+                "song_duration": 3.5,
+            },
+            seasonal_availability: {
+                "Spring": 1.0,
+                "Summer": 1.0,
+                "Fall": 0.8,
+                "Winter": 0.9,
+            },
+        ),
+        
+        // Blue Jays
+        (
+            name: "BlueJay",
+            tier: 1,
+            size_category: 5,
+            max_flock_size: 2,
+            territory_radius: 150.0,
+            aggression_level: 0.9,
+            spawn_probability: 0.12,
+            feeding_preferences: {
+                "Seed": 0.7,
+                "Suet": 0.8,
+                "Nectar": 0.0,
+                "Fruit": 0.6,
+            },
+            behavioral_traits: {
+                "social_compatibility_bonus": 0.3,
+                "territorial_aggression": 0.9,
+                "flight_speed": 200.0,
+                "feeding_duration": 12.0,
+            },
+            audio_config: {
+                "call_range": 450.0,
+                "volume": 0.7,
+                "call_frequency": 0.4,
+                "song_duration": 2.5,
+            },
+            seasonal_availability: {
+                "Spring": 1.0,
+                "Summer": 1.0,
+                "Fall": 0.9,
+                "Winter": 0.7,
+            },
+        ),
+        
+        // American Robin
+        (
+            name: "Robin",
+            tier: 1,
+            size_category: 4,
+            max_flock_size: 3,
+            territory_radius: 120.0,
+            aggression_level: 0.6,
+            spawn_probability: 0.18,
+            feeding_preferences: {
+                "Seed": 0.4,
+                "Suet": 0.2,
+                "Nectar": 0.1,
+                "Fruit": 0.8,
+            },
+            behavioral_traits: {
+                "social_compatibility_bonus": 0.2,
+                "territorial_aggression": 0.6,
+                "flight_speed": 180.0,
+                "feeding_duration": 6.0,
+            },
+            audio_config: {
+                "call_range": 300.0,
+                "volume": 0.5,
+                "call_frequency": 0.4,
+                "song_duration": 4.0,
+            },
+            seasonal_availability: {
+                "Spring": 1.0,
+                "Summer": 0.8,
+                "Fall": 1.0,
+                "Winter": 0.4,
+            },
+        ),
+        
+        // Black-capped Chickadee
+        (
+            name: "Chickadee",
+            tier: 1,
+            size_category: 2,
+            max_flock_size: 6,
+            territory_radius: 50.0,
+            aggression_level: 0.2,
+            spawn_probability: 0.20,
+            feeding_preferences: {
+                "Seed": 0.9,
+                "Suet": 0.7,
+                "Nectar": 0.0,
+                "Fruit": 0.3,
+            },
+            behavioral_traits: {
+                "social_compatibility_bonus": 0.8,
+                "territorial_aggression": 0.2,
+                "flight_speed": 120.0,
+                "feeding_duration": 4.0,
+            },
+            audio_config: {
+                "call_range": 200.0,
+                "volume": 0.3,
+                "call_frequency": 0.5,
+                "song_duration": 2.0,
+            },
+            seasonal_availability: {
+                "Spring": 1.0,
+                "Summer": 1.0,
+                "Fall": 1.0,
+                "Winter": 1.0,
+            },
+        ),
+        
+        // House Finch
+        (
+            name: "HouseFinch",
+            tier: 1,
+            size_category: 3,
+            max_flock_size: 8,
+            territory_radius: 50.0,
+            aggression_level: 0.3,
+            spawn_probability: 0.16,
+            feeding_preferences: {
+                "Seed": 1.0,
+                "Suet": 0.2,
+                "Nectar": 0.1,
+                "Fruit": 0.4,
+            },
+            behavioral_traits: {
+                "social_compatibility_bonus": 0.7,
+                "territorial_aggression": 0.3,
+                "flight_speed": 140.0,
+                "feeding_duration": 5.0,
+            },
+            audio_config: {
+                "call_range": 150.0,
+                "volume": 0.3,
+                "call_frequency": 0.3,
+                "song_duration": 2.5,
+            },
+            seasonal_availability: {
+                "Spring": 1.0,
+                "Summer": 1.0,
+                "Fall": 0.9,
+                "Winter": 0.8,
+            },
+        ),
+    ]
+)

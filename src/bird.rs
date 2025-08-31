@@ -489,6 +489,7 @@ pub fn environmental_bird_spawning_system(
     weather_state: Res<WeatherState>,
     seasonal_state: Res<SeasonalState>,
     time: Res<Time>,
+    bird_registry: Res<crate::bird_data::BirdDataRegistry>,
 ) {
     // Environmental spawning logic
     let season = time_state.get_season();
@@ -500,16 +501,26 @@ pub fn environmental_bird_spawning_system(
     
     // Only spawn if we're under the bird limit and conditions are favorable
     if bird_count.0 < 15 && rand::rng().random::<f32>() < spawn_chance {
-        spawn_seasonal_bird(&mut commands, &seasonal_state);
+        spawn_seasonal_bird(&mut commands, &seasonal_state, &bird_registry, season);
     }
 }
 
-fn spawn_seasonal_bird(commands: &mut Commands, seasonal_state: &SeasonalState) {
+fn spawn_seasonal_bird(
+    commands: &mut Commands, 
+    seasonal_state: &SeasonalState,
+    bird_registry: &crate::bird_data::BirdDataRegistry,
+    season: crate::environment::components::Season,
+) {
     let mut rng = rand::rng();
     
-    // Select species based on seasonal availability
+    // Select species based on seasonal availability using external data
     let available_species: Vec<(BirdSpecies, f32)> = seasonal_state.available_species.iter()
-        .map(|(species, probability)| (*species, *probability))
+        .map(|(species, _)| {
+            // Use external data for spawn probability calculation
+            let probability = bird_registry.get_spawn_probability(species, season);
+            (*species, probability)
+        })
+        .filter(|(_, prob)| *prob > 0.0) // Only include species available this season
         .collect();
     
     if available_species.is_empty() {
