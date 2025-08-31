@@ -18,6 +18,7 @@ mod notifications;
 mod environment;
 mod steam;
 mod performance;
+mod flocking;
 
 use user_interface::UserInterfacePlugin;
 use bird::BirdPlugin;
@@ -36,6 +37,7 @@ use notifications::NotificationPlugin;
 use environment::EnvironmentPlugin;
 use steam::SteamPlugin;
 use performance::PerformancePlugin;
+use flocking::FlockingPlugin;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Default, States)]
 pub enum AppState {
@@ -67,6 +69,7 @@ fn main() {
             SteamPlugin,
             PerformancePlugin,
         ))
+        .add_plugins(FlockingPlugin)
         .add_systems(Startup, setup)
         .add_systems(PostUpdate, robust_despawn_system)
         .run();
