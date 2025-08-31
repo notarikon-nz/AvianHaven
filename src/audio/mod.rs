@@ -23,6 +23,7 @@ impl Plugin for AudioPlugin {
                 update_positional_audio_system,
                 audio_cleanup_system,
                 bird_vocalization_system,
+                ambient_feeder_audio_system,
             ).run_if(in_state(AppState::Playing)));
     }
 }
@@ -35,7 +36,7 @@ pub fn play_ambient(commands: &mut Commands, handle: Handle<bevy::audio::AudioSo
     });
 }
 
-pub fn play_bird_sound(commands: &mut Commands, entity: Entity, species: crate::animation::components::BirdSpecies, handle: Handle<bevy::audio::AudioSource>) {
+pub fn play_bird_sound(commands: &mut Commands, entity: Entity, species: crate::bird::BirdSpecies, handle: Handle<bevy::audio::AudioSource>) {
     commands.trigger(AudioPlayEvent {
         source: crate::audio::resources::AudioSource::BirdVocalization(handle, species),
         command: AudioCommand::PlayFromEntity(entity),

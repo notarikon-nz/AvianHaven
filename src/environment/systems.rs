@@ -10,6 +10,16 @@ pub fn setup_environment(mut commands: Commands) {
         Transform::from_xyz(0.0, 0.0, -10.0), // Far background
         EnvironmentEntity,
     ));
+    
+    // Spawn day/night overlay for lighting transitions
+    commands.spawn((
+        Sprite::from_color(
+            Color::srgba(0.0, 0.0, 0.3, 0.0), // Dark blue overlay, initially transparent
+            Vec2::new(2000.0, 1500.0)
+        ),
+        Transform::from_xyz(0.0, 0.0, 5.0), // Above most objects but below UI
+        DayNightOverlay,
+    ));
 }
 
 pub fn time_progression_system(
@@ -217,5 +227,94 @@ pub fn environment_effect_system(
             },
             _ => {},
         }
+    }
+}
+
+pub fn lighting_transition_system(
+    time_state: Res<TimeState>,
+    weather_state: Res<WeatherState>,
+    mut sky_query: Query<&mut Sprite, (With<EnvironmentEntity>, Without<DayNightOverlay>)>,
+    mut overlay_query: Query<&mut Sprite, (With<DayNightOverlay>, Without<EnvironmentEntity>)>,
+) {
+    let hour = time_state.hour;
+    
+    // Calculate lighting factors
+    let lighting_intensity = calculate_lighting_intensity(hour);
+    let lighting_color = calculate_lighting_color(hour);
+    let overlay_alpha = calculate_overlay_alpha(hour);
+    
+    // Update sky background
+    for mut sky_sprite in &mut sky_query {
+        let base_color = weather_state.current_weather.background_color();
+        sky_sprite.color = Color::srgb(
+            base_color.to_srgba().red * lighting_intensity * lighting_color.0,
+            base_color.to_srgba().green * lighting_intensity * lighting_color.1,
+            base_color.to_srgba().blue * lighting_intensity * lighting_color.2,
+        );
+    }
+    
+    // Update day/night overlay
+    for mut overlay_sprite in &mut overlay_query {
+        overlay_sprite.color = Color::srgba(0.0, 0.0, 0.3, overlay_alpha);
+    }
+}
+
+fn calculate_lighting_intensity(hour: f32) -> f32 {
+    match hour {
+        // Night (10 PM - 5 AM)
+        h if h >= 22.0 || h < 5.0 => 0.15,
+        // Dawn transition (5 AM - 7 AM)
+        h if h >= 5.0 && h < 7.0 => {
+            let progress = (h - 5.0) / 2.0;
+            0.15 + (0.85 * progress) // Smooth transition from 0.15 to 1.0
+        },
+        // Day (7 AM - 6 PM)
+        h if h >= 7.0 && h <= 18.0 => 1.0,
+        // Dusk transition (6 PM - 10 PM)
+        h if h > 18.0 && h < 22.0 => {
+            let progress = (h - 18.0) / 4.0;
+            1.0 - (0.85 * progress) // Smooth transition from 1.0 to 0.15
+        },
+        _ => 1.0,
+    }
+}
+
+fn calculate_lighting_color(hour: f32) -> (f32, f32, f32) {
+    match hour {
+        // Dawn (5 AM - 8 AM) - warm orange/pink tones
+        h if h >= 5.0 && h < 8.0 => {
+            let progress = (h - 5.0) / 3.0;
+            let dawn_red = 1.0;
+            let dawn_green = 0.6 + (0.4 * progress);
+            let dawn_blue = 0.3 + (0.7 * progress);
+            (dawn_red, dawn_green, dawn_blue)
+        },
+        // Day (8 AM - 6 PM) - neutral white
+        h if h >= 8.0 && h <= 18.0 => (1.0, 1.0, 1.0),
+        // Dusk (6 PM - 8 PM) - warm golden tones
+        h if h > 18.0 && h < 20.0 => {
+            let progress = (h - 18.0) / 2.0;
+            let dusk_red = 1.0;
+            let dusk_green = 0.8 - (0.2 * progress);
+            let dusk_blue = 0.6 - (0.3 * progress);
+            (dusk_red, dusk_green, dusk_blue)
+        },
+        // Night (8 PM - 5 AM) - cool blue tones
+        _ => (0.6, 0.7, 1.0),
+    }
+}
+
+fn calculate_overlay_alpha(hour: f32) -> f32 {
+    match hour {
+        // Deep night (11 PM - 4 AM)
+        h if h >= 23.0 || h < 4.0 => 0.7,
+        // Late night (10 PM - 11 PM, 4 AM - 5 AM)
+        h if (h >= 22.0 && h < 23.0) || (h >= 4.0 && h < 5.0) => 0.5,
+        // Early night/morning (8 PM - 10 PM, 5 AM - 6 AM)
+        h if (h >= 20.0 && h < 22.0) || (h >= 5.0 && h < 6.0) => 0.3,
+        // Dawn/dusk (6 AM - 7 AM, 7 PM - 8 PM)
+        h if (h >= 6.0 && h < 7.0) || (h >= 19.0 && h < 20.0) => 0.1,
+        // Day (7 AM - 7 PM)
+        _ => 0.0,
     }
 }

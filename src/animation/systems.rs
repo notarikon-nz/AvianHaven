@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use crate::animation::{components::*, resources::*};
 use crate::bird_ai::components::BirdState;
-use crate::bird::Velocity;
+use crate::bird::{BirdSpecies, Velocity};
 
 pub fn setup_animation_assets(
     asset_server: Res<AssetServer>,

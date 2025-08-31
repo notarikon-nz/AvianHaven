@@ -4,7 +4,8 @@ use bevy::render::render_resource::{
     Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
 };
 use crate::photo_mode::{components::*, resources::*};
-use crate::animation::components::{BirdSpecies, AnimatedBird};
+use crate::bird::BirdSpecies;
+use crate::animation::components::AnimatedBird;
 use crate::bird_ai::components::{BirdAI, BirdState};
 
 pub fn setup_photo_ui(mut commands: Commands) {
@@ -339,13 +340,7 @@ fn calculate_photo_score(
 }
 
 fn get_species_rarity_score(species: BirdSpecies) -> u32 {
-    use crate::bird::BirdSpecies as BS;
-    match species {
-        // Convert animation species to bird species and get score
-        BirdSpecies::Cardinal => match_bird_species_score(BS::Cardinal),
-        BirdSpecies::BlueJay => match_bird_species_score(BS::BlueJay),
-        BirdSpecies::Sparrow => match_bird_species_score(BS::Sparrow),
-    }
+    match_bird_species_score(species)
 }
 
 fn match_bird_species_score(species: crate::bird::BirdSpecies) -> u32 {
@@ -355,9 +350,24 @@ fn match_bird_species_score(species: crate::bird::BirdSpecies) -> u32 {
         BS::Sparrow | BS::Robin | BS::Chickadee | BS::HouseFinch | BS::EuropeanStarling => 15,
         BS::Cardinal | BS::BlueJay | BS::Goldfinch | BS::MourningDove => 20,
         BS::NorthernMockingbird | BS::RedWingedBlackbird | BS::CommonGrackle | BS::CommonCrow => 18,
-        
-        // More interesting species (25-35 points)  
         BS::BrownThrasher | BS::CedarWaxwing | BS::WhiteBreastedNuthatch | BS::TuftedTitmouse => 30,
         BS::CarolinaWren | BS::BlueGrayGnatcatcher | BS::YellowWarbler => 35,
+        
+        // Tier 2 - Uncommon (40-60 points)
+        BS::DownyWoodpecker | BS::HairyWoodpecker | BS::BrownCreeper | BS::WinterWren => 40,
+        BS::RedHeadedWoodpecker | BS::YellowBelledSapsucker | BS::PurpleFinch | BS::IndianaBunting => 45,
+        BS::PileatedWoodpecker | BS::RubyThroatedHummingbird | BS::RoseBreastedGrosbeak => 50,
+        BS::WoodThrush | BS::Catbird | BS::ScarletTanager | BS::BaltimoreOriole => 55,
+        
+        // Tier 3 - Rare (70-90 points)
+        BS::EasternBluebird | BS::PaintedBunting | BS::CeruleanWarbler | BS::HoodedWarbler => 70,
+        BS::BelttedKingfisher | BS::GrandSlamAmerican => 75,
+        BS::RedTailedHawk | BS::CoopersHawk | BS::BarredOwl => 80,
+        BS::GreatHornedOwl => 90,
+        
+        // Tier 4 - Legendary (100-150 points)
+        BS::ProthonotaryWarbler | BS::KentuckyWarbler | BS::GoldenWingedWarbler => 100,
+        BS::PeregrineFalcon => 120,
+        BS::BaldEagle => 150,
     }
 }

@@ -3,7 +3,7 @@ use bevy::app::AppExit;
 use crate::user_interface::styles::*;
 use crate::journal::{components::*, resources::*, ui_builder::*};
 use crate::photo_mode::components::PhotoTakenEvent;
-use crate::animation::components::BirdSpecies;
+use crate::bird::BirdSpecies;
 
 pub fn toggle_journal_system(
     keyboard: Res<ButtonInput<KeyCode>>,
@@ -255,17 +255,21 @@ pub fn journal_interaction_system(
 }
 }
 fn species_color(species: BirdSpecies) -> Color {
-    match species {
-        BirdSpecies::Cardinal => Color::srgb(0.8, 0.2, 0.2),
-        BirdSpecies::BlueJay => Color::srgb(0.2, 0.4, 0.8),
-        BirdSpecies::Sparrow => Color::srgb(0.5, 0.4, 0.3),
+    match species.rarity_tier() {
+        1 => Color::srgb(0.7, 0.7, 0.7), // Common - gray
+        2 => Color::srgb(0.3, 0.8, 0.3), // Uncommon - green
+        3 => Color::srgb(0.3, 0.4, 0.9), // Rare - blue
+        4 => Color::srgb(0.9, 0.7, 0.1), // Legendary - gold
+        _ => Color::WHITE,
     }
 }
 
 fn get_rarity(species: BirdSpecies) -> &'static str {
-    match species {
-        BirdSpecies::Sparrow => "Common",
-        BirdSpecies::Cardinal => "Uncommon",
-        BirdSpecies::BlueJay => "Rare",
+    match species.rarity_tier() {
+        1 => "Common",
+        2 => "Uncommon",
+        3 => "Rare",
+        4 => "Legendary",
+        _ => "Unknown",
     }
 }

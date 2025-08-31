@@ -144,17 +144,15 @@ pub fn steam_workshop_system(
 fn integrate_workshop_item(commands: &mut Commands, item: WorkshopItem) {
     match item.item_type {
         WorkshopItemType::CustomBird { species_name, behavior_data } => {
-            info!("Loading custom bird: {} by {}", species_name, item.author);
+            // info!("Loading custom bird: {} by {}", species_name, item.author);
             // In real implementation: parse behavior data and spawn custom bird entity
         },
         WorkshopItemType::CustomFeeder { feeder_name, stats } => {
-            info!("Loading custom feeder: {} by {} (capacity: {})", 
-                  feeder_name, item.author, stats.capacity);
+            // info!("Loading custom feeder: {} by {} (capacity: {})",  feeder_name, item.author, stats.capacity);
             // In real implementation: create custom feeder with workshop stats
         },
         WorkshopItemType::Habitat { theme_name, assets } => {
-            info!("Loading habitat theme: {} by {} ({} assets)", 
-                  theme_name, item.author, assets.len());
+            // info!("Loading habitat theme: {} by {} ({} assets)",  theme_name, item.author, assets.len());
             // In real implementation: load custom textures and environment objects
         },
     }

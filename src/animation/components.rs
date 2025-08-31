@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use std::collections::HashMap;
 use crate::bird_ai::components::BirdState;
+use crate::bird::BirdSpecies;
 
 #[derive(Component)]
 pub struct AnimationController {
@@ -36,13 +37,6 @@ pub struct AnimationData {
 
 #[derive(Component)]
 pub struct AnimationStateChange;
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub enum BirdSpecies {
-    Cardinal,
-    Sparrow,
-    BlueJay,
-}
 
 #[derive(Component, Clone, Copy)]
 pub struct AnimatedBird {

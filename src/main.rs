@@ -19,6 +19,7 @@ mod environment;
 mod steam;
 mod performance;
 mod flocking;
+mod weather_effects;
 
 use user_interface::UserInterfacePlugin;
 use bird::BirdPlugin;
@@ -38,6 +39,7 @@ use environment::EnvironmentPlugin;
 use steam::SteamPlugin;
 use performance::PerformancePlugin;
 use flocking::FlockingPlugin;
+use weather_effects::WeatherEffectsPlugin;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Default, States)]
 pub enum AppState {
@@ -70,6 +72,7 @@ fn main() {
             PerformancePlugin,
         ))
         .add_plugins(FlockingPlugin)
+        .add_plugins(WeatherEffectsPlugin)
         .add_systems(Startup, setup)
         .add_systems(PostUpdate, robust_despawn_system)
         .run();

@@ -1,6 +1,6 @@
 // src/journal/components.rs
 use bevy::prelude::*;
-use crate::animation::components::BirdSpecies;
+use crate::bird::BirdSpecies;
 
 #[derive(Component)]
 pub struct JournalMenu;

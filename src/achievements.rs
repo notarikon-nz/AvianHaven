@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 use std::collections::HashSet;
-use crate::animation::components::BirdSpecies;
+use crate::bird::BirdSpecies;
 use crate::photo_mode::components::PhotoTakenEvent;
 use crate::notifications::{resources::ShowNotificationEvent, components::NotificationType};
 

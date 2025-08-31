@@ -6,6 +6,12 @@ pub struct EnvironmentEntity;
 #[derive(Component)]
 pub struct WeatherEffectEntity;
 
+#[derive(Component)]
+pub struct AmbientLight;
+
+#[derive(Component)]
+pub struct DayNightOverlay;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Season {
     Spring,

@@ -4,15 +4,16 @@ use crate::audio::resources::*;
 
 #[derive(Component)]
 pub struct PositionalAudioSource {
-    pub attenuation: f32,
+    pub source_entity: Entity,
+    pub max_distance: f32,
+    pub volume_curve: AudioVolumeCurve,
 }
 
-impl Default for PositionalAudioSource {
-    fn default() -> Self {
-        Self {
-            attenuation: 300.0, // Default maximum hearing distance
-        }
-    }
+#[derive(Debug, Clone, Copy)]
+pub enum AudioVolumeCurve {
+    Linear,
+    Exponential,
+    InverseSquare,
 }
 
 #[derive(Component)]

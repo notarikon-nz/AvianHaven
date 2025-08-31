@@ -24,6 +24,7 @@ impl Plugin for EnvironmentPlugin {
                 weather_system,
                 seasonal_migration_system,
                 environment_effect_system,
+                lighting_transition_system,
             ).run_if(in_state(crate::AppState::Playing)));
     }
 }

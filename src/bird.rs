@@ -30,7 +30,7 @@ impl Plugin for BirdPlugin {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum BirdSpecies {
-    // Tier 1 - Common backyard birds (20 species total)
+    // Tier 1 - Common backyard birds (20 species)
     Cardinal,
     BlueJay,
     Robin,
@@ -51,37 +51,230 @@ pub enum BirdSpecies {
     CommonCrow,
     BlueGrayGnatcatcher,
     YellowWarbler,
+    
+    // Tier 2 - Uncommon (15 species)
+    DownyWoodpecker,
+    HairyWoodpecker,
+    PileatedWoodpecker,
+    RedHeadedWoodpecker,
+    RubyThroatedHummingbird,
+    PurpleFinch,
+    IndianaBunting,
+    RoseBreastedGrosbeak,
+    WoodThrush,
+    Catbird,
+    ScarletTanager,
+    BaltimoreOriole,
+    WinterWren,
+    BrownCreeper,
+    YellowBelledSapsucker,
+    
+    // Tier 3 - Rare (10 species)
+    RedTailedHawk,
+    CoopersHawk,
+    GreatHornedOwl,
+    BarredOwl,
+    EasternBluebird,
+    BelttedKingfisher,
+    GrandSlamAmerican,
+    PaintedBunting,
+    CeruleanWarbler,
+    HoodedWarbler,
+    
+    // Tier 4 - Legendary (5 species)
+    BaldEagle,
+    PeregrineFalcon,
+    ProthonotaryWarbler,
+    KentuckyWarbler,
+    GoldenWingedWarbler,
 }
 
 impl BirdSpecies {
     fn random() -> Self {
+        Self::random_with_rarity(1.0)
+    }
+    
+    pub fn random_with_rarity(rarity_boost: f32) -> Self {
         let mut rng = rand::rng();
-        match rng.random_range(0..20) {
-            0 => Self::Cardinal,
-            1 => Self::BlueJay,
-            2 => Self::Robin,
-            3 => Self::Sparrow,
-            4 => Self::Chickadee,
-            5 => Self::Goldfinch,
-            6 => Self::NorthernMockingbird,
-            7 => Self::RedWingedBlackbird,
-            8 => Self::CommonGrackle,
-            9 => Self::BrownThrasher,
-            10 => Self::CedarWaxwing,
-            11 => Self::WhiteBreastedNuthatch,
-            12 => Self::TuftedTitmouse,
-            13 => Self::CarolinaWren,
-            14 => Self::HouseFinch,
-            15 => Self::EuropeanStarling,
-            16 => Self::MourningDove,
-            17 => Self::CommonCrow,
-            18 => Self::BlueGrayGnatcatcher,
-            _ => Self::YellowWarbler,
+        let roll = rng.random::<f32>();
+        
+        // Tier probabilities (modified by rarity_boost)
+        let tier2_chance = 0.15 * rarity_boost; // 15% for uncommon
+        let tier3_chance = 0.05 * rarity_boost; // 5% for rare  
+        let tier4_chance = 0.01 * rarity_boost; // 1% for legendary
+        
+        if roll < tier4_chance {
+            // Tier 4 - Legendary
+            match rng.random_range(0..5) {
+                0 => Self::BaldEagle,
+                1 => Self::PeregrineFalcon,
+                2 => Self::ProthonotaryWarbler,
+                3 => Self::KentuckyWarbler,
+                _ => Self::GoldenWingedWarbler,
+            }
+        } else if roll < tier4_chance + tier3_chance {
+            // Tier 3 - Rare
+            match rng.random_range(0..10) {
+                0 => Self::RedTailedHawk,
+                1 => Self::CoopersHawk,
+                2 => Self::GreatHornedOwl,
+                3 => Self::BarredOwl,
+                4 => Self::EasternBluebird,
+                5 => Self::BelttedKingfisher,
+                6 => Self::GrandSlamAmerican,
+                7 => Self::PaintedBunting,
+                8 => Self::CeruleanWarbler,
+                _ => Self::HoodedWarbler,
+            }
+        } else if roll < tier4_chance + tier3_chance + tier2_chance {
+            // Tier 2 - Uncommon
+            match rng.random_range(0..15) {
+                0 => Self::DownyWoodpecker,
+                1 => Self::HairyWoodpecker,
+                2 => Self::PileatedWoodpecker,
+                3 => Self::RedHeadedWoodpecker,
+                4 => Self::RubyThroatedHummingbird,
+                5 => Self::PurpleFinch,
+                6 => Self::IndianaBunting,
+                7 => Self::RoseBreastedGrosbeak,
+                8 => Self::WoodThrush,
+                9 => Self::Catbird,
+                10 => Self::ScarletTanager,
+                11 => Self::BaltimoreOriole,
+                12 => Self::WinterWren,
+                13 => Self::BrownCreeper,
+                _ => Self::YellowBelledSapsucker,
+            }
+        } else {
+            // Tier 1 - Common
+            match rng.random_range(0..20) {
+                0 => Self::Cardinal,
+                1 => Self::BlueJay,
+                2 => Self::Robin,
+                3 => Self::Sparrow,
+                4 => Self::Chickadee,
+                5 => Self::Goldfinch,
+                6 => Self::NorthernMockingbird,
+                7 => Self::RedWingedBlackbird,
+                8 => Self::CommonGrackle,
+                9 => Self::BrownThrasher,
+                10 => Self::CedarWaxwing,
+                11 => Self::WhiteBreastedNuthatch,
+                12 => Self::TuftedTitmouse,
+                13 => Self::CarolinaWren,
+                14 => Self::HouseFinch,
+                15 => Self::EuropeanStarling,
+                16 => Self::MourningDove,
+                17 => Self::CommonCrow,
+                18 => Self::BlueGrayGnatcatcher,
+                _ => Self::YellowWarbler,
+            }
+        }
+    }
+    
+    pub fn rarity_tier(&self) -> u8 {
+        match self {
+            // Tier 1 - Common
+            Self::Cardinal | Self::BlueJay | Self::Robin | Self::Sparrow | Self::Chickadee |
+            Self::Goldfinch | Self::NorthernMockingbird | Self::RedWingedBlackbird | 
+            Self::CommonGrackle | Self::BrownThrasher | Self::CedarWaxwing | 
+            Self::WhiteBreastedNuthatch | Self::TuftedTitmouse | Self::CarolinaWren |
+            Self::HouseFinch | Self::EuropeanStarling | Self::MourningDove | Self::CommonCrow |
+            Self::BlueGrayGnatcatcher | Self::YellowWarbler => 1,
+            
+            // Tier 2 - Uncommon
+            Self::DownyWoodpecker | Self::HairyWoodpecker | Self::PileatedWoodpecker |
+            Self::RedHeadedWoodpecker | Self::RubyThroatedHummingbird | Self::PurpleFinch |
+            Self::IndianaBunting | Self::RoseBreastedGrosbeak | Self::WoodThrush |
+            Self::Catbird | Self::ScarletTanager | Self::BaltimoreOriole | Self::WinterWren |
+            Self::BrownCreeper | Self::YellowBelledSapsucker => 2,
+            
+            // Tier 3 - Rare
+            Self::RedTailedHawk | Self::CoopersHawk | Self::GreatHornedOwl | Self::BarredOwl |
+            Self::EasternBluebird | Self::BelttedKingfisher | Self::GrandSlamAmerican |
+            Self::PaintedBunting | Self::CeruleanWarbler | Self::HoodedWarbler => 3,
+            
+            // Tier 4 - Legendary
+            Self::BaldEagle | Self::PeregrineFalcon | Self::ProthonotaryWarbler |
+            Self::KentuckyWarbler | Self::GoldenWingedWarbler => 4,
+        }
+    }
+    
+    pub fn spawn_probability(&self) -> f32 {
+        match self.rarity_tier() {
+            1 => 1.0,    // Common - normal spawn rate
+            2 => 0.3,    // Uncommon - 30% spawn rate
+            3 => 0.1,    // Rare - 10% spawn rate
+            4 => 0.02,   // Legendary - 2% spawn rate
+            _ => 0.0,
+        }
+    }
+    
+    pub fn feeding_preferences(&self) -> Vec<FeederType> {
+        match self {
+            // Seed eaters
+            Self::Cardinal | Self::BlueJay | Self::Sparrow | Self::Chickadee | Self::Goldfinch |
+            Self::HouseFinch | Self::PurpleFinch | Self::IndianaBunting | Self::RoseBreastedGrosbeak => {
+                vec![FeederType::Seed, FeederType::Ground]
+            },
+            
+            // Suet specialists (woodpeckers)
+            Self::DownyWoodpecker | Self::HairyWoodpecker | Self::PileatedWoodpecker | 
+            Self::RedHeadedWoodpecker | Self::YellowBelledSapsucker => {
+                vec![FeederType::Suet]
+            },
+            
+            // Nectar specialists
+            Self::RubyThroatedHummingbird => {
+                vec![FeederType::Nectar]
+            },
+            
+            // Fruit eaters
+            Self::BrownThrasher | Self::WoodThrush | Self::Catbird | Self::ScarletTanager |
+            Self::BaltimoreOriole | Self::PaintedBunting => {
+                vec![FeederType::Fruit, FeederType::Ground]
+            },
+            
+            // Ground foragers
+            Self::Robin | Self::CommonGrackle | Self::EuropeanStarling | Self::CommonCrow |
+            Self::MourningDove | Self::EasternBluebird => {
+                vec![FeederType::Ground]
+            },
+            
+            // Insectivores (rarely use feeders)
+            Self::WhiteBreastedNuthatch | Self::TuftedTitmouse | Self::CarolinaWren |
+            Self::BrownCreeper | Self::WinterWren | Self::BlueGrayGnatcatcher | Self::YellowWarbler |
+            Self::CeruleanWarbler | Self::HoodedWarbler | Self::ProthonotaryWarbler |
+            Self::KentuckyWarbler | Self::GoldenWingedWarbler => {
+                vec![FeederType::Suet, FeederType::Seed]
+            },
+            
+            // Mixed feeders
+            Self::NorthernMockingbird | Self::RedWingedBlackbird | Self::CedarWaxwing => {
+                vec![FeederType::Fruit, FeederType::Seed, FeederType::Ground]
+            },
+            
+            // Raptors (no feeders - attracted by bird activity)
+            Self::RedTailedHawk | Self::CoopersHawk | Self::GreatHornedOwl | Self::BarredOwl |
+            Self::BaldEagle | Self::PeregrineFalcon => {
+                vec![] // No direct feeding
+            },
+            
+            // Water specialists  
+            Self::BelttedKingfisher => {
+                vec![] // Requires water features
+            },
+            
+            // Game birds
+            Self::GrandSlamAmerican => {
+                vec![FeederType::Ground, FeederType::Seed]
+            },
         }
     }
 
     fn color(&self) -> Color {
         match self {
+            // Tier 1 - Common species
             Self::Cardinal => Color::srgb(0.8, 0.2, 0.2),
             Self::BlueJay => Color::srgb(0.2, 0.4, 0.8),
             Self::Robin => Color::srgb(0.6, 0.3, 0.1),
@@ -102,36 +295,48 @@ impl BirdSpecies {
             Self::CommonCrow => Color::srgb(0.1, 0.1, 0.1),
             Self::BlueGrayGnatcatcher => Color::srgb(0.4, 0.5, 0.6),
             Self::YellowWarbler => Color::srgb(0.8, 0.8, 0.3),
+            
+            // Tier 2 - Uncommon species
+            Self::DownyWoodpecker => Color::srgb(0.9, 0.9, 0.9),
+            Self::HairyWoodpecker => Color::srgb(0.8, 0.8, 0.8),
+            Self::PileatedWoodpecker => Color::srgb(0.2, 0.2, 0.2),
+            Self::RedHeadedWoodpecker => Color::srgb(0.8, 0.1, 0.1),
+            Self::RubyThroatedHummingbird => Color::srgb(0.1, 0.7, 0.1),
+            Self::PurpleFinch => Color::srgb(0.6, 0.3, 0.6),
+            Self::IndianaBunting => Color::srgb(0.2, 0.3, 0.8),
+            Self::RoseBreastedGrosbeak => Color::srgb(0.8, 0.2, 0.4),
+            Self::WoodThrush => Color::srgb(0.6, 0.4, 0.3),
+            Self::Catbird => Color::srgb(0.4, 0.4, 0.4),
+            Self::ScarletTanager => Color::srgb(0.9, 0.1, 0.1),
+            Self::BaltimoreOriole => Color::srgb(0.9, 0.5, 0.1),
+            Self::WinterWren => Color::srgb(0.4, 0.3, 0.2),
+            Self::BrownCreeper => Color::srgb(0.5, 0.4, 0.3),
+            Self::YellowBelledSapsucker => Color::srgb(0.8, 0.8, 0.4),
+            
+            // Tier 3 - Rare species
+            Self::RedTailedHawk => Color::srgb(0.6, 0.4, 0.3),
+            Self::CoopersHawk => Color::srgb(0.5, 0.5, 0.5),
+            Self::GreatHornedOwl => Color::srgb(0.4, 0.3, 0.2),
+            Self::BarredOwl => Color::srgb(0.5, 0.4, 0.3),
+            Self::EasternBluebird => Color::srgb(0.2, 0.4, 0.9),
+            Self::BelttedKingfisher => Color::srgb(0.3, 0.5, 0.7),
+            Self::GrandSlamAmerican => Color::srgb(0.4, 0.3, 0.2),
+            Self::PaintedBunting => Color::srgb(0.8, 0.3, 0.6),
+            Self::CeruleanWarbler => Color::srgb(0.2, 0.6, 0.9),
+            Self::HoodedWarbler => Color::srgb(0.8, 0.8, 0.2),
+            
+            // Tier 4 - Legendary species
+            Self::BaldEagle => Color::srgb(0.3, 0.2, 0.1),
+            Self::PeregrineFalcon => Color::srgb(0.4, 0.4, 0.5),
+            Self::ProthonotaryWarbler => Color::srgb(0.9, 0.7, 0.1),
+            Self::KentuckyWarbler => Color::srgb(0.7, 0.8, 0.2),
+            Self::GoldenWingedWarbler => Color::srgb(0.8, 0.7, 0.3),
         }
     }
     
     /// Returns preferred feeder types for this species, in order of preference
     pub fn preferred_feeders(&self) -> Vec<FeederType> {
-        match self {
-            // Seed lovers
-            Self::Cardinal | Self::BlueJay | Self::Chickadee | Self::TuftedTitmouse |
-            Self::WhiteBreastedNuthatch => vec![FeederType::Seed, FeederType::Suet],
-            
-            // Ground feeders
-            Self::Sparrow | Self::MourningDove | Self::CommonGrackle | Self::RedWingedBlackbird =>
-                vec![FeederType::Ground, FeederType::Seed],
-            
-            // Nectar and fruit lovers
-            Self::CedarWaxwing | Self::BrownThrasher => vec![FeederType::Fruit, FeederType::Seed],
-            
-            // Finches (small seeds)
-            Self::Goldfinch | Self::HouseFinch => vec![FeederType::Seed],
-            
-            // Versatile feeders
-            Self::Robin | Self::NorthernMockingbird => vec![FeederType::Ground, FeederType::Fruit, FeederType::Seed],
-            
-            // Insect eaters with occasional seeds
-            Self::CarolinaWren | Self::BlueGrayGnatcatcher | Self::YellowWarbler =>
-                vec![FeederType::Suet, FeederType::Seed],
-            
-            // Large omnivores
-            Self::CommonCrow | Self::EuropeanStarling => vec![FeederType::Ground, FeederType::Suet, FeederType::Seed],
-        }
+        self.feeding_preferences()
     }
     
     /// Returns utility multiplier for a given feeder type (0.0-2.0)
@@ -208,16 +413,9 @@ fn spawn_bird(commands: &mut Commands) {
             },
             ..default()
         },
-        // Animation component (using available animated species for now)
+        // Animation component
         AnimatedBird {
-            species: match species {
-                BirdSpecies::Cardinal => crate::animation::components::BirdSpecies::Cardinal,
-                BirdSpecies::BlueJay => crate::animation::components::BirdSpecies::BlueJay,
-                BirdSpecies::Sparrow | BirdSpecies::Chickadee | BirdSpecies::Goldfinch | 
-                BirdSpecies::HouseFinch | BirdSpecies::CarolinaWren | BirdSpecies::TuftedTitmouse |
-                BirdSpecies::WhiteBreastedNuthatch => crate::animation::components::BirdSpecies::Sparrow,
-                _ => crate::animation::components::BirdSpecies::Sparrow,
-            }
+            species,
         },
     ));
 }
@@ -366,11 +564,7 @@ fn spawn_specific_bird(commands: &mut Commands, species: BirdSpecies) {
         },
         // Animation component
         AnimatedBird {
-            species: match species {
-                BirdSpecies::Cardinal => crate::animation::components::BirdSpecies::Cardinal,
-                BirdSpecies::BlueJay => crate::animation::components::BirdSpecies::BlueJay,
-                _ => crate::animation::components::BirdSpecies::Sparrow, // Default for others
-            },
+            species,
         },
     ));
 }

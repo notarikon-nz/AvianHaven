@@ -14,6 +14,7 @@ impl Plugin for SteamPlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<SteamState>()
+    .init_resource::<SteamStats>()
             .init_resource::<SteamAchievements>()
             .add_event::<SteamAchievementEvent>()
             .add_event::<SteamStatsEvent>()

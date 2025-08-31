@@ -1,7 +1,7 @@
 // src/audio/resources.rs
 use bevy::prelude::*;
 use std::collections::{HashMap, VecDeque};
-use crate::animation::components::BirdSpecies;
+use crate::bird::BirdSpecies;
 
 #[derive(Resource)]
 pub struct AudioSettings {

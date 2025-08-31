@@ -79,16 +79,36 @@ impl BirdSpecies {
         match self {
             // Highly social species
             Self::EuropeanStarling | Self::CommonGrackle | Self::CommonCrow => 12,
-            Self::Goldfinch | Self::HouseFinch => 8,
+            Self::Goldfinch | Self::HouseFinch | Self::PurpleFinch => 8,
             Self::Sparrow | Self::Chickadee => 6,
             
             // Moderately social
-            Self::RedWingedBlackbird | Self::CedarWaxwing => 4,
-            Self::Robin | Self::MourningDove => 3,
+            Self::RedWingedBlackbird | Self::CedarWaxwing | Self::BaltimoreOriole => 4,
+            Self::Robin | Self::MourningDove | Self::EasternBluebird => 3,
             
             // Less social or territorial
             Self::Cardinal | Self::BlueJay => 2,
             Self::WhiteBreastedNuthatch | Self::TuftedTitmouse => 2,
+            Self::RoseBreastedGrosbeak | Self::IndianaBunting => 2,
+            
+            // Woodpeckers (mostly solitary)
+            Self::DownyWoodpecker | Self::HairyWoodpecker | Self::PileatedWoodpecker | 
+            Self::RedHeadedWoodpecker | Self::YellowBelledSapsucker => 1,
+            
+            // Raptors and large birds (solitary)
+            Self::RedTailedHawk | Self::CoopersHawk | Self::GreatHornedOwl | Self::BarredOwl |
+            Self::BaldEagle | Self::PeregrineFalcon | Self::BelttedKingfisher => 1,
+            
+            // Small songbirds (social)
+            Self::WoodThrush | Self::Catbird | Self::ScarletTanager => 2,
+            Self::WinterWren | Self::BrownCreeper => 1,
+            
+            // Hummingbirds (territorial)
+            Self::RubyThroatedHummingbird => 1,
+            
+            // Warblers (small flocks during migration)
+            Self::CeruleanWarbler | Self::HoodedWarbler | Self::ProthonotaryWarbler |
+            Self::KentuckyWarbler | Self::GoldenWingedWarbler => 3,
             
             // Generally solitary
             _ => 1,
@@ -101,13 +121,30 @@ impl BirdSpecies {
             Self::BlueJay | Self::NorthernMockingbird => 150.0,
             Self::Cardinal | Self::Robin => 120.0,
             
+            // Raptors - very large territories
+            Self::RedTailedHawk | Self::GreatHornedOwl | Self::BaldEagle => 500.0,
+            Self::CoopersHawk | Self::PeregrineFalcon | Self::BarredOwl => 300.0,
+            
+            // Hummingbirds - small but fierce
+            Self::RubyThroatedHummingbird => 80.0,
+            
+            // Woodpeckers - moderate territory
+            Self::PileatedWoodpecker => 200.0,
+            Self::HairyWoodpecker | Self::RedHeadedWoodpecker => 120.0,
+            Self::DownyWoodpecker | Self::YellowBelledSapsucker => 80.0,
+            
             // Moderately territorial
             Self::RedWingedBlackbird | Self::CarolinaWren => 100.0,
-            Self::WhiteBreastedNuthatch => 80.0,
+            Self::WhiteBreastedNuthatch | Self::WoodThrush => 80.0,
+            Self::BaltimoreOriole | Self::ScarletTanager => 90.0,
             
             // Less territorial (social species)
-            Self::Sparrow | Self::Chickadee | Self::Goldfinch => 50.0,
+            Self::Sparrow | Self::Chickadee | Self::Goldfinch | Self::PurpleFinch => 50.0,
             Self::EuropeanStarling | Self::CommonGrackle => 30.0,
+            
+            // Specialized species
+            Self::BelttedKingfisher => 250.0,
+            Self::EasternBluebird => 100.0,
             
             _ => 60.0, // Default
         }
@@ -115,17 +152,33 @@ impl BirdSpecies {
     
     pub fn aggression_level(&self) -> f32 {
         match self {
+            // Extremely aggressive (raptors)
+            Self::RedTailedHawk | Self::CoopersHawk | Self::PeregrineFalcon | Self::BaldEagle => 1.0,
+            Self::GreatHornedOwl | Self::BarredOwl => 0.95,
+            
             // Very aggressive
             Self::BlueJay | Self::NorthernMockingbird => 0.9,
-            Self::RedWingedBlackbird => 0.8,
+            Self::RedWingedBlackbird | Self::RubyThroatedHummingbird => 0.8,
+            
+            // Woodpeckers - moderately aggressive
+            Self::PileatedWoodpecker | Self::RedHeadedWoodpecker => 0.7,
+            Self::HairyWoodpecker | Self::DownyWoodpecker | Self::YellowBelledSapsucker => 0.5,
             
             // Moderately aggressive
-            Self::Cardinal | Self::Robin => 0.6,
-            Self::CommonCrow => 0.7,
+            Self::Cardinal | Self::Robin | Self::CommonCrow => 0.6,
+            Self::BaltimoreOriole | Self::ScarletTanager => 0.5,
             
-            // Peaceful
-            Self::Chickadee | Self::Goldfinch | Self::CedarWaxwing => 0.2,
-            Self::MourningDove => 0.1,
+            // Peaceful songbirds
+            Self::Chickadee | Self::Goldfinch | Self::PurpleFinch | Self::CedarWaxwing => 0.2,
+            Self::MourningDove | Self::EasternBluebird => 0.1,
+            Self::WoodThrush | Self::Catbird => 0.3,
+            
+            // Warblers - generally peaceful
+            Self::CeruleanWarbler | Self::HoodedWarbler | Self::ProthonotaryWarbler |
+            Self::KentuckyWarbler | Self::GoldenWingedWarbler => 0.2,
+            
+            // Small insectivores - timid
+            Self::WinterWren | Self::BrownCreeper => 0.1,
             
             _ => 0.4, // Default moderate
         }
@@ -170,22 +223,36 @@ impl BirdSpecies {
     
     fn size_category(&self) -> u8 {
         match self {
-            // Small birds (1)
+            // Tiny birds (1)
+            Self::RubyThroatedHummingbird | Self::WinterWren | Self::BrownCreeper => 1,
+            
+            // Small birds (2)
             Self::Chickadee | Self::TuftedTitmouse | Self::WhiteBreastedNuthatch |
-            Self::Goldfinch | Self::BlueGrayGnatcatcher => 1,
+            Self::Goldfinch | Self::PurpleFinch | Self::BlueGrayGnatcatcher | 
+            Self::CeruleanWarbler | Self::HoodedWarbler | Self::ProthonotaryWarbler |
+            Self::KentuckyWarbler | Self::GoldenWingedWarbler => 2,
             
-            // Medium-small birds (2)
-            Self::Sparrow | Self::HouseFinch | Self::CarolinaWren | Self::YellowWarbler => 2,
+            // Medium-small birds (3)
+            Self::Sparrow | Self::HouseFinch | Self::CarolinaWren | Self::YellowWarbler |
+            Self::DownyWoodpecker | Self::IndianaBunting | Self::EasternBluebird => 3,
             
-            // Medium birds (3)
-            Self::Cardinal | Self::Robin | Self::CedarWaxwing | Self::BrownThrasher => 3,
+            // Medium birds (4)
+            Self::Cardinal | Self::Robin | Self::CedarWaxwing | Self::BrownThrasher |
+            Self::HairyWoodpecker | Self::RoseBreastedGrosbeak | Self::WoodThrush |
+            Self::Catbird | Self::ScarletTanager | Self::BaltimoreOriole => 4,
             
-            // Large birds (4)
+            // Large birds (5)
             Self::BlueJay | Self::CommonGrackle | Self::RedWingedBlackbird | 
-            Self::NorthernMockingbird | Self::MourningDove => 4,
+            Self::NorthernMockingbird | Self::MourningDove | Self::RedHeadedWoodpecker |
+            Self::PileatedWoodpecker | Self::YellowBelledSapsucker | Self::PaintedBunting => 5,
             
-            // Very large birds (5)
-            Self::CommonCrow | Self::EuropeanStarling => 5,
+            // Very large birds (6)
+            Self::CommonCrow | Self::EuropeanStarling | Self::BelttedKingfisher |
+            Self::GrandSlamAmerican => 6,
+            
+            // Raptors (7-8)
+            Self::CoopersHawk | Self::BarredOwl | Self::PeregrineFalcon => 7,
+            Self::RedTailedHawk | Self::GreatHornedOwl | Self::BaldEagle => 8,
         }
     }
 }

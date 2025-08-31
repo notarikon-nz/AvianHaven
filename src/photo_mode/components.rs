@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::animation::components::BirdSpecies;
+use crate::bird::BirdSpecies;
 
 #[derive(Component)]
 pub struct PhotoTarget;

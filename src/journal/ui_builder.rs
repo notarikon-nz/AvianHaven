@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::animation::components::BirdSpecies;
+use crate::bird::BirdSpecies;
 use crate::user_interface::styles::{ButtonStyle};
 use crate::journal::components::SpeciesButton;
 
@@ -60,9 +60,11 @@ pub fn ui_species_button(
 }
 
 fn species_color(species: BirdSpecies) -> Color {
-    match species {
-        BirdSpecies::Cardinal => Color::srgb(0.8, 0.2, 0.2),
-        BirdSpecies::BlueJay => Color::srgb(0.2, 0.4, 0.8),
-        BirdSpecies::Sparrow => Color::srgb(0.5, 0.4, 0.3),
+    match species.rarity_tier() {
+        1 => Color::srgb(0.7, 0.7, 0.7), // Common - gray
+        2 => Color::srgb(0.3, 0.8, 0.3), // Uncommon - green
+        3 => Color::srgb(0.3, 0.4, 0.9), // Rare - blue
+        4 => Color::srgb(0.9, 0.7, 0.1), // Legendary - gold
+        _ => Color::WHITE,
     }
 }
