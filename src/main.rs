@@ -5,7 +5,6 @@ mod bird;
 mod feeder;
 mod camera;
 mod ui;
-mod audio;
 mod resources;
 mod bird_ai;
 mod animation;
@@ -13,19 +12,20 @@ mod photo_mode;
 mod journal;
 mod user_interface;
 mod despawn;
+mod audio;
 
 use user_interface::UserInterfacePlugin;
 use bird::BirdPlugin;
 use feeder::FeederPlugin;
 use camera::CameraPlugin;
 use ui::UiPlugin;
-use audio::AudioPlugin as GameAudioPlugin;
 use resources::GameConfig;
 use bird_ai::BirdAiPlugin;
 use animation::AnimationPlugin;
 use photo_mode::PhotoModePlugin;
 use journal::JournalPlugin;
 use despawn::{robust_despawn_system};
+use audio::AudioPlugin;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Default, States)]
 pub enum AppState {
@@ -45,7 +45,7 @@ fn main() {
             FeederPlugin,
             CameraPlugin,
             UiPlugin,
-            GameAudioPlugin,
+            AudioPlugin,
             BirdAiPlugin,
             AnimationPlugin,
             UserInterfacePlugin,
