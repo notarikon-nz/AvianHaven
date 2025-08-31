@@ -16,6 +16,7 @@ impl Plugin for PhotoModePlugin {
             .init_resource::<PhotoModeSettings>()
             .init_resource::<CurrencyResource>()
             .init_resource::<DiscoveredSpecies>()
+            .init_resource::<PhotoCollection>()
             .add_event::<PhotoTakenEvent>()
             .add_systems(Update, (
                 toggle_photo_mode_system,

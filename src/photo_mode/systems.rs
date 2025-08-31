@@ -5,7 +5,7 @@ use bevy::render::render_resource::{
 };
 use crate::photo_mode::{components::*, resources::*};
 use crate::animation::components::{BirdSpecies, AnimatedBird};
-use crate::bird_ai::components::BirdAI;
+use crate::bird_ai::components::{BirdAI, BirdState};
 
 pub fn setup_photo_ui(mut commands: Commands) {
     // Viewfinder UI - initially hidden
@@ -107,7 +107,7 @@ pub fn capture_photo_system(
     keyboard: Res<ButtonInput<KeyCode>>,
     settings: Res<PhotoModeSettings>,
     mut camera_query: Query<&mut Camera, With<PhotoTarget>>,
-    bird_query: Query<(&Transform, &AnimatedBird), With<BirdAI>>,
+    bird_query: Query<(&Transform, &AnimatedBird, &BirdState), With<BirdAI>>,
     mut photo_events: EventWriter<PhotoTakenEvent>,
     mut images: ResMut<Assets<Image>>,
     mut commands: Commands,
@@ -167,13 +167,16 @@ pub fn capture_photo_system(
     // Log score breakdown
     info!("Photo Score Breakdown:");
     info!("  Species: {}", score.species_score);
+    info!("  Behavior: {}", score.behavior_score);
+    info!("  Timing: {}", score.timing_score);
     info!("  Centering: {}", score.centering_score);
     info!("  Clarity: {}", score.clarity_score);
+    info!("  Rarity Bonus: {}", score.rarity_bonus);
     info!("  Total: {}", score.total_score);
     
     photo_events.write(PhotoTakenEvent {
-        score: score.total_score,
-        species: closest_bird.map(|(_, bird)| bird.species),
+        score,
+        species: closest_bird.map(|(_, bird, _)| bird.species),
         image_handle,
     });
 }
@@ -182,12 +185,14 @@ pub fn photo_reward_system(
     mut photo_events: EventReader<PhotoTakenEvent>,
     mut currency: ResMut<CurrencyResource>,
     mut discovered_species: ResMut<DiscoveredSpecies>,
+    mut photo_collection: ResMut<PhotoCollection>,
     mut toast_query: Query<(&mut Visibility, &Children), With<ScoreToast>>,
     mut text_query: Query<&mut Text>,
+    time: Res<Time>,
 ) {
     for event in photo_events.read() {
-        // Grant currency
-        currency.0 += event.score;
+        // Grant currency based on total score
+        currency.0 += event.score.total_score;
         
         let mut bonus_text = String::new();
         
@@ -199,18 +204,35 @@ pub fn photo_reward_system(
             }
         }
         
+        // Additional bonuses for exceptional photos
+        if event.score.behavior_score >= 50 {
+            bonus_text.push_str(" Action Shot!");
+        }
+        if event.score.rarity_bonus > 0 {
+            bonus_text.push_str(" Multi-Bird!");
+        }
+        
         // Show toast
         for (mut visibility, children) in &mut toast_query {
             *visibility = Visibility::Inherited;
             
             for child in children.iter() {
                 if let Ok(mut text) = text_query.get_mut(child) {
-                    **text = format!("Photo Saved! +{} Points!{}", event.score, bonus_text);
+                    **text = format!("Photo Saved! +{} Points!{}", event.score.total_score, bonus_text);
                 }
             }
         }
         
-        info!("Currency awarded: {} (Total: {})", event.score, currency.0);
+        // Save photo to collection
+        photo_collection.add_photo(SavedPhoto {
+            species: event.species,
+            score: event.score.clone(),
+            image_handle: event.image_handle.clone(),
+            timestamp: time.elapsed().as_secs_f64(),
+        });
+        
+        info!("Currency awarded: {} (Total: {})", event.score.total_score, currency.0);
+        info!("Photo saved to collection (Total photos: {})", photo_collection.photos.len());
     }
 }
 
@@ -237,17 +259,17 @@ pub fn photo_ui_system(
 // Helper functions for photo scoring
 
 fn find_closest_bird_to_center(
-    bird_query: &Query<(&Transform, &AnimatedBird), With<BirdAI>>,
+    bird_query: &Query<(&Transform, &AnimatedBird, &BirdState), With<BirdAI>>,
     camera_pos: Vec2,
-) -> Option<(Transform, AnimatedBird)> {
+) -> Option<(Transform, AnimatedBird, BirdState)> {
     let mut closest_bird = None;
     let mut closest_distance = f32::MAX;
     
-    for (transform, animated_bird) in bird_query {
+    for (transform, animated_bird, bird_state) in bird_query {
         let distance = camera_pos.distance(transform.translation.truncate());
         if distance < closest_distance {
             closest_distance = distance;
-            closest_bird = Some((*transform, *animated_bird));
+            closest_bird = Some((*transform, *animated_bird, *bird_state));
         }
     }
     
@@ -255,26 +277,51 @@ fn find_closest_bird_to_center(
 }
 
 fn calculate_photo_score(
-    bird_query: &Query<(&Transform, &AnimatedBird), With<BirdAI>>,
-    closest_bird: Option<(Transform, AnimatedBird)>,
+    bird_query: &Query<(&Transform, &AnimatedBird, &BirdState), With<BirdAI>>,
+    closest_bird: Option<(Transform, AnimatedBird, BirdState)>,
 ) -> PhotoScore {
     let mut score = PhotoScore {
         species_score: 0,
         centering_score: 0,
         clarity_score: 0,
+        behavior_score: 0,
+        timing_score: 0,
+        rarity_bonus: 0,
         total_score: 0,
     };
     
-    let Some((bird_transform, animated_bird)) = closest_bird else {
+    let Some((bird_transform, animated_bird, bird_state)) = closest_bird else {
         return score; // No birds in shot
     };
     
-    // Species scoring - rarer species worth more
-    score.species_score = match animated_bird.species {
-        BirdSpecies::Sparrow => 10,     // Common
-        BirdSpecies::Cardinal => 20,    // Uncommon  
-        BirdSpecies::BlueJay => 35,     // Rare
+    // Species scoring - based on rarity tiers from design doc
+    score.species_score = get_species_rarity_score(animated_bird.species);
+    
+    // Behavior scoring - interesting behaviors worth more points
+    score.behavior_score = match bird_state {
+        BirdState::Eating => 50,     // Very photogenic
+        BirdState::Drinking => 45,   // Also very photogenic
+        BirdState::Bathing => 60,    // Rare and exciting behavior
+        BirdState::Fleeing => 30,    // Action shot bonus
+        BirdState::Resting => 25,    // Peaceful moment
+        BirdState::MovingToTarget => 20, // Bird in motion
+        BirdState::Wandering => 15,  // Standard pose
     };
+    
+    // Timing scoring - photogenic moments get bonuses
+    score.timing_score = match bird_state {
+        BirdState::Eating | BirdState::Drinking => {
+            // Bonus for catching bird in feeding action
+            if bird_query.iter().count() > 1 { 25 } else { 15 } // More points with multiple birds
+        },
+        BirdState::Bathing => 40, // Always exciting to capture
+        _ => 10,
+    };
+    
+    // Rarity bonus for special circumstances
+    if bird_query.iter().count() >= 3 {
+        score.rarity_bonus += 20; // Multiple birds in frame
+    }
     
     // Centering scoring - closer to center = higher score
     let bird_pos = bird_transform.translation.truncate();
@@ -286,6 +333,31 @@ fn calculate_photo_score(
     let z_distance = bird_z.abs(); // Distance from camera Z plane
     score.clarity_score = ((100.0 - z_distance.min(100.0)) / 100.0 * 20.0) as u32;
     
-    score.total_score = score.species_score + score.centering_score + score.clarity_score;
+    score.total_score = score.species_score + score.centering_score + score.clarity_score + 
+                       score.behavior_score + score.timing_score + score.rarity_bonus;
     score
+}
+
+fn get_species_rarity_score(species: BirdSpecies) -> u32 {
+    use crate::bird::BirdSpecies as BS;
+    match species {
+        // Convert animation species to bird species and get score
+        BirdSpecies::Cardinal => match_bird_species_score(BS::Cardinal),
+        BirdSpecies::BlueJay => match_bird_species_score(BS::BlueJay),
+        BirdSpecies::Sparrow => match_bird_species_score(BS::Sparrow),
+    }
+}
+
+fn match_bird_species_score(species: crate::bird::BirdSpecies) -> u32 {
+    use crate::bird::BirdSpecies as BS;
+    match species {
+        // Tier 1 - Common (10-25 points)
+        BS::Sparrow | BS::Robin | BS::Chickadee | BS::HouseFinch | BS::EuropeanStarling => 15,
+        BS::Cardinal | BS::BlueJay | BS::Goldfinch | BS::MourningDove => 20,
+        BS::NorthernMockingbird | BS::RedWingedBlackbird | BS::CommonGrackle | BS::CommonCrow => 18,
+        
+        // More interesting species (25-35 points)  
+        BS::BrownThrasher | BS::CedarWaxwing | BS::WhiteBreastedNuthatch | BS::TuftedTitmouse => 30,
+        BS::CarolinaWren | BS::BlueGrayGnatcatcher | BS::YellowWarbler => 35,
+    }
 }

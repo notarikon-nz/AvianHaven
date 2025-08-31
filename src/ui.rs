@@ -1,6 +1,8 @@
 use bevy::prelude::*;
 
 use crate::{AppState, resources::{BirdCount, SpawnBirdEvent}};
+use crate::environment::resources::{TimeState, WeatherState};
+use crate::photo_mode::resources::CurrencyResource;
 
 pub struct UiPlugin;
 
@@ -12,6 +14,8 @@ impl Plugin for UiPlugin {
                 (
                     button_interaction,
                     update_bird_counter,
+                    update_environment_ui,
+                    update_currency_ui,
                 ).run_if(in_state(AppState::Playing))
             );
     }
@@ -22,6 +26,12 @@ struct SpawnButton;
 
 #[derive(Component)]
 struct BirdCounterText;
+
+#[derive(Component)]
+struct EnvironmentText;
+
+#[derive(Component)]
+struct CurrencyText;
 
 fn setup_ui(mut commands: Commands) {
     // Root UI container
@@ -64,6 +74,28 @@ fn setup_ui(mut commands: Commands) {
                 },
                 TextColor(Color::WHITE),
                 BirdCounterText,
+            ));
+            
+            // Environment info
+            parent.spawn((
+                Text::new("Spring | 08:00 | Clear (20°C)"),
+                TextFont {
+                    font_size: 16.0,
+                    ..default()
+                },
+                TextColor(Color::srgb(0.9, 0.9, 0.9)),
+                EnvironmentText,
+            ));
+            
+            // Currency display
+            parent.spawn((
+                Text::new("Currency: 0"),
+                TextFont {
+                    font_size: 20.0,
+                    ..default()
+                },
+                TextColor(Color::srgb(0.8, 0.6, 0.2)),
+                CurrencyText,
             ));
             
             // Spawn bird button
@@ -124,6 +156,36 @@ fn update_bird_counter(
     if bird_count.is_changed() {
         for mut text in text_query.iter_mut() {
             **text = format!("Birds: {}", bird_count.0);
+        }
+    }
+}
+
+fn update_environment_ui(
+    time_state: Res<TimeState>,
+    weather_state: Res<WeatherState>,
+    mut text_query: Query<&mut Text, With<EnvironmentText>>,
+) {
+    if time_state.is_changed() || weather_state.is_changed() {
+        for mut text in text_query.iter_mut() {
+            let season = time_state.get_season();
+            let hour = time_state.hour as u32;
+            let minute = ((time_state.hour - hour as f32) * 60.0) as u32;
+            
+            **text = format!(
+                "{:?} | {:02}:{:02} | {:?} ({}°C)", 
+                season, hour, minute, weather_state.current_weather, weather_state.temperature as i32
+            );
+        }
+    }
+}
+
+fn update_currency_ui(
+    currency: Res<CurrencyResource>,
+    mut text_query: Query<&mut Text, With<CurrencyText>>,
+) {
+    if currency.is_changed() {
+        for mut text in text_query.iter_mut() {
+            **text = format!("Currency: {}", currency.0);
         }
     }
 }

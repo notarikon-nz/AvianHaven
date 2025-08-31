@@ -13,6 +13,11 @@ mod journal;
 mod user_interface;
 mod despawn;
 mod audio;
+mod achievements;
+mod notifications;
+mod environment;
+mod steam;
+mod performance;
 
 use user_interface::UserInterfacePlugin;
 use bird::BirdPlugin;
@@ -26,6 +31,11 @@ use photo_mode::PhotoModePlugin;
 use journal::JournalPlugin;
 use despawn::{robust_despawn_system};
 use audio::AudioPlugin;
+use achievements::AchievementPlugin;
+use notifications::NotificationPlugin;
+use environment::EnvironmentPlugin;
+use steam::SteamPlugin;
+use performance::PerformancePlugin;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Default, States)]
 pub enum AppState {
@@ -51,6 +61,11 @@ fn main() {
             UserInterfacePlugin,
             PhotoModePlugin,
             JournalPlugin,
+            AchievementPlugin,
+            NotificationPlugin,
+            EnvironmentPlugin,
+            SteamPlugin,
+            PerformancePlugin,
         ))
         .add_systems(Startup, setup)
         .add_systems(PostUpdate, robust_despawn_system)

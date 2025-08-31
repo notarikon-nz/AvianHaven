@@ -1,52 +1,14 @@
 use bevy::prelude::*;
 use crate::bird_ai::{components::*, resources::*, bt::*, states::*};
+use crate::bird::Bird;
+use crate::feeder::{Feeder, FeederType};
+use crate::environment::resources::{TimeState, WeatherState, SeasonalState};
 
 pub fn setup_test_world(mut commands: Commands) {
-    // Spawn test bird
-    commands.spawn((
-        Sprite::from_color(Color::srgb(0.8, 0.3, 0.3), Vec2::new(20.0, 20.0)),
-        Transform::from_xyz(0.0, 0.0, 1.0),
-        BirdAI,
-        BirdState::Wandering,
-        Blackboard {
-            internal: InternalState {
-                hunger: 0.6,
-                thirst: 0.4,
-                energy: 0.8,
-                fear: 0.0,
-            },
-            ..default()
-        },
-    ));
-    
-    // Spawn feeder
-    commands.spawn((
-        Sprite::from_color(Color::srgb(0.6, 0.4, 0.2), Vec2::new(30.0, 40.0)),
-        Transform::from_xyz(150.0, 100.0, 0.5),
-        SmartObject,
-        ProvidesUtility {
-            action: BirdAction::Eat,
-            base_utility: 0.4,
-            range: 300.0,
-        },
-    ));
-
-    // Spawn premium feeder
-    commands.spawn((
-        Sprite::from_color(Color::srgb(0.6, 0.4, 0.2), Vec2::new(30.0, 40.0)),
-        Transform::from_xyz(-50.0, 100.0, 0.5),
-        SmartObject,
-        ProvidesUtility {
-            action: BirdAction::Eat,
-            base_utility: 0.9,
-            range: 500.0,
-        },
-    ));    
-    
-    // Spawn water source
+    // Water source for drinking (supplement to nectar feeders)
     commands.spawn((
         Sprite::from_color(Color::srgb(0.2, 0.6, 0.8), Vec2::new(40.0, 40.0)),
-        Transform::from_xyz(-120.0, 80.0, 0.5),
+        Transform::from_xyz(200.0, -100.0, 0.5),
         SmartObject,
         ProvidesUtility {
             action: BirdAction::Drink,
@@ -55,7 +17,7 @@ pub fn setup_test_world(mut commands: Commands) {
         },
     ));
     
-    // Spawn bird bath
+    // Bird bath for bathing
     commands.spawn((
         Sprite::from_color(Color::srgb(0.7, 0.7, 0.9), Vec2::new(35.0, 35.0)),
         Transform::from_xyz(80.0, -120.0, 0.5),
@@ -69,18 +31,52 @@ pub fn setup_test_world(mut commands: Commands) {
 }
 
 pub fn world_utility_query_system(
-    mut bird_query: Query<(&Transform, &mut Blackboard), With<BirdAI>>,
+    mut bird_query: Query<(&Transform, &mut Blackboard, &Bird), With<BirdAI>>,
     object_query: Query<(Entity, &Transform, &ProvidesUtility), With<SmartObject>>,
+    feeder_query: Query<(Entity, &Transform, &ProvidesUtility, &Feeder), With<SmartObject>>,
     mut timer: ResMut<UtilityTimer>,
+    time_state: Res<TimeState>,
+    weather_state: Res<WeatherState>,
     time: Res<Time>,
 ) {
     timer.0.tick(time.delta());
     if !timer.0.finished() { return; }
     
-    for (bird_transform, mut blackboard) in bird_query.iter_mut() {
+    for (bird_transform, mut blackboard, bird) in bird_query.iter_mut() {
         blackboard.world_knowledge.available_actions.clear();
         
+        // Process feeders with species preferences
+        for (entity, obj_transform, utility, feeder) in feeder_query.iter() {
+            let distance = bird_transform.translation.distance(obj_transform.translation);
+            if distance <= utility.range {
+                let distance_factor = 1.0 - (distance / utility.range);
+                let species_modifier = bird.species.feeder_utility_modifier(feeder.feeder_type);
+                
+                // Apply environmental modifiers
+                let weather_modifier = weather_state.current_weather.feeder_preference_modifier(&feeder.feeder_type);
+                let time_modifier = if time_state.is_prime_feeding_time() { 1.2 } else { 0.8 };
+                let daylight_modifier = time_state.daylight_factor();
+                
+                let final_score = utility.base_utility * distance_factor * species_modifier * 
+                                weather_modifier * time_modifier * daylight_modifier;
+                
+                let entry = UtilityEntry { entity, score: final_score };
+                
+                if let Some(existing) = blackboard.world_knowledge.available_actions.get(&utility.action) {
+                    if final_score > existing.score {
+                        blackboard.world_knowledge.available_actions.insert(utility.action, entry);
+                    }
+                } else {
+                    blackboard.world_knowledge.available_actions.insert(utility.action, entry);
+                }
+            }
+        }
+        
+        // Process non-feeder smart objects (water sources, baths)
         for (entity, obj_transform, utility) in object_query.iter() {
+            // Skip entities that are already processed as feeders
+            if feeder_query.contains(entity) { continue; }
+            
             let distance = bird_transform.translation.distance(obj_transform.translation);
             if distance <= utility.range {
                 let distance_factor = 1.0 - (distance / utility.range);
@@ -169,32 +165,62 @@ pub fn moving_to_target_system(
 }
 
 pub fn eating_system(
+    mut commands: Commands,
     mut bird_query: Query<(&mut Blackboard, &mut BirdState), With<BirdAI>>,
+    feeder_query: Query<&Feeder>,
     time: Res<Time>,
 ) {
     for (mut blackboard, mut state) in bird_query.iter_mut() {
         if *state == BirdState::Eating {
-            blackboard.internal.hunger -= 0.5 * time.delta().as_secs_f32();
+            let consumption_rate = 0.5 * time.delta().as_secs_f32();
+            blackboard.internal.hunger -= consumption_rate;
             blackboard.internal.hunger = blackboard.internal.hunger.max(0.0);
+            
+            // Trigger feeder depletion if eating from a feeder
+            if let Some(target_entity) = blackboard.current_target {
+                if let Ok(feeder) = feeder_query.get(target_entity) {
+                    commands.trigger(crate::feeder::FeederDepletionEvent {
+                        feeder_entity: target_entity,
+                        amount: feeder.depletion_rate * time.delta().as_secs_f32(),
+                    });
+                }
+            }
             
             if blackboard.internal.hunger < 0.1 {
                 *state = BirdState::Wandering;
+                blackboard.current_target = None;
+                info!("Bird finished eating and is now wandering");
             }
         }
     }
 }
 
 pub fn drinking_system(
+    mut commands: Commands,
     mut bird_query: Query<(&mut Blackboard, &mut BirdState), With<BirdAI>>,
+    feeder_query: Query<&Feeder>,
     time: Res<Time>,
 ) {
     for (mut blackboard, mut state) in bird_query.iter_mut() {
         if *state == BirdState::Drinking {
-            blackboard.internal.thirst -= 0.6 * time.delta().as_secs_f32();
+            let consumption_rate = 0.6 * time.delta().as_secs_f32();
+            blackboard.internal.thirst -= consumption_rate;
             blackboard.internal.thirst = blackboard.internal.thirst.max(0.0);
+            
+            // Trigger feeder depletion if drinking from a nectar feeder
+            if let Some(target_entity) = blackboard.current_target {
+                if let Ok(feeder) = feeder_query.get(target_entity) {
+                    commands.trigger(crate::feeder::FeederDepletionEvent {
+                        feeder_entity: target_entity,
+                        amount: feeder.depletion_rate * time.delta().as_secs_f32(),
+                    });
+                }
+            }
             
             if blackboard.internal.thirst < 0.1 {
                 *state = BirdState::Wandering;
+                blackboard.current_target = None;
+                info!("Bird finished drinking and is now wandering");
             }
         }
     }

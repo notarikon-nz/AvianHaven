@@ -43,6 +43,18 @@ commands.spawn((
 ));
 ```
 
+## Notifications
+```rust
+  // Send notification
+  notification_events.write(ShowNotificationEvent {
+      notification: NotificationType::Achievement {
+          title: "First Photo".to_string(),
+          description: "Take your first photo".to_string(),
+          currency_reward: 25,
+      },
+  });
+```
+
 ## Extending System
 
 **New Action**: Add to `BirdAction` enum, create corresponding `BirdState`, implement execution system
