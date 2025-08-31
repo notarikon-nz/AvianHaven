@@ -21,6 +21,8 @@ mod performance;
 mod flocking;
 mod weather_effects;
 mod bird_data;
+mod smart_objects;
+mod aesthetic_objects;
 
 use user_interface::UserInterfacePlugin;
 use bird::BirdPlugin;
@@ -42,6 +44,8 @@ use performance::PerformancePlugin;
 use flocking::FlockingPlugin;
 use weather_effects::WeatherEffectsPlugin;
 use bird_data::BirdDataPlugin;
+use smart_objects::SmartObjectsPlugin;
+use aesthetic_objects::AestheticObjectsPlugin;
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Default, States)]
 pub enum AppState {
@@ -76,11 +80,26 @@ fn main() {
         .add_plugins(FlockingPlugin)
         .add_plugins(WeatherEffectsPlugin)
         .add_plugins(BirdDataPlugin)
+        .add_plugins(SmartObjectsPlugin)
+        .add_plugins(AestheticObjectsPlugin)
         .add_systems(Startup, setup)
         .add_systems(PostUpdate, robust_despawn_system)
         .run();
 }
 
 fn setup(mut commands: Commands) {
-    commands.spawn((Camera2d, photo_mode::components::PhotoTarget));
+    commands.spawn((
+        Camera2d, 
+        photo_mode::components::PhotoTarget,
+        photo_mode::components::CameraControls {
+            zoom_level: 1.0,
+            min_zoom: 0.5,
+            max_zoom: 5.0,
+            zoom_speed: 2.0,
+            focus_distance: 0.0,
+            aperture: 5.6,
+            exposure: 0.0,
+            iso: 400.0,
+        },
+    ));
 }

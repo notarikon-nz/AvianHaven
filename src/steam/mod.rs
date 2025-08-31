@@ -19,10 +19,14 @@ impl Plugin for SteamPlugin {
             .add_event::<SteamAchievementEvent>()
             .add_event::<SteamStatsEvent>()
             .add_systems(Startup, initialize_steam_systems)
+
+            /*
             .add_systems(Update, (
-                steam_achievement_sync_system,
-                steam_stats_tracking_system,
-                steam_workshop_system,
+                steam_achievement_sync_system, // not every frame either - should be triggered by event
+                steam_stats_tracking_system, should not be every frame
+                steam_workshop_system, // noise spam
             ).run_if(resource_exists::<SteamState>));
+            */
+            ;
     }
 }

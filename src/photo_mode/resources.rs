@@ -8,6 +8,11 @@ pub struct PhotoModeSettings {
     pub is_active: bool,
     pub toggle_key: KeyCode,
     pub capture_key: KeyCode,
+    pub grid_toggle_key: KeyCode,
+    pub settings_toggle_key: KeyCode,
+    pub show_composition_grid: bool,
+    pub show_camera_settings: bool,
+    pub show_depth_preview: bool,
 }
 
 impl Default for PhotoModeSettings {
@@ -16,6 +21,11 @@ impl Default for PhotoModeSettings {
             is_active: false,
             toggle_key: KeyCode::KeyP,
             capture_key: KeyCode::Space,
+            grid_toggle_key: KeyCode::KeyG,
+            settings_toggle_key: KeyCode::KeyC,
+            show_composition_grid: false,
+            show_camera_settings: false,
+            show_depth_preview: false,
         }
     }
 }

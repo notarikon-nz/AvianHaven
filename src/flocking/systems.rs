@@ -173,7 +173,9 @@ pub fn social_feeding_system(
                     if distance < 200.0 && bird.species.max_flock_size() > 1 {
                         // Boost attraction to social feeding
                         // This would integrate with the utility system to increase feeder appeal
-                        info!("Bird {:?} attracted to social feeding activity", bird.species);
+                        
+                        // TO BE IMPLEMENTED
+                        // ("Bird {:?} attracted to social feeding activity", bird.species);
                     }
                 }
             }

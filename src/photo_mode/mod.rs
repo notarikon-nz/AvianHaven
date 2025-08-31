@@ -3,10 +3,12 @@ use bevy::prelude::*;
 pub mod components;
 pub mod resources;
 pub mod systems;
+pub mod advanced_systems;
 
 use components::*;
 use resources::*;
 use systems::*;
+use advanced_systems::*;
 
 pub struct PhotoModePlugin;
 
@@ -23,7 +25,11 @@ impl Plugin for PhotoModePlugin {
                 capture_photo_system,
                 photo_reward_system,
                 photo_ui_system,
+                camera_controls_system,
+                composition_grid_system,
+                camera_settings_panel_system,
+                photo_mode_input_system,
             ))
-            .add_systems(Startup, setup_photo_ui);
+            .add_systems(Startup, (setup_photo_ui, setup_advanced_photo_ui));
     }
 }

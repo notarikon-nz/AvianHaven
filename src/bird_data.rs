@@ -94,6 +94,14 @@ impl BirdDataRegistry {
             species.behavioral_trait_fallback(trait_name)
         }
     }
+    
+    pub fn get_size_category(&self, species: &BirdSpecies) -> u8 {
+        if let Some(data) = self.get_species_data(&format!("{:?}", species)) {
+            data.size_category
+        } else {
+            species.size_category_fallback()
+        }
+    }
 }
 
 // Extension trait for BirdSpecies fallback methods
@@ -144,6 +152,36 @@ impl BirdSpecies {
                 "social_compatibility_bonus" => 0.2,
                 _ => 0.0,
             }
+        }
+    }
+    
+    fn size_category_fallback(&self) -> u8 {
+        match self {
+            // Tier 1 - Common birds (size 2-5)
+            Self::Chickadee | Self::WhiteBreastedNuthatch | Self::TuftedTitmouse => 2,
+            Self::Goldfinch | Self::HouseFinch | Self::PurpleFinch | Self::CarolinaWren => 3,
+            Self::Cardinal | Self::Robin | Self::Sparrow => 4,
+            Self::BlueJay | Self::NorthernMockingbird | Self::RedWingedBlackbird => 5,
+            
+            // Tier 2 - Uncommon birds (size 2-6)
+            Self::DownyWoodpecker => 3,
+            Self::HairyWoodpecker | Self::BaltimoreOriole | Self::IndianaBunting => 4,
+            Self::CommonGrackle | Self::BrownThrasher | Self::EasternBluebird => 5,
+            Self::RoseBreastedGrosbeak | Self::ScarletTanager => 5,
+            
+            // Tier 3 - Rare birds (size 1-8)
+            Self::RubyThroatedHummingbird => 1,
+            Self::RedHeadedWoodpecker | Self::YellowBelledSapsucker => 4,
+            Self::PileatedWoodpecker => 7,
+            Self::RedTailedHawk | Self::CoopersHawk => 8,
+            
+            // Tier 4 - Legendary birds (size 6-8)
+            Self::BaldEagle => 8,
+            Self::PeregrineFalcon => 6,
+            Self::ProthonotaryWarbler | Self::KentuckyWarbler => 3,
+            Self::CommonCrow => 6,
+            
+            _ => 4, // Default medium size
         }
     }
 }

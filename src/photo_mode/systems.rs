@@ -7,6 +7,7 @@ use crate::photo_mode::{components::*, resources::*};
 use crate::bird::BirdSpecies;
 use crate::animation::components::AnimatedBird;
 use crate::bird_ai::components::{BirdAI, BirdState};
+use crate::environment::resources::TimeState;
 
 pub fn setup_photo_ui(mut commands: Commands) {
     // Viewfinder UI - initially hidden
@@ -107,17 +108,18 @@ pub fn toggle_photo_mode_system(
 pub fn capture_photo_system(
     keyboard: Res<ButtonInput<KeyCode>>,
     settings: Res<PhotoModeSettings>,
-    mut camera_query: Query<&mut Camera, With<PhotoTarget>>,
+    mut camera_query: Query<(&mut Camera, &CameraControls), With<PhotoTarget>>,
     bird_query: Query<(&Transform, &AnimatedBird, &BirdState), With<BirdAI>>,
     mut photo_events: EventWriter<PhotoTakenEvent>,
     mut images: ResMut<Assets<Image>>,
     mut commands: Commands,
+    time_state: Res<TimeState>,
 ) {
     if !settings.is_active || !keyboard.just_pressed(settings.capture_key) {
         return;
     }
 
-    let Ok(mut camera) = camera_query.single_mut() else {
+    let Ok((mut camera, camera_controls)) = camera_query.get_single_mut() else {
         warn!("No photo target camera found");
         return;
     };
@@ -162,8 +164,13 @@ pub fn capture_photo_system(
     let camera_pos = Vec2::ZERO; // Camera center for analysis
     let closest_bird = find_closest_bird_to_center(&bird_query, camera_pos);
     
-    // Calculate photo score
-    let score = calculate_photo_score(&bird_query, closest_bird);
+    // Calculate photo score using enhanced system
+    let score = crate::photo_mode::advanced_systems::enhanced_photo_scoring_system(
+        &bird_query, 
+        &time_state, 
+        &camera_controls, 
+        closest_bird
+    );
     
     // Log score breakdown
     info!("Photo Score Breakdown:");
@@ -172,6 +179,11 @@ pub fn capture_photo_system(
     info!("  Timing: {}", score.timing_score);
     info!("  Centering: {}", score.centering_score);
     info!("  Clarity: {}", score.clarity_score);
+    info!("  Composition: {}", score.composition_score);
+    info!("  Lighting: {}", score.lighting_score);
+    info!("  Environment: {}", score.environment_score);
+    info!("  Technical: {}", score.technical_score);
+    info!("  Storytelling: {}", score.storytelling_score);
     info!("  Rarity Bonus: {}", score.rarity_bonus);
     info!("  Total: {}", score.total_score);
     
@@ -285,6 +297,11 @@ fn calculate_photo_score(
         behavior_score: 0,
         timing_score: 0,
         rarity_bonus: 0,
+        composition_score: 0,
+        lighting_score: 0,
+        environment_score: 0,
+        technical_score: 0,
+        storytelling_score: 0,
         total_score: 0,
     };
     

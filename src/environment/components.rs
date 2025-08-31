@@ -7,10 +7,43 @@ pub struct EnvironmentEntity;
 pub struct WeatherEffectEntity;
 
 #[derive(Component)]
-pub struct AmbientLight;
+pub struct DynamicAmbientLight {
+    pub base_color: Color,
+    pub seasonal_tint: Color,
+    pub time_intensity: f32,
+    pub weather_modifier: f32,
+}
 
 #[derive(Component)]
-pub struct DayNightOverlay;
+pub struct DayNightOverlay {
+    pub color: Color,
+    pub opacity: f32,
+    pub blend_mode: DayNightBlendMode,
+}
+
+#[derive(Component)]
+pub struct SunLight {
+    pub direction: Vec3,
+    pub color: Color,
+    pub intensity: f32,
+    pub cast_shadows: bool,
+}
+
+#[derive(Component)]
+pub struct SeasonalLighting {
+    pub spring_tint: Color,
+    pub summer_tint: Color,
+    pub fall_tint: Color,
+    pub winter_tint: Color,
+    pub transition_speed: f32,
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum DayNightBlendMode {
+    Multiply,
+    Overlay,
+    SoftLight,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Season {
@@ -87,6 +120,16 @@ impl Weather {
             Self::Rainy => Color::srgb(0.4, 0.4, 0.5),     // Dark gray
             Self::Snowy => Color::srgb(0.9, 0.9, 0.95),    // Light gray/white
             Self::Windy => Color::srgb(0.6, 0.7, 0.8),     // Dusty blue
+        }
+    }
+    
+    pub fn lighting_modifier(&self) -> f32 {
+        match self {
+            Self::Clear => 1.0,     // Full brightness
+            Self::Cloudy => 0.7,    // Reduced light
+            Self::Rainy => 0.5,     // Dim lighting
+            Self::Snowy => 0.8,     // Bright but diffused
+            Self::Windy => 0.9,     // Slightly reduced
         }
     }
 }

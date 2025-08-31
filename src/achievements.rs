@@ -105,10 +105,6 @@ fn achievement_notification_system(
                 currency_reward: reward,
             },
         });
-        
-        info!("🏆 ACHIEVEMENT UNLOCKED: {}", event.achievement.name());
-        info!("   {}", event.achievement.description());
-        info!("   Reward: {} currency", reward);
     }
 }
 

@@ -18,7 +18,11 @@ pub fn setup_environment(mut commands: Commands) {
             Vec2::new(2000.0, 1500.0)
         ),
         Transform::from_xyz(0.0, 0.0, 5.0), // Above most objects but below UI
-        DayNightOverlay,
+        DayNightOverlay {
+            color: Color::srgba(0.0, 0.0, 0.3, 0.0),
+            opacity: 0.0,
+            blend_mode: DayNightBlendMode::Multiply,
+        },
     ));
 }
 
