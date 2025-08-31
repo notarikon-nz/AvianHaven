@@ -10,7 +10,11 @@ mod resources;
 mod bird_ai;
 mod animation;
 mod photo_mode;
+mod journal;
+mod user_interface;
+mod despawn;
 
+use user_interface::UserInterfacePlugin;
 use bird::BirdPlugin;
 use feeder::FeederPlugin;
 use camera::CameraPlugin;
@@ -20,11 +24,14 @@ use resources::GameConfig;
 use bird_ai::BirdAiPlugin;
 use animation::AnimationPlugin;
 use photo_mode::PhotoModePlugin;
+use journal::JournalPlugin;
+use despawn::{robust_despawn_system};
 
 #[derive(Debug, Clone, Eq, PartialEq, Hash, Default, States)]
 pub enum AppState {
     #[default]
     Playing,
+    Journal,
 }
 
 fn main() {
@@ -41,9 +48,12 @@ fn main() {
             GameAudioPlugin,
             BirdAiPlugin,
             AnimationPlugin,
+            UserInterfacePlugin,
             PhotoModePlugin,
+            JournalPlugin,
         ))
         .add_systems(Startup, setup)
+        .add_systems(PostUpdate, robust_despawn_system)
         .run();
 }
 

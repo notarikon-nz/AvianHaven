@@ -6,6 +6,7 @@ pub mod systems;
 
 use resources::*;
 use systems::*;
+use crate::{AppState};
 
 pub struct AnimationPlugin;
 
@@ -18,7 +19,7 @@ impl Plugin for AnimationPlugin {
                 animation_state_system,
                 update_sprite_on_state_change_system,
                 advance_animation_frames_system,
-            ).chain())
-            .add_systems(Update, sprite_flip_system);
+            ).chain().run_if(in_state(AppState::Playing)))
+            .add_systems(Update, sprite_flip_system.run_if(in_state(AppState::Playing)));
     }
 }

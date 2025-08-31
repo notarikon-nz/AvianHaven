@@ -8,6 +8,7 @@ pub mod states;
 
 use resources::*;
 use systems::*;
+use crate::{AppState};
 
 pub struct BirdAiPlugin;
 
@@ -28,6 +29,6 @@ impl Plugin for BirdAiPlugin {
                 fleeing_system,
                 resting_system,
                 need_decay_system,
-            ));
+            ).run_if(in_state(AppState::Playing)));
     }
 }
