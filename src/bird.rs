@@ -28,7 +28,7 @@ impl Plugin for BirdPlugin {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, serde::Serialize, serde::Deserialize)]
 pub enum BirdSpecies {
     // Tier 1 - Common backyard birds (20 species)
     Cardinal,
@@ -392,7 +392,11 @@ fn spawn_bird(commands: &mut Commands) {
     let y = rng.random_range(-300.0..300.0);
     
     commands.spawn((
-        Sprite::from_color(species.color(), Vec2::new(20.0, 20.0)),
+        Sprite {
+            image: Handle::default(), // Will be set by animation system
+            texture_atlas: None,      // Will be set by animation system
+            ..default()
+        },
         Transform::from_xyz(x, y, 1.0),
         RigidBody::Dynamic,
         Collider::ball(10.0),
@@ -413,10 +417,12 @@ fn spawn_bird(commands: &mut Commands) {
             },
             ..default()
         },
-        // Animation component
+        // Animation components
         AnimatedBird {
             species,
         },
+        crate::animation::components::AnimationController::default(),
+        crate::animation::components::AnimationLibrary::default(),
     ));
 }
 
@@ -551,7 +557,14 @@ fn spawn_specific_bird(commands: &mut Commands, species: BirdSpecies) {
     let y = rng.random_range(-300.0..300.0);
     
     commands.spawn((
-        Sprite::from_color(species.color(), Vec2::new(20.0, 20.0)),
+        Sprite {
+            image: Handle::default(), // Will be set by animation system
+            texture_atlas: Some(TextureAtlas {
+                layout: Handle::default(), // Will be set by animation system
+                index: 0, // Will be updated by animation system
+            }),
+            ..default()
+        },
         Transform::from_xyz(x, y, 1.0),
         RigidBody::Dynamic,
         Collider::ball(10.0),
@@ -573,9 +586,11 @@ fn spawn_specific_bird(commands: &mut Commands, species: BirdSpecies) {
             world_knowledge: crate::bird_ai::components::WorldKnowledge::default(),
             current_target: None,
         },
-        // Animation component
+        // Animation components
         AnimatedBird {
             species,
         },
+        crate::animation::components::AnimationController::default(),
+        crate::animation::components::AnimationLibrary::default(),
     ));
 }

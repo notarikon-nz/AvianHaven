@@ -28,6 +28,9 @@ impl Plugin for BirdAiPlugin {
                 bathing_system,
                 fleeing_system,
                 resting_system,
+                playing_system,
+                exploring_system,
+                nesting_system,
                 need_decay_system,
             ).run_if(in_state(AppState::Playing)));
     }

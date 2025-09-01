@@ -14,13 +14,16 @@ impl Plugin for JournalPlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<DiscoveredSpecies>()
-            .init_resource::<JournalData>()
+            .init_resource::<JournalState>()
+            .init_resource::<BirdEducationData>()
             .add_systems(Update, toggle_journal_system)
             .add_systems(OnEnter(crate::AppState::Journal), setup_journal_menu_system)
             .add_systems(OnExit(crate::AppState::Journal), teardown_journal_menu_system)
             .add_systems(Update, (
                 update_journal_on_discovery_system,
                 journal_interaction_system,
+                journal_tab_system,
+                journal_species_detail_system,
             ).run_if(in_state(crate::AppState::Journal)));
     }
 }

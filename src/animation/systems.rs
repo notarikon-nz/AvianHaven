@@ -8,87 +8,85 @@ pub fn setup_animation_assets(
     mut texture_atlas_layouts: ResMut<Assets<TextureAtlasLayout>>,
     mut cache: ResMut<TextureAtlasCache>,
 ) {
-    // Cardinal animations
-    setup_species_animations(
-        BirdSpecies::Cardinal,
-        &asset_server,
-        &mut texture_atlas_layouts,
-        &mut cache,
-        &[
-            (BirdState::Wandering, "cardinal_flying.png", (0, 5), 12.0),
-            (BirdState::MovingToTarget, "cardinal_flying.png", (0, 5), 16.0),
-            (BirdState::Eating, "cardinal_eating.png", (0, 3), 8.0),
-            (BirdState::Drinking, "cardinal_drinking.png", (0, 3), 6.0),
-            (BirdState::Resting, "cardinal_idle.png", (0, 1), 2.0),
-            (BirdState::Fleeing, "cardinal_flying.png", (0, 5), 20.0),
-            (BirdState::Bathing, "cardinal_bathing.png", (0, 4), 10.0),
-        ],
-    );
-
-    // Sparrow animations
-    setup_species_animations(
-        BirdSpecies::Sparrow,
-        &asset_server,
-        &mut texture_atlas_layouts,
-        &mut cache,
-        &[
-            (BirdState::Wandering, "sparrow_flying.png", (0, 4), 10.0),
-            (BirdState::MovingToTarget, "sparrow_flying.png", (0, 4), 14.0),
-            (BirdState::Eating, "sparrow_eating.png", (0, 2), 6.0),
-            (BirdState::Drinking, "sparrow_drinking.png", (0, 2), 5.0),
-            (BirdState::Resting, "sparrow_idle.png", (0, 0), 1.0),
-            (BirdState::Fleeing, "sparrow_flying.png", (0, 4), 18.0),
-            (BirdState::Bathing, "sparrow_bathing.png", (0, 3), 8.0),
-        ],
-    );
-
-    // Blue Jay animations
-    setup_species_animations(
-        BirdSpecies::BlueJay,
-        &asset_server,
-        &mut texture_atlas_layouts,
-        &mut cache,
-        &[
-            (BirdState::Wandering, "bluejay_flying.png", (0, 6), 14.0),
-            (BirdState::MovingToTarget, "bluejay_flying.png", (0, 6), 18.0),
-            (BirdState::Eating, "bluejay_eating.png", (0, 4), 9.0),
-            (BirdState::Drinking, "bluejay_drinking.png", (0, 4), 7.0),
-            (BirdState::Resting, "bluejay_idle.png", (0, 2), 3.0),
-            (BirdState::Fleeing, "bluejay_flying.png", (0, 6), 22.0),
-            (BirdState::Bathing, "bluejay_bathing.png", (0, 5), 12.0),
-        ],
-    );
+    // Setup spritesheet-based animations for each species
+    setup_species_spritesheet(BirdSpecies::Cardinal, &asset_server, &mut texture_atlas_layouts, &mut cache);
+    setup_species_spritesheet(BirdSpecies::Sparrow, &asset_server, &mut texture_atlas_layouts, &mut cache);
+    setup_species_spritesheet(BirdSpecies::BlueJay, &asset_server, &mut texture_atlas_layouts, &mut cache);
+    setup_species_spritesheet(BirdSpecies::Robin, &asset_server, &mut texture_atlas_layouts, &mut cache);
+    setup_species_spritesheet(BirdSpecies::Chickadee, &asset_server, &mut texture_atlas_layouts, &mut cache);
+    setup_species_spritesheet(BirdSpecies::Goldfinch, &asset_server, &mut texture_atlas_layouts, &mut cache);
 }
 
-fn setup_species_animations(
+fn setup_species_spritesheet(
     species: BirdSpecies,
     asset_server: &AssetServer,
     texture_atlas_layouts: &mut Assets<TextureAtlasLayout>,
     cache: &mut TextureAtlasCache,
-    animations: &[(BirdState, &str, (usize, usize), f32)],
 ) {
-    for &(state, texture_path, frame_range, fps) in animations {
-        let texture_handle = asset_server.load(texture_path);
-        let frame_count = frame_range.1 - frame_range.0 + 1;
-        
-        let layout = TextureAtlasLayout::from_grid(
-            UVec2::new(32, 32),
-            frame_count as u32,
-            1,
-            None,
-            None,
-        );
-        let atlas_handle = texture_atlas_layouts.add(layout);
+    let species_name = species_filename(&species);
+    let texture_handle = asset_server.load(&format!("birds/{}.png", species_name));
+    
+    // Spritesheet layout: 7 rows (one per state), 6 frames per row
+    let layout = TextureAtlasLayout::from_grid(
+        UVec2::new(32, 32), // Each frame is 32x32 pixels
+        6,  // 6 frames per row
+        7,  // 7 rows (one per state)
+        None,
+        None,
+    );
+    let atlas_handle = texture_atlas_layouts.add(layout);
+    
+    // Map each row to a bird state
+    let state_rows = [
+        (BirdState::Wandering, 0, 12.0),      // Row 0
+        (BirdState::MovingToTarget, 1, 16.0), // Row 1
+        (BirdState::Eating, 2, 8.0),          // Row 2
+        (BirdState::Drinking, 3, 6.0),        // Row 3
+        (BirdState::Resting, 4, 2.0),         // Row 4
+        (BirdState::Fleeing, 5, 20.0),        // Row 5
+        (BirdState::Bathing, 6, 10.0),        // Row 6
+    ];
+    
+    for (state, row, fps) in state_rows {
+        let start_frame = row * 6;
+        let end_frame = start_frame + 5;
         
         cache.atlases.insert(
             (species, state),
             AnimationData {
-                texture_atlas_handle: atlas_handle,
-                texture_handle,
-                frame_range,
+                texture_atlas_handle: atlas_handle.clone(),
+                texture_handle: texture_handle.clone(),
+                frame_range: (start_frame, end_frame),
                 fps,
             },
         );
+    }
+}
+
+fn species_filename(species: &BirdSpecies) -> String {
+    match species {
+        BirdSpecies::Cardinal => "cardinal".to_string(),
+        BirdSpecies::BlueJay => "bluejay".to_string(),
+        BirdSpecies::Robin => "robin".to_string(),
+        BirdSpecies::Sparrow => "sparrow".to_string(),
+        BirdSpecies::Chickadee => "chickadee".to_string(),
+        BirdSpecies::Goldfinch => "goldfinch".to_string(),
+        BirdSpecies::NorthernMockingbird => "mockingbird".to_string(),
+        BirdSpecies::RedWingedBlackbird => "redwinged_blackbird".to_string(),
+        BirdSpecies::CommonGrackle => "common_grackle".to_string(),
+        BirdSpecies::BrownThrasher => "brown_thrasher".to_string(),
+        BirdSpecies::CedarWaxwing => "cedar_waxwing".to_string(),
+        BirdSpecies::WhiteBreastedNuthatch => "whitebreasted_nuthatch".to_string(),
+        BirdSpecies::TuftedTitmouse => "tufted_titmouse".to_string(),
+        BirdSpecies::CarolinaWren => "carolina_wren".to_string(),
+        BirdSpecies::HouseFinch => "house_finch".to_string(),
+        BirdSpecies::EuropeanStarling => "european_starling".to_string(),
+        BirdSpecies::MourningDove => "mourning_dove".to_string(),
+        BirdSpecies::CommonCrow => "common_crow".to_string(),
+        BirdSpecies::BlueGrayGnatcatcher => "bluegray_gnatcatcher".to_string(),
+        BirdSpecies::YellowWarbler => "yellow_warbler".to_string(),
+        // Add more species as needed
+        _ => "placeholder".to_string(),
     }
 }
 
@@ -128,17 +126,21 @@ pub fn sprite_flip_system(
 }
 
 pub fn advance_animation_frames_system(
-    mut animation_query: Query<&mut AnimationController, Without<AnimationStateChange>>,
-    mut sprite_query: Query<&mut Sprite>,
+    mut animation_query: Query<(&mut AnimationController, &AnimationLibrary, &BirdState, &mut Sprite), Without<AnimationStateChange>>,
     time: Res<Time>,
 ) {
-    for mut controller in animation_query.iter_mut() {
+    for (mut controller, library, bird_state, mut sprite) in animation_query.iter_mut() {
         controller.timer.tick(time.delta());
         
         if controller.timer.just_finished() {
             controller.current_frame = (controller.current_frame + 1) % controller.frames;
-            // Note: In a real implementation, we'd need to find the corresponding sprite
-            // and update its texture atlas index. For now, this is a placeholder.
+            
+            if let Some(animation_data) = library.animations.get(bird_state) {
+                let atlas_index = animation_data.frame_range.0 + controller.current_frame;
+                if let Some(texture_atlas) = &mut sprite.texture_atlas {
+                    texture_atlas.index = atlas_index;
+                }
+            }
         }
     }
 }
@@ -146,13 +148,19 @@ pub fn advance_animation_frames_system(
 pub fn update_sprite_on_state_change_system(
     mut commands: Commands,
     mut change_query: Query<
-        (Entity, &AnimationLibrary, &BirdState, &mut Sprite),
+        (Entity, &AnimationLibrary, &BirdState, &mut Sprite, &AnimationController),
         With<AnimationStateChange>,
     >,
 ) {
-    for (entity, library, bird_state, mut sprite) in change_query.iter_mut() {
+    for (entity, library, bird_state, mut sprite, controller) in change_query.iter_mut() {
         if let Some(animation_data) = library.animations.get(bird_state) {
             sprite.image = animation_data.texture_handle.clone();
+            
+            let atlas_index = animation_data.frame_range.0 + controller.current_frame;
+            sprite.texture_atlas = Some(TextureAtlas {
+                layout: animation_data.texture_atlas_handle.clone(),
+                index: atlas_index,
+            });
         }
         
         commands.entity(entity).remove::<AnimationStateChange>();

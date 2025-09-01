@@ -317,6 +317,9 @@ fn calculate_photo_score(
         BirdState::Eating => 50,     // Very photogenic
         BirdState::Drinking => 45,   // Also very photogenic
         BirdState::Bathing => 60,    // Rare and exciting behavior
+        BirdState::Playing => 65,    // Rare and very cute behavior
+        BirdState::Nesting => 70,    // Rare nesting behavior
+        BirdState::Exploring => 40,  // Interesting investigative behavior
         BirdState::Fleeing => 30,    // Action shot bonus
         BirdState::Resting => 25,    // Peaceful moment
         BirdState::MovingToTarget => 20, // Bird in motion
@@ -330,6 +333,9 @@ fn calculate_photo_score(
             if bird_query.iter().count() > 1 { 25 } else { 15 } // More points with multiple birds
         },
         BirdState::Bathing => 40, // Always exciting to capture
+        BirdState::Playing => 35, // Fun playful moments
+        BirdState::Nesting => 45, // Rare nesting behavior
+        BirdState::Exploring => 20, // Curiosity behavior
         _ => 10,
     };
     

@@ -23,6 +23,10 @@ mod weather_effects;
 mod bird_data;
 mod smart_objects;
 mod aesthetic_objects;
+mod catalog;
+mod save_load;
+mod menu;
+mod tutorial;
 
 use user_interface::UserInterfacePlugin;
 use bird::BirdPlugin;
@@ -46,12 +50,19 @@ use weather_effects::WeatherEffectsPlugin;
 use bird_data::BirdDataPlugin;
 use smart_objects::SmartObjectsPlugin;
 use aesthetic_objects::AestheticObjectsPlugin;
+use catalog::CatalogPlugin;
+use save_load::SaveLoadPlugin;
+use menu::MenuPlugin;
+use tutorial::TutorialPlugin;
 
-#[derive(Debug, Clone, Eq, PartialEq, Hash, Default, States)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, Default, States)]
 pub enum AppState {
     #[default]
+    MainMenu,
     Playing,
     Journal,
+    Settings,
+    LoadGame,
 }
 
 fn main() {
@@ -82,6 +93,10 @@ fn main() {
         .add_plugins(BirdDataPlugin)
         .add_plugins(SmartObjectsPlugin)
         .add_plugins(AestheticObjectsPlugin)
+        .add_plugins(CatalogPlugin)
+        .add_plugins(SaveLoadPlugin)
+        .add_plugins(MenuPlugin)
+        .add_plugins(TutorialPlugin)
         .add_systems(Startup, setup)
         .add_systems(PostUpdate, robust_despawn_system)
         .run();
@@ -90,6 +105,8 @@ fn main() {
 fn setup(mut commands: Commands) {
     commands.spawn((
         Camera2d, 
+        Transform::from_xyz(0.0, 0.0, 1000.0)
+            .with_rotation(Quat::from_rotation_x(-0.5)), // 2.5D angled view like Neko Atsume
         photo_mode::components::PhotoTarget,
         photo_mode::components::CameraControls {
             zoom_level: 1.0,

@@ -116,8 +116,18 @@ pub fn behavior_tree_system(
                 actions.get(&BirdAction::Eat).map(|e| e.entity)
             } else if internal.thirst > 0.5 {
                 actions.get(&BirdAction::Drink).map(|e| e.entity)
-            } else {
+            } else if internal.energy < 0.3 && actions.contains_key(&BirdAction::Nest) {
+                actions.get(&BirdAction::Nest).map(|e| e.entity)
+            } else if internal.energy < 0.3 && actions.contains_key(&BirdAction::Perch) {
+                actions.get(&BirdAction::Perch).map(|e| e.entity)
+            } else if internal.energy > 0.7 && actions.contains_key(&BirdAction::Play) {
+                actions.get(&BirdAction::Play).map(|e| e.entity)
+            } else if internal.fear < 0.3 && actions.contains_key(&BirdAction::Explore) {
+                actions.get(&BirdAction::Explore).map(|e| e.entity)
+            } else if actions.contains_key(&BirdAction::Bathe) {
                 actions.get(&BirdAction::Bathe).map(|e| e.entity)
+            } else {
+                actions.get(&BirdAction::Perch).map(|e| e.entity)
             };
         }
         
@@ -149,14 +159,27 @@ pub fn moving_to_target_system(
                     let reached = execute_moving_to_target(&mut bird_transform, target_transform, &time);
                     
                     if reached {
-                        let internal = &blackboard.internal;
-                        *state = if internal.hunger > internal.thirst {
-                            BirdState::Eating
-                        } else if internal.thirst > 0.3 {
-                            BirdState::Drinking
-                        } else {
-                            BirdState::Bathing
-                        };
+                        // Determine appropriate action based on the target's utility
+                        if let Some(target_entity) = blackboard.current_target {
+                            let actions = &blackboard.world_knowledge.available_actions;
+                            
+                            // Find what action this target provides
+                            let target_action = actions.iter()
+                                .find(|(_, entry)| entry.entity == target_entity)
+                                .map(|(action, _)| action);
+                                
+                            if let Some(action) = target_action {
+                                *state = match action {
+                                    BirdAction::Eat => BirdState::Eating,
+                                    BirdAction::Drink => BirdState::Drinking,
+                                    BirdAction::Bathe => BirdState::Bathing,
+                                    BirdAction::Perch => BirdState::Resting,
+                                    BirdAction::Play => BirdState::Playing,
+                                    BirdAction::Explore => BirdState::Exploring,
+                                    BirdAction::Nest => BirdState::Nesting,
+                                };
+                            }
+                        }
                     }
                 }
             }
@@ -271,6 +294,88 @@ pub fn resting_system(
             
             if blackboard.internal.energy > 0.7 {
                 *state = BirdState::Wandering;
+            }
+        }
+    }
+}
+
+pub fn playing_system(
+    mut bird_query: Query<(&mut Transform, &mut Blackboard, &mut BirdState), With<BirdAI>>,
+    time: Res<Time>,
+) {
+    for (mut transform, mut blackboard, mut state) in bird_query.iter_mut() {
+        if *state == BirdState::Playing {
+            execute_playing(&mut transform, &time);
+            
+            // Playing is energizing but uses some energy over time
+            blackboard.internal.energy -= 0.1 * time.delta().as_secs_f32();
+            blackboard.internal.energy = blackboard.internal.energy.max(0.0);
+            
+            // Reduce fear through play (enrichment effect)
+            blackboard.internal.fear -= 0.2 * time.delta().as_secs_f32();
+            blackboard.internal.fear = blackboard.internal.fear.max(0.0);
+            
+            // Stop playing when energy gets low or after some time
+            if blackboard.internal.energy < 0.3 || blackboard.internal.fear < 0.1 {
+                *state = BirdState::Wandering;
+                blackboard.current_target = None;
+            }
+        }
+    }
+}
+
+pub fn exploring_system(
+    mut bird_query: Query<(&mut Transform, &mut Blackboard, &mut BirdState), With<BirdAI>>,
+    target_query: Query<&Transform, Without<BirdAI>>,
+    time: Res<Time>,
+) {
+    for (mut bird_transform, mut blackboard, mut state) in bird_query.iter_mut() {
+        if *state == BirdState::Exploring {
+            if let Some(target_entity) = blackboard.current_target {
+                if let Ok(target_transform) = target_query.get(target_entity) {
+                    execute_exploring(&mut bird_transform, target_transform, &time);
+                    
+                    // Exploration slightly drains energy but satisfies curiosity
+                    blackboard.internal.energy -= 0.05 * time.delta().as_secs_f32();
+                    blackboard.internal.energy = blackboard.internal.energy.max(0.0);
+                    
+                    // Reduce fear through successful exploration
+                    blackboard.internal.fear -= 0.1 * time.delta().as_secs_f32();
+                    blackboard.internal.fear = blackboard.internal.fear.max(0.0);
+                    
+                    // Stop exploring when energy gets low or curiosity is satisfied
+                    if blackboard.internal.energy < 0.4 || blackboard.internal.fear < 0.05 {
+                        *state = BirdState::Wandering;
+                        blackboard.current_target = None;
+                    }
+                }
+            } else {
+                *state = BirdState::Wandering;
+            }
+        }
+    }
+}
+
+pub fn nesting_system(
+    mut bird_query: Query<(&mut Transform, &mut Blackboard, &mut BirdState), With<BirdAI>>,
+    time: Res<Time>,
+) {
+    for (mut transform, mut blackboard, mut state) in bird_query.iter_mut() {
+        if *state == BirdState::Nesting {
+            execute_nesting(&mut transform, &time);
+            
+            // Nesting is very restorative
+            blackboard.internal.energy += 0.6 * time.delta().as_secs_f32();
+            blackboard.internal.energy = blackboard.internal.energy.min(1.0);
+            
+            // Reduces fear significantly (safe space)
+            blackboard.internal.fear -= 0.3 * time.delta().as_secs_f32();
+            blackboard.internal.fear = blackboard.internal.fear.max(0.0);
+            
+            // Birds stay in nests longer than other activities
+            if blackboard.internal.energy > 0.9 {
+                *state = BirdState::Wandering;
+                blackboard.current_target = None;
             }
         }
     }

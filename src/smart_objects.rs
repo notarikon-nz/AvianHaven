@@ -170,19 +170,25 @@ impl WaterType {
 impl BirdAction {
     pub fn utility_decay_rate(&self) -> f32 {
         match self {
-            Self::Eat => 0.1,    // Eating utility decreases as hunger decreases
-            Self::Drink => 0.08, // Thirst satisfaction
-            Self::Bathe => 0.05, // Bathing need decreases slowly
-            Self::Perch => 0.02, // Resting need decreases very slowly
+            Self::Eat => 0.1,     // Eating utility decreases as hunger decreases
+            Self::Drink => 0.08,  // Thirst satisfaction
+            Self::Bathe => 0.05,  // Bathing need decreases slowly
+            Self::Perch => 0.02,  // Resting need decreases very slowly
+            Self::Play => 0.03,   // Play behavior has moderate decay
+            Self::Explore => 0.04, // Curiosity satisfaction
+            Self::Nest => 0.01,   // Nesting instinct persists longest
         }
     }
     
     pub fn duration_range(&self) -> (f32, f32) {
         match self {
-            Self::Eat => (3.0, 8.0),    // 3-8 seconds feeding
-            Self::Drink => (2.0, 5.0),  // 2-5 seconds drinking
-            Self::Bathe => (8.0, 15.0), // 8-15 seconds bathing
+            Self::Eat => (3.0, 8.0),     // 3-8 seconds feeding
+            Self::Drink => (2.0, 5.0),   // 2-5 seconds drinking
+            Self::Bathe => (8.0, 15.0),  // 8-15 seconds bathing
             Self::Perch => (10.0, 30.0), // 10-30 seconds resting
+            Self::Play => (5.0, 12.0),   // 5-12 seconds playing
+            Self::Explore => (4.0, 10.0), // 4-10 seconds investigating
+            Self::Nest => (15.0, 45.0),  // 15-45 seconds in nesting area
         }
     }
 }
