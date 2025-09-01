@@ -321,6 +321,7 @@ fn calculate_photo_score(
         BirdState::Nesting => 70,    // Rare nesting behavior
         BirdState::Exploring => 40,  // Interesting investigative behavior
         BirdState::Roosting => 55,   // Evening gathering behavior
+        BirdState::Sheltering => 50, // Weather response behavior
         BirdState::Fleeing => 30,    // Action shot bonus
         BirdState::Resting => 25,    // Peaceful moment
         BirdState::MovingToTarget => 20, // Bird in motion

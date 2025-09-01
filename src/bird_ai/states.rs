@@ -89,3 +89,32 @@ pub fn execute_nesting(transform: &mut Transform, time: &Time) {
     transform.translation.x += x_adjust * time.delta().as_secs_f32() * 0.1;
     transform.translation.y += y_adjust * time.delta().as_secs_f32() * 0.1;
 }
+
+pub fn execute_roosting(transform: &mut Transform, time: &Time) {
+    // Roosting behavior - communal gathering with slight social adjustments
+    let social_frequency = 0.3; // Gentle social positioning
+    let social_amplitude = 2.0;
+    let elapsed = time.elapsed().as_secs_f32();
+    
+    // Slight movements as birds settle in roosting spots
+    // Birds may adjust position to maintain social distance or warmth
+    let x_adjust = (elapsed * social_frequency).sin() * social_amplitude;
+    let y_adjust = (elapsed * social_frequency * 0.8).cos() * social_amplitude;
+    
+    transform.translation.x += x_adjust * time.delta().as_secs_f32() * 0.05;
+    transform.translation.y += y_adjust * time.delta().as_secs_f32() * 0.05;
+}
+
+pub fn execute_sheltering(transform: &mut Transform, time: &Time) {
+    // Sheltering behavior - staying put with minimal movement for safety
+    let shelter_frequency = 0.2; // Very minimal movement
+    let shelter_amplitude = 0.5;
+    let elapsed = time.elapsed().as_secs_f32();
+    
+    // Very small adjustments - birds hunkering down against weather
+    let x_adjust = (elapsed * shelter_frequency).sin() * shelter_amplitude;
+    let y_adjust = (elapsed * shelter_frequency * 1.2).cos() * shelter_amplitude;
+    
+    transform.translation.x += x_adjust * time.delta().as_secs_f32() * 0.02;
+    transform.translation.y += y_adjust * time.delta().as_secs_f32() * 0.02;
+}

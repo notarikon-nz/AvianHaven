@@ -132,4 +132,36 @@ impl Weather {
             Self::Windy => 0.9,     // Slightly reduced
         }
     }
+    
+    /// Returns true if this weather requires birds to seek shelter
+    pub fn requires_shelter(&self) -> bool {
+        matches!(self, Self::Rainy | Self::Snowy)
+    }
+    
+    /// Returns true if this weather makes birds prefer covered areas
+    pub fn prefer_cover(&self) -> bool {
+        matches!(self, Self::Rainy | Self::Snowy | Self::Windy)
+    }
+    
+    /// Returns the urgency level for finding shelter (0.0 = no urgency, 1.0 = maximum urgency)
+    pub fn shelter_urgency(&self) -> f32 {
+        match self {
+            Self::Clear => 0.0,
+            Self::Cloudy => 0.1,    // Slight preference for cover
+            Self::Windy => 0.4,     // Moderate need for wind protection
+            Self::Rainy => 0.8,     // High urgency to stay dry
+            Self::Snowy => 0.9,     // Very high urgency in snow
+        }
+    }
+    
+    /// Returns fear level induced by weather conditions
+    pub fn weather_fear_factor(&self) -> f32 {
+        match self {
+            Self::Clear => 0.0,
+            Self::Cloudy => 0.05,
+            Self::Windy => 0.2,     // Wind can be stressful
+            Self::Rainy => 0.3,     // Moderate stress from rain
+            Self::Snowy => 0.4,     // High stress from snow/cold
+        }
+    }
 }

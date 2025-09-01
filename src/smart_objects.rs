@@ -178,6 +178,7 @@ impl BirdAction {
             Self::Explore => 0.04, // Curiosity satisfaction
             Self::Nest => 0.01,   // Nesting instinct persists longest
             Self::Roost => 0.015, // Roosting instinct persists during evening hours
+            Self::Shelter => 0.08, // Shelter need decays moderately based on weather
         }
     }
     
@@ -191,6 +192,7 @@ impl BirdAction {
             Self::Explore => (4.0, 10.0), // 4-10 seconds investigating
             Self::Nest => (15.0, 45.0),  // 15-45 seconds in nesting area
             Self::Roost => (30.0, 90.0), // 30-90 seconds roosting/gathering
+            Self::Shelter => (60.0, 180.0), // 1-3 minutes sheltering from weather
         }
     }
 }

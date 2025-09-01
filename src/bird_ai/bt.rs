@@ -1,13 +1,28 @@
 use crate::bird_ai::components::*;
-use crate::environment::resources::TimeState;
+use crate::environment::resources::{TimeState, WeatherState};
 
-pub fn evaluate_behavior_tree(blackboard: &Blackboard, time_state: &TimeState) -> BirdState {
+pub fn evaluate_behavior_tree(blackboard: &Blackboard, time_state: &TimeState, weather_state: &WeatherState) -> BirdState {
     let internal = &blackboard.internal;
     let world = &blackboard.world_knowledge;
     
-    // High priority: Fear response
-    if internal.fear > 0.7 {
+    // Highest priority: Weather-induced fear and shelter seeking
+    let weather = weather_state.current_weather;
+    let weather_fear = weather.weather_fear_factor();
+    let shelter_urgency = weather.shelter_urgency();
+    
+    // Weather increases fear levels
+    if internal.fear + weather_fear > 0.7 {
         return BirdState::Fleeing;
+    }
+    
+    // Critical weather conditions - seek shelter immediately
+    if shelter_urgency > 0.6 && world.available_actions.contains_key(&BirdAction::Shelter) {
+        return BirdState::MovingToTarget;
+    }
+    
+    // Moderate weather conditions - prefer shelter if available
+    if shelter_urgency > 0.3 && internal.energy < 0.7 && world.available_actions.contains_key(&BirdAction::Shelter) {
+        return BirdState::MovingToTarget;
     }
     
     // Roosting behavior during dusk/evening hours (high priority before nightfall)

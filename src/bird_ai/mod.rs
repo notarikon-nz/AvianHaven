@@ -31,6 +31,8 @@ impl Plugin for BirdAiPlugin {
                 playing_system,
                 exploring_system,
                 nesting_system,
+                roosting_system,
+                sheltering_system,
                 need_decay_system,
             ).run_if(in_state(AppState::Playing)));
     }

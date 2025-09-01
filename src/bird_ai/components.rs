@@ -44,6 +44,7 @@ pub enum BirdState {
     Exploring,   // For investigating decorative items
     Nesting,     // For using nesting boxes and bird houses
     Roosting,    // For evening gathering behavior
+    Sheltering,  // For weather protection behavior
 }
 
 #[derive(Component)]
@@ -66,4 +67,5 @@ pub enum BirdAction {
     Explore,   // For decorative items that encourage investigation
     Nest,      // For nesting boxes and houses
     Roost,     // For evening roosting and gathering behavior
+    Shelter,   // For weather protection and storm sheltering
 }

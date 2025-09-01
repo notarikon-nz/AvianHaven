@@ -28,6 +28,30 @@ pub fn setup_test_world(mut commands: Commands) {
             range: 150.0,
         },
     ));
+    
+    // Shelter structure (tree/bush for weather protection)
+    commands.spawn((
+        Sprite::from_color(Color::srgb(0.2, 0.7, 0.2), Vec2::new(60.0, 80.0)),
+        Transform::from_xyz(-150.0, 50.0, 0.5),
+        SmartObject,
+        ProvidesUtility {
+            action: BirdAction::Shelter,
+            base_utility: 0.6,
+            range: 200.0,
+        },
+    ));
+    
+    // Roosting site (large tree/structure for evening gathering)
+    commands.spawn((
+        Sprite::from_color(Color::srgb(0.4, 0.2, 0.1), Vec2::new(50.0, 70.0)),
+        Transform::from_xyz(100.0, 150.0, 0.5),
+        SmartObject,
+        ProvidesUtility {
+            action: BirdAction::Roost,
+            base_utility: 0.7,
+            range: 220.0,
+        },
+    ));
 }
 
 pub fn world_utility_query_system(
@@ -82,7 +106,23 @@ pub fn world_utility_query_system(
             if distance <= utility.range {
                 let distance_factor = 1.0 - (distance / utility.range);
                 let song_activity_modifier = time_state.song_period_activity(); // Dawn chorus boost for all activities
-                let final_score = utility.base_utility * distance_factor * song_activity_modifier;
+                
+                // Apply weather modifiers
+                let mut weather_modifier = 1.0;
+                if utility.action == BirdAction::Shelter {
+                    // Dramatically increase shelter utility during bad weather
+                    weather_modifier = 1.0 + weather_state.current_weather.shelter_urgency() * 3.0; // Up to 4x utility in storms
+                } else if weather_state.current_weather.prefer_cover() {
+                    // Slightly reduce utility of exposed activities during bad weather
+                    weather_modifier = match utility.action {
+                        BirdAction::Eat | BirdAction::Drink => 0.7, // Reduce feeding in bad weather
+                        BirdAction::Play | BirdAction::Explore => 0.4, // Greatly reduce exploration
+                        BirdAction::Bathe => 0.2, // Avoid bathing in bad weather
+                        _ => 0.8, // Slight reduction for other activities
+                    };
+                }
+                
+                let final_score = utility.base_utility * distance_factor * song_activity_modifier * weather_modifier;
                 
                 let entry = UtilityEntry { entity, score: final_score };
                 
@@ -103,19 +143,29 @@ pub fn behavior_tree_system(
     mut timer: ResMut<BehaviorTreeTimer>,
     time: Res<Time>,
     time_state: Res<TimeState>,
+    weather_state: Res<WeatherState>,
 ) {
     timer.0.tick(time.delta());
     if !timer.0.finished() { return; }
     
     for (mut state, mut blackboard) in bird_query.iter_mut() {
-        let new_state = evaluate_behavior_tree(&blackboard, &time_state);
+        let new_state = evaluate_behavior_tree(&blackboard, &time_state, &weather_state);
         
         if new_state == BirdState::MovingToTarget {
             // Set target based on highest priority need
             let internal = &blackboard.internal;
             let actions = &blackboard.world_knowledge.available_actions;
             
-            blackboard.current_target = if time_state.hour >= 18.0 && time_state.hour <= 20.0 && actions.contains_key(&BirdAction::Roost) {
+            let weather = weather_state.current_weather;
+            let shelter_urgency = weather.shelter_urgency();
+            
+            blackboard.current_target = if shelter_urgency > 0.6 && actions.contains_key(&BirdAction::Shelter) {
+                // Critical weather - seek shelter immediately
+                actions.get(&BirdAction::Shelter).map(|e| e.entity)
+            } else if shelter_urgency > 0.3 && internal.energy < 0.7 && actions.contains_key(&BirdAction::Shelter) {
+                // Moderate weather with low energy - prefer shelter
+                actions.get(&BirdAction::Shelter).map(|e| e.entity)
+            } else if time_state.hour >= 18.0 && time_state.hour <= 20.0 && actions.contains_key(&BirdAction::Roost) {
                 // Evening roosting takes priority during dusk hours
                 actions.get(&BirdAction::Roost).map(|e| e.entity)
             } else if internal.hunger > 0.5 {
@@ -184,6 +234,7 @@ pub fn moving_to_target_system(
                                     BirdAction::Explore => BirdState::Exploring,
                                     BirdAction::Nest => BirdState::Nesting,
                                     BirdAction::Roost => BirdState::Roosting,
+                                    BirdAction::Shelter => BirdState::Sheltering,
                                 };
                             }
                         }
@@ -388,8 +439,66 @@ pub fn nesting_system(
     }
 }
 
+pub fn roosting_system(
+    mut bird_query: Query<(&mut Transform, &mut Blackboard, &mut BirdState), With<BirdAI>>,
+    time: Res<Time>,
+) {
+    for (mut transform, mut blackboard, mut state) in bird_query.iter_mut() {
+        if *state == BirdState::Roosting {
+            execute_roosting(&mut transform, &time);
+            
+            // Roosting is very restorative - birds gather in safe spots for the night
+            blackboard.internal.energy += 0.4 * time.delta().as_secs_f32();
+            blackboard.internal.energy = blackboard.internal.energy.min(1.0);
+            
+            // Roosting significantly reduces fear (safety in numbers)
+            blackboard.internal.fear -= 0.4 * time.delta().as_secs_f32();
+            blackboard.internal.fear = blackboard.internal.fear.max(0.0);
+            
+            // Birds typically roost for extended periods during evening/night
+            if blackboard.internal.energy > 0.9 && blackboard.internal.fear < 0.1 {
+                *state = BirdState::Wandering;
+                blackboard.current_target = None;
+                info!("Bird finished roosting and is now wandering");
+            }
+        }
+    }
+}
+
+pub fn sheltering_system(
+    mut bird_query: Query<(&mut Transform, &mut Blackboard, &mut BirdState), With<BirdAI>>,
+    weather_state: Res<WeatherState>,
+    time: Res<Time>,
+) {
+    for (mut transform, mut blackboard, mut state) in bird_query.iter_mut() {
+        if *state == BirdState::Sheltering {
+            execute_sheltering(&mut transform, &time);
+            
+            // Sheltering provides safety and conserves energy
+            blackboard.internal.energy += 0.2 * time.delta().as_secs_f32();
+            blackboard.internal.energy = blackboard.internal.energy.min(1.0);
+            
+            // Weather-induced fear reduction
+            let weather_fear_reduction = weather_state.current_weather.weather_fear_factor() * 0.3;
+            blackboard.internal.fear -= weather_fear_reduction * time.delta().as_secs_f32();
+            blackboard.internal.fear = blackboard.internal.fear.max(0.0);
+            
+            // Continue sheltering while weather is bad or bird is still fearful
+            let shelter_urgency = weather_state.current_weather.shelter_urgency();
+            let weather_fear = weather_state.current_weather.weather_fear_factor();
+            
+            if shelter_urgency < 0.2 && blackboard.internal.fear + weather_fear < 0.4 {
+                *state = BirdState::Wandering;
+                blackboard.current_target = None;
+                info!("Weather cleared, bird finished sheltering and is now wandering");
+            }
+        }
+    }
+}
+
 pub fn need_decay_system(
     mut bird_query: Query<&mut Blackboard, With<BirdAI>>,
+    weather_state: Res<WeatherState>,
     time: Res<Time>,
 ) {
     for mut blackboard in bird_query.iter_mut() {
@@ -404,6 +513,13 @@ pub fn need_decay_system(
         blackboard.internal.energy -= decay_rate * 0.5;
         blackboard.internal.energy = blackboard.internal.energy.max(0.0);
         
-        blackboard.internal.fear *= 0.95; // Fear decays faster
+        // Weather affects fear levels
+        let weather_fear = weather_state.current_weather.weather_fear_factor();
+        if weather_fear > 0.0 {
+            blackboard.internal.fear += weather_fear * 0.5 * time.delta().as_secs_f32();
+            blackboard.internal.fear = blackboard.internal.fear.min(1.0);
+        } else {
+            blackboard.internal.fear *= 0.95; // Fear decays faster in good weather
+        }
     }
 }
