@@ -133,10 +133,10 @@ pub fn performance_metrics_system(
     ai_bird_query: Query<(), (With<Bird>, With<BirdAI>)>,
     feeder_query: Query<(), With<Feeder>>,
     ui_query: Query<(), With<Node>>,
-    world: &World,
+    all_entities_query: Query<Entity>,
 ) {
     // Update entity counts
-    metrics.total_entities = world.entities().len() as usize;
+    metrics.total_entities = all_entities_query.iter().count();
     metrics.bird_count = bird_query.iter().count();
     metrics.ai_bird_count = ai_bird_query.iter().count();
     metrics.feeder_count = feeder_query.iter().count();
