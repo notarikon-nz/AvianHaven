@@ -1,6 +1,5 @@
 use bevy::prelude::*;
 use crate::user_interface::styles::{ButtonStyle, PanelStyle};
-use crate::feeder::{FeederType};
 
 pub fn ui_text(
     parent: &mut ChildSpawner,

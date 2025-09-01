@@ -248,7 +248,7 @@ pub fn execute_foraging(
     // Initialize search center if needed
     if foraging_state.search_center.length() < 0.1 {
         foraging_state.search_center = transform.translation.truncate();
-        foraging_state.search_radius = rng.gen_range(50.0..150.0);
+        foraging_state.search_radius = rng.random_range(50.0..150.0);
         foraging_state.search_progress = 0.0;
     }
     
@@ -260,7 +260,7 @@ pub fn execute_foraging(
     let movement_direction = match foraging_traits.search_pattern {
         SearchPattern::Random => {
             // Random walk within search area
-            let random_angle = rng.gen_range(0.0..std::f32::consts::TAU);
+            let random_angle = rng.random_range(0.0..std::f32::consts::TAU);
             Vec2::new(random_angle.cos(), random_angle.sin())
         },
         
@@ -298,7 +298,7 @@ pub fn execute_foraging(
             let direction_multiplier = if line_progress < 1.0 { 1.0 } else { -1.0 };
             let target_pos = center + Vec2::new(
                 direction_multiplier * radius,
-                rng.gen_range(-radius/4.0..radius/4.0) // Some vertical variation
+                rng.random_range(-radius/4.0..radius/4.0) // Some vertical variation
             );
             
             foraging_state.search_progress += 0.3 * time.delta().as_secs_f32();
@@ -307,7 +307,7 @@ pub fn execute_foraging(
     };
     
     // Apply movement with some randomness
-    let random_factor = rng.gen_range(0.8..1.2);
+    let random_factor = rng.random_range(0.8..1.2);
     transform.translation += (movement_direction * foraging_speed * random_factor * time.delta().as_secs_f32()).extend(0.0);
     
     // Reset search area if moved too far

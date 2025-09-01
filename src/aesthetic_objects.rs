@@ -607,7 +607,7 @@ pub fn wind_sway_system(
         // Calculate sway using sine wave
         wind_sway.current_sway += wind_sway.sway_frequency * time.delta().as_secs_f32();
         
-        let sway_amount = (wind_sway.current_sway.sin() * wind_sway.sway_intensity * wind_modifier);
+        let sway_amount = wind_sway.current_sway.sin() * wind_sway.sway_intensity * wind_modifier;
         transform.rotation = Quat::from_rotation_z(wind_sway.base_rotation + sway_amount);
     }
 }

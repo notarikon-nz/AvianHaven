@@ -136,7 +136,7 @@ pub fn environmental_particle_system(
     if effects_state.environmental_timer > 2.0 { // Every 2 seconds
         effects_state.environmental_timer = 0.0;
         
-        let Ok(camera_transform) = camera_query.get_single() else {
+        let Ok(camera_transform) = camera_query.single() else {
             return;
         };
         let camera_pos = camera_transform.translation.truncate();

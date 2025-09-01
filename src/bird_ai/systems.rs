@@ -2,8 +2,8 @@ use bevy::prelude::*;
 use crate::bird_ai::{components::*, resources::*, bt::*, states::*};
 use rand::Rng;
 use crate::bird::Bird;
-use crate::feeder::{Feeder, FeederType};
-use crate::environment::resources::{TimeState, WeatherState, SeasonalState};
+use crate::feeder::Feeder;
+use crate::environment::resources::{TimeState, WeatherState};
 
 pub fn setup_test_world(mut commands: Commands) {
     // Water source for drinking (supplement to nectar feeders)
@@ -836,7 +836,7 @@ pub fn foraging_system(
 ) {
     for (mut transform, mut blackboard, mut state, foraging_traits, mut foraging_state) in bird_query.iter_mut() {
         if *state == BirdState::Foraging {
-            let mut rng = rand::thread_rng();
+            let mut rng = rand::rng();
             execute_foraging(&mut transform, foraging_traits, &mut foraging_state, &time, &mut rng);
             
             // Foraging gradually reduces hunger but uses energy
@@ -850,7 +850,7 @@ pub fn foraging_system(
             foraging_state.energy_spent += 0.15 * time.delta().as_secs_f32();
             
             // Occasionally find food items
-            if rng.gen_range(0.0..1.0) < 0.1 * time.delta().as_secs_f32() {
+            if rng.random_range(0.0..1.0) < 0.1 * time.delta().as_secs_f32() {
                 foraging_state.items_found += 1;
                 // Small hunger reduction for finding food
                 blackboard.internal.hunger -= 0.1;
@@ -882,16 +882,16 @@ pub fn caching_system(
             blackboard.internal.energy = blackboard.internal.energy.max(0.0);
             
             // Create cache after some time
-            let mut rng = rand::thread_rng();
-            if rng.gen_range(0.0..1.0) < 0.3 * time.delta().as_secs_f32() && cache_data.current_cache_count < cache_data.max_cache_capacity {
+            let mut rng = rand::rng();
+            if rng.random_range(0.0..1.0) < 0.3 * time.delta().as_secs_f32() && cache_data.current_cache_count < cache_data.max_cache_capacity {
                 let cache_location = transform.translation.truncate() + Vec2::new(
-                    rng.gen_range(-50.0..50.0),
-                    rng.gen_range(-50.0..50.0)
+                    rng.random_range(-50.0..50.0),
+                    rng.random_range(-50.0..50.0)
                 );
                 
                 cache_data.cached_locations.push(CacheSpot {
                     location: cache_location,
-                    food_amount: rng.gen_range(0.5..1.0),
+                    food_amount: rng.random_range(0.5..1.0),
                     cache_time: time.elapsed().as_secs_f64(),
                     decay_rate: 0.01, // Food spoils slowly
                 });
@@ -924,8 +924,8 @@ pub fn retrieving_system(
                 blackboard.internal.energy = blackboard.internal.energy.max(0.0);
                 
                 // Attempt to retrieve cached food
-                let mut rng = rand::thread_rng();
-                if rng.gen_range(0.0..1.0) < 0.4 * time.delta().as_secs_f32() {
+                let mut rng = rand::rng();
+                if rng.random_range(0.0..1.0) < 0.4 * time.delta().as_secs_f32() {
                     // Find cache at current location (simplified)
                     let current_pos = transform.translation.truncate();
                     let cache_index = cache_data.cached_locations.iter().position(|cache| 

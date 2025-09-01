@@ -1083,9 +1083,9 @@ fn get_species_search_pattern(species: BirdSpecies) -> crate::bird_ai::component
         
         // Linear searchers (back and forth)
         RedWingedBlackbird | CommonGrackle => SearchPattern::Linear,
-        BeltedKingfisher => SearchPattern::Linear,
+        _BeltedKingfisher => SearchPattern::Linear,
         
-        // Random foragers
+        // Random foragers (all remaining species)
         _ => SearchPattern::Random,
     }
 }
