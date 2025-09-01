@@ -56,8 +56,27 @@ pub fn evaluate_behavior_tree(blackboard: &Blackboard, time_state: &TimeState, w
         return BirdState::Resting;
     }
     
-    // Moderate needs
+    // Moderate needs - include foraging behaviors
+    if internal.hunger > 0.6 && world.available_actions.contains_key(&BirdAction::HoverFeed) {
+        return BirdState::MovingToTarget;
+    }
+    
     if internal.hunger > 0.5 && world.available_actions.contains_key(&BirdAction::Eat) {
+        return BirdState::MovingToTarget;
+    }
+    
+    // Ground foraging when moderately hungry but no feeders available
+    if internal.hunger > 0.4 && !world.available_actions.contains_key(&BirdAction::Eat) {
+        return BirdState::Foraging;
+    }
+    
+    // Cache behavior when food is abundant but not immediately needed
+    if internal.hunger < 0.3 && internal.energy > 0.6 && world.available_actions.contains_key(&BirdAction::Cache) {
+        return BirdState::MovingToTarget;
+    }
+    
+    // Retrieve cached food when hungry and no other food sources available
+    if internal.hunger > 0.6 && !world.available_actions.contains_key(&BirdAction::Eat) && world.available_actions.contains_key(&BirdAction::Retrieve) {
         return BirdState::MovingToTarget;
     }
     
@@ -67,6 +86,27 @@ pub fn evaluate_behavior_tree(blackboard: &Blackboard, time_state: &TimeState, w
     
     // Bathing behavior (hygiene and temperature regulation)
     if world.available_actions.contains_key(&BirdAction::Bathe) {
+        return BirdState::MovingToTarget;
+    }
+    
+    // Social behaviors - when basic needs are met, engage in social activities
+    // Territorial disputes take priority when stress is high
+    if internal.territorial_stress > 0.6 && world.available_actions.contains_key(&BirdAction::Challenge) {
+        return BirdState::MovingToTarget;
+    }
+    
+    // Mating behavior during breeding season with high social need
+    if internal.social_need > 0.5 && world.available_actions.contains_key(&BirdAction::Court) {
+        return BirdState::MovingToTarget;
+    }
+    
+    // Flocking behavior for social species when social need is moderate
+    if internal.social_need > 0.4 && world.available_actions.contains_key(&BirdAction::Flock) {
+        return BirdState::MovingToTarget;
+    }
+    
+    // Following behavior for social interaction
+    if internal.social_need > 0.3 && internal.fear < 0.4 && world.available_actions.contains_key(&BirdAction::Follow) {
         return BirdState::MovingToTarget;
     }
     

@@ -179,6 +179,14 @@ impl BirdAction {
             Self::Nest => 0.01,   // Nesting instinct persists longest
             Self::Roost => 0.015, // Roosting instinct persists during evening hours
             Self::Shelter => 0.08, // Shelter need decays moderately based on weather
+            Self::Court => 0.06,  // Courtship behavior moderate decay
+            Self::Follow => 0.05, // Following behavior moderate decay
+            Self::Challenge => 0.12, // Territorial challenge high decay (aggressive behavior)
+            Self::Flock => 0.03,  // Flocking behavior low decay (social need)
+            Self::Forage => 0.08, // Foraging behavior moderate decay
+            Self::Cache => 0.04,  // Caching behavior low decay (important survival behavior)
+            Self::Retrieve => 0.06, // Retrieval behavior moderate decay
+            Self::HoverFeed => 0.1, // Hover feeding high energy cost, higher decay
         }
     }
     
@@ -193,6 +201,14 @@ impl BirdAction {
             Self::Nest => (15.0, 45.0),  // 15-45 seconds in nesting area
             Self::Roost => (30.0, 90.0), // 30-90 seconds roosting/gathering
             Self::Shelter => (60.0, 180.0), // 1-3 minutes sheltering from weather
+            Self::Court => (10.0, 25.0), // 10-25 seconds courtship display
+            Self::Follow => (5.0, 20.0), // 5-20 seconds following behavior
+            Self::Challenge => (3.0, 15.0), // 3-15 seconds territorial display
+            Self::Flock => (20.0, 60.0), // 20-60 seconds flocking behavior
+            Self::Forage => (15.0, 45.0), // 15-45 seconds ground foraging
+            Self::Cache => (5.0, 12.0), // 5-12 seconds caching food
+            Self::Retrieve => (3.0, 8.0), // 3-8 seconds retrieving cached food
+            Self::HoverFeed => (8.0, 20.0), // 8-20 seconds hover feeding
         }
     }
 }

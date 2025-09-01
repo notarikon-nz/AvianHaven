@@ -3,7 +3,7 @@ use bevy_rapier2d::prelude::*;
 use rand::Rng;
 
 use crate::{AppState, resources::{GameConfig, BirdCount, SpawnBirdEvent}};
-use crate::bird_ai::components::{BirdAI, BirdState, Blackboard, InternalState};
+use crate::bird_ai::components::{BirdAI, BirdState, Blackboard, InternalState, SocialBirdTraits, SocialRelationships, ForagingTraits, CacheData, ForagingState};
 use crate::animation::components::AnimatedBird;
 use crate::feeder::FeederType;
 use crate::environment::resources::{TimeState, WeatherState, SeasonalState};
@@ -387,6 +387,201 @@ impl BirdSpecies {
             _ => self.is_year_round_resident(),
         }
     }
+    
+    /// Returns seasonal feeding preference multiplier for a feeder type
+    pub fn seasonal_feeding_modifier(&self, feeder_type: FeederType, season: crate::environment::components::Season) -> f32 {
+        use crate::environment::components::Season;
+        use crate::feeder::FeederType;
+        
+        match season {
+            Season::Spring => {
+                match (self, feeder_type) {
+                    // Spring nesting season - higher protein needs (suet preference)
+                    (Self::Robin | Self::Sparrow | Self::Chickadee, FeederType::Suet) => 1.3,
+                    // Early migrants need high energy
+                    (Self::RedWingedBlackbird | Self::MourningDove, FeederType::Ground) => 1.4,
+                    // Hummingbirds return - nectar critical
+                    (Self::RubyThroatedHummingbird, FeederType::Nectar) => 2.0,
+                    _ => 1.0,
+                }
+            },
+            Season::Summer => {
+                match (self, feeder_type) {
+                    // Hot weather - increased fruit/water preference
+                    (Self::BrownThrasher | Self::Catbird | Self::BaltimoreOriole, FeederType::Fruit) => 1.3,
+                    // Peak hummingbird season
+                    (Self::RubyThroatedHummingbird, FeederType::Nectar) => 1.5,
+                    // Less seed feeding during abundant insect season
+                    (_, FeederType::Seed) => 0.8,
+                    _ => 1.0,
+                }
+            },
+            Season::Fall => {
+                match (self, feeder_type) {
+                    // Migration fattening - prefer high-energy foods
+                    (Self::WhiteBreastedNuthatch | Self::Chickadee | Self::TuftedTitmouse, FeederType::Suet) => 1.4,
+                    // Seed stockpiling behavior
+                    (Self::BlueJay | Self::CommonCrow, FeederType::Seed) => 1.3,
+                    // Late fruits
+                    (Self::CedarWaxwing, FeederType::Fruit) => 1.6,
+                    _ => 1.0,
+                }
+            },
+            Season::Winter => {
+                match (self, feeder_type) {
+                    // Winter survival - high calorie needs
+                    (Self::Cardinal | Self::BlueJay | Self::Chickadee, FeederType::Suet) => 1.5,
+                    (Self::Cardinal | Self::Goldfinch | Self::HouseFinch, FeederType::Seed) => 1.4,
+                    // Ground feeding more difficult in winter
+                    (_, FeederType::Ground) => 0.6,
+                    _ => 1.0,
+                }
+            },
+        }
+    }
+    
+    /// Returns time-of-day feeding preference modifier
+    pub fn time_based_feeding_modifier(&self, feeder_type: FeederType, hour: f32) -> f32 {
+        use crate::feeder::FeederType;
+        
+        match self {
+            // Early morning feeders (dawn chorus participants)
+            Self::Robin | Self::Cardinal | Self::Sparrow => {
+                if hour >= 5.0 && hour <= 8.0 {
+                    1.3 // 30% boost during dawn hours
+                } else if hour >= 18.0 && hour <= 20.0 {
+                    1.2 // 20% boost during evening
+                } else {
+                    0.9 // Slightly less active during day
+                }
+            },
+            
+            // Hummingbirds need frequent feeding throughout the day
+            Self::RubyThroatedHummingbird => {
+                if matches!(feeder_type, FeederType::Nectar) {
+                    if hour >= 6.0 && hour <= 19.0 {
+                        1.0 + 0.3 * (hour - 12.5).abs() / 6.5 // Peak at dawn/dusk
+                    } else {
+                        0.3 // Less active at night
+                    }
+                } else {
+                    1.0
+                }
+            },
+            
+            // Woodpeckers most active mid-morning
+            Self::DownyWoodpecker | Self::HairyWoodpecker | Self::PileatedWoodpecker => {
+                if hour >= 8.0 && hour <= 12.0 {
+                    1.4 // Very active mid-morning
+                } else if hour >= 14.0 && hour <= 17.0 {
+                    1.2 // Active afternoon
+                } else {
+                    0.8
+                }
+            },
+            
+            // Evening feeders (gathering before roost)
+            Self::CommonGrackle | Self::EuropeanStarling | Self::RedWingedBlackbird => {
+                if hour >= 16.0 && hour <= 19.0 {
+                    1.4 // Very active before roosting
+                } else if hour >= 7.0 && hour <= 11.0 {
+                    1.1 // Moderately active morning
+                } else {
+                    0.8
+                }
+            },
+            
+            // All-day feeders
+            Self::BlueJay | Self::Chickadee | Self::WhiteBreastedNuthatch => {
+                if hour >= 6.0 && hour <= 18.0 {
+                    1.0 // Consistent activity
+                } else {
+                    0.5 // Reduced nighttime activity
+                }
+            },
+            
+            _ => 1.0, // Default no modifier
+        }
+    }
+    
+    /// Returns competitive feeding behavior traits
+    pub fn feeding_aggression_level(&self) -> f32 {
+        match self {
+            // Highly aggressive at feeders
+            Self::BlueJay | Self::CommonCrow | Self::PileatedWoodpecker => 0.9,
+            Self::RedWingedBlackbird | Self::CommonGrackle => 0.8,
+            
+            // Moderately aggressive
+            Self::Cardinal | Self::DownyWoodpecker | Self::HairyWoodpecker => 0.6,
+            Self::NorthernMockingbird | Self::BrownThrasher => 0.6,
+            
+            // Mildly competitive
+            Self::HouseFinch | Self::PurpleFinch | Self::Goldfinch => 0.4,
+            Self::Chickadee | Self::TuftedTitmouse | Self::WhiteBreastedNuthatch => 0.4,
+            
+            // Generally peaceful
+            Self::MourningDove | Self::Sparrow | Self::CedarWaxwing => 0.2,
+            Self::RubyThroatedHummingbird => 0.1, // Too small to compete with most species
+            
+            // Non-competitive (raptors, insectivores)
+            _ => 0.1,
+        }
+    }
+    
+    /// Returns feeding style characteristics
+    pub fn feeding_style_traits(&self) -> (f32, f32, f32) {
+        // Returns: (feeding_duration, feeding_frequency, group_tolerance)
+        match self {
+            // Quick, frequent, solitary feeders
+            Self::RubyThroatedHummingbird => (0.2, 0.9, 0.1),
+            Self::WhiteBreastedNuthatch | Self::BrownCreeper => (0.3, 0.8, 0.2),
+            
+            // Medium duration, frequent, social feeders  
+            Self::Chickadee | Self::TuftedTitmouse => (0.4, 0.7, 0.8),
+            Self::Goldfinch | Self::HouseFinch | Self::PurpleFinch => (0.5, 0.6, 0.9),
+            
+            // Longer feeding sessions, social
+            Self::Cardinal | Self::BlueJay => (0.7, 0.5, 0.6),
+            Self::Sparrow | Self::MourningDove => (0.6, 0.6, 0.9),
+            
+            // Extended feeding, flock-oriented
+            Self::CommonGrackle | Self::EuropeanStarling | Self::RedWingedBlackbird => (0.8, 0.4, 0.9),
+            Self::CedarWaxwing => (0.9, 0.3, 0.9), // Highly social, long feeding
+            
+            // Variable based on food availability
+            Self::Robin | Self::BrownThrasher | Self::NorthernMockingbird => (0.6, 0.5, 0.5),
+            
+            _ => (0.5, 0.5, 0.5), // Default moderate values
+        }
+    }
+    
+    /// Returns specialized feeding technique preferences
+    pub fn feeding_technique_preference(&self, feeder_type: FeederType) -> f32 {
+        use crate::feeder::FeederType;
+        
+        match (self, feeder_type) {
+            // Hovering specialists
+            (Self::RubyThroatedHummingbird, FeederType::Nectar) => 2.0, // Exclusive hover feeding
+            
+            // Clinging specialists (can feed upside down)
+            (Self::WhiteBreastedNuthatch | Self::DownyWoodpecker | Self::HairyWoodpecker, FeederType::Suet) => 1.8,
+            (Self::Chickadee | Self::TuftedTitmouse, FeederType::Seed) => 1.4, // Good at clinging to seed feeders
+            
+            // Ground foraging specialists
+            (Self::Robin | Self::Sparrow | Self::MourningDove, FeederType::Ground) => 1.6,
+            (Self::CommonCrow | Self::CommonGrackle | Self::EuropeanStarling, FeederType::Ground) => 1.5,
+            
+            // Platform/perch feeders
+            (Self::Cardinal | Self::BlueJay, FeederType::Seed) => 1.3,
+            (Self::Goldfinch | Self::HouseFinch | Self::PurpleFinch, FeederType::Seed) => 1.4,
+            
+            // Fruit handling specialists
+            (Self::BrownThrasher | Self::Catbird | Self::BaltimoreOriole, FeederType::Fruit) => 1.5,
+            (Self::CedarWaxwing | Self::ScarletTanager, FeederType::Fruit) => 1.6,
+            
+            _ => 1.0, // Standard feeding technique
+        }
+    }
 }
 
 #[derive(Component)]
@@ -425,7 +620,8 @@ fn spawn_bird(commands: &mut Commands) {
     let x = rng.random_range(-400.0..400.0);
     let y = rng.random_range(-300.0..300.0);
     
-    commands.spawn((
+    // Spawn bird entity with basic components first
+    let bird_entity = commands.spawn((
         Sprite {
             image: Handle::default(), // Will be set by animation system
             texture_atlas: None,      // Will be set by animation system
@@ -439,7 +635,10 @@ fn spawn_bird(commands: &mut Commands) {
         WanderTimer(Timer::from_seconds(2.0, TimerMode::Repeating)),
         GravityScale(0.0),
         Damping { linear_damping: 2.0, angular_damping: 10.0 },
-        // AI Components
+    )).id();
+    
+    // Add AI components in a separate bundle
+    commands.entity(bird_entity).insert((
         BirdAI,
         BirdState::Wandering,
         Blackboard {
@@ -447,14 +646,47 @@ fn spawn_bird(commands: &mut Commands) {
                 hunger: rng.random_range(0.2..0.8),
                 thirst: rng.random_range(0.2..0.8),
                 energy: rng.random_range(0.5..1.0),
+                social_need: rng.random_range(0.2..0.6),
+                territorial_stress: rng.random_range(0.3..0.5),
                 fear: 0.0,
             },
             ..default()
         },
-        // Animation components
-        AnimatedBird {
-            species,
+    ));
+    
+    // Add social behavior components
+    commands.entity(bird_entity).insert((
+        SocialBirdTraits {
+            dominance_level: rng.random_range(0.2..0.8),
+            territorial_aggression: get_species_territorial_aggression(species).clamp(0.0, 1.0),
+            social_tolerance: get_species_social_tolerance(species).clamp(0.0, 1.0),
+            mating_receptivity: rng.random_range(0.3..0.7),
+            flock_tendency: get_species_flock_tendency(species).clamp(0.0, 1.0),
         },
+        SocialRelationships::default(),
+    ));
+    
+    // Add foraging behavior components
+    commands.entity(bird_entity).insert((
+        ForagingTraits {
+            foraging_style: get_species_foraging_style(species),
+            ground_preference: get_species_ground_preference(species),
+            cache_tendency: get_species_cache_tendency(species),
+            search_pattern: get_species_search_pattern(species),
+            hover_ability: get_species_hover_ability(species),
+        },
+        CacheData {
+            cached_locations: Vec::new(),
+            retrieval_memory: get_species_cache_memory(species),
+            current_cache_count: 0,
+            max_cache_capacity: get_species_max_cache(species),
+        },
+        ForagingState::default(),
+    ));
+    
+    // Add animation components
+    commands.entity(bird_entity).insert((
+        AnimatedBird { species },
         crate::animation::components::AnimationController::default(),
         crate::animation::components::AnimationLibrary::default(),
     ));
@@ -623,6 +855,8 @@ fn spawn_specific_bird(commands: &mut Commands, species: BirdSpecies) {
                 hunger: rng.random_range(0.2..0.8),
                 thirst: rng.random_range(0.2..0.8),
                 energy: rng.random_range(0.5..1.0),
+                social_need: rng.random_range(0.2..0.6),
+                territorial_stress: rng.random_range(0.3..0.5),                
                 fear: 0.0,
             },
             world_knowledge: crate::bird_ai::components::WorldKnowledge::default(),
@@ -689,5 +923,231 @@ fn get_migration_availability(
                 0.1 // Very low chance for summer migrants
             }
         }
+    }
+}
+
+// Species-specific social trait functions
+fn get_species_territorial_aggression(species: BirdSpecies) -> f32 {
+    use BirdSpecies::*;
+    match species {
+        // High territorial aggression
+        BlueJay | NorthernMockingbird | RedWingedBlackbird | Cardinal => 0.8,
+        RedHeadedWoodpecker | BelttedKingfisher | RedTailedHawk | CoopersHawk => 0.9,
+        PeregrineFalcon | BaldEagle => 0.95,
+        
+        // Medium territorial aggression
+        Robin | ScarletTanager | BaltimoreOriole => 0.6,
+        DownyWoodpecker | HairyWoodpecker | PileatedWoodpecker => 0.65,
+        EasternBluebird | PaintedBunting => 0.55,
+        
+        // Low territorial aggression (more social/flock-oriented)
+        Goldfinch | HouseFinch | PurpleFinch | CommonGrackle => 0.3,
+        Chickadee | TuftedTitmouse | WhiteBreastedNuthatch => 0.35,
+        CedarWaxwing | YellowWarbler | IndianaBunting => 0.4,
+        
+        // Very low (highly social)
+        Sparrow | EuropeanStarling => 0.2,
+        
+        _ => 0.5, // Default medium aggression
+    }
+}
+
+fn get_species_social_tolerance(species: BirdSpecies) -> f32 {
+    use BirdSpecies::*;
+    match species {
+        // Highly social (high tolerance for others)
+        Goldfinch | HouseFinch | CommonGrackle | EuropeanStarling => 0.9,
+        Chickadee | TuftedTitmouse | CedarWaxwing => 0.85,
+        Sparrow | PurpleFinch => 0.8,
+        
+        // Moderately social
+        Robin | BlueJay | WhiteBreastedNuthatch | YellowWarbler => 0.6,
+        DownyWoodpecker | HairyWoodpecker | CarolinaWren => 0.65,
+        
+        // Less social (lower tolerance)
+        Cardinal | NorthernMockingbird | RedWingedBlackbird => 0.4,
+        BrownThrasher | PaintedBunting | ScarletTanager => 0.45,
+        
+        // Solitary (very low tolerance)
+        RedTailedHawk | CoopersHawk | BarredOwl | GreatHornedOwl => 0.2,
+        BelttedKingfisher | PeregrineFalcon | BaldEagle => 0.1,
+        
+        _ => 0.5, // Default medium tolerance
+    }
+}
+
+fn get_species_flock_tendency(species: BirdSpecies) -> f32 {
+    use BirdSpecies::*;
+    match species {
+        // High flocking tendency (mixed species flocks)
+        Goldfinch | HouseFinch | PurpleFinch | CommonGrackle => 0.9,
+        Chickadee | TuftedTitmouse | WhiteBreastedNuthatch => 0.85,
+        Sparrow | EuropeanStarling | CedarWaxwing => 0.8,
+        
+        // Moderate flocking (winter flocks, feeding aggregations)
+        Robin | Cardinal | BlueJay | YellowWarbler => 0.6,
+        DownyWoodpecker | HairyWoodpecker | CarolinaWren => 0.5,
+        
+        // Low flocking (mostly solitary or pairs)
+        NorthernMockingbird | RedWingedBlackbird | BrownThrasher => 0.3,
+        PaintedBunting | ScarletTanager | BaltimoreOriole => 0.4,
+        
+        // Minimal flocking (highly territorial/solitary)
+        RedTailedHawk | CoopersHawk | BarredOwl | GreatHornedOwl => 0.1,
+        BelttedKingfisher | PeregrineFalcon | BaldEagle => 0.05,
+        
+        _ => 0.5, // Default medium flocking
+    }
+}
+
+// Species-specific foraging trait functions
+fn get_species_foraging_style(species: BirdSpecies) -> crate::bird_ai::components::ForagingStyle {
+    use BirdSpecies::*;
+    use crate::bird_ai::components::ForagingStyle;
+    match species {
+        // Methodical foragers
+        Robin | BrownThrasher | WoodThrush => ForagingStyle::Methodical,
+        DownyWoodpecker | HairyWoodpecker | RedHeadedWoodpecker => ForagingStyle::Methodical,
+        
+        // Specialists
+        RubyThroatedHummingbird | BelttedKingfisher => ForagingStyle::Specialist,
+        RedTailedHawk | CoopersHawk | PeregrineFalcon | BaldEagle => ForagingStyle::Specialist,
+        
+        // Scatter foragers (highly mobile)
+        Goldfinch | PurpleFinch | CedarWaxwing => ForagingStyle::Scatter,
+        YellowWarbler | CeruleanWarbler | HoodedWarbler => ForagingStyle::Scatter,
+        
+        // Opportunistic (default for most species)
+        _ => ForagingStyle::Opportunistic,
+    }
+}
+
+fn get_species_ground_preference(species: BirdSpecies) -> f32 {
+    use BirdSpecies::*;
+    match species {
+        // High ground preference (primarily ground feeders)
+        Robin | BrownThrasher | WoodThrush => 0.9,
+        MourningDove | CommonGrackle | RedWingedBlackbird => 0.8,
+        Sparrow | EuropeanStarling | CommonCrow => 0.85,
+        
+        // Moderate ground feeding
+        Cardinal | BlueJay | NorthernMockingbird => 0.6,
+        TuftedTitmouse | CarolinaWren | WhiteBreastedNuthatch => 0.5,
+        
+        // Low ground preference (primarily arboreal)
+        Chickadee | CedarWaxwing | BaltimoreOriole => 0.3,
+        DownyWoodpecker | HairyWoodpecker | RedHeadedWoodpecker => 0.2,
+        
+        // Minimal ground feeding
+        RubyThroatedHummingbird => 0.1,
+        RedTailedHawk | CoopersHawk | PeregrineFalcon | BaldEagle => 0.05,
+        
+        _ => 0.4, // Default moderate ground feeding
+    }
+}
+
+fn get_species_cache_tendency(species: BirdSpecies) -> f32 {
+    use BirdSpecies::*;
+    match species {
+        // High caching tendency
+        BlueJay | CommonCrow => 0.9,
+        WhiteBreastedNuthatch | BrownCreeper => 0.85,
+        
+        // Moderate caching
+        Chickadee | TuftedTitmouse => 0.6,
+        DownyWoodpecker | HairyWoodpecker => 0.5,
+        
+        // Low caching
+        Cardinal | HouseFinch | PurpleFinch => 0.3,
+        Robin | BrownThrasher => 0.2,
+        
+        // No caching (primarily nectar feeders or hunters)
+        RubyThroatedHummingbird => 0.0,
+        RedTailedHawk | CoopersHawk | PeregrineFalcon | BaldEagle => 0.05,
+        
+        _ => 0.2, // Default low caching
+    }
+}
+
+fn get_species_search_pattern(species: BirdSpecies) -> crate::bird_ai::components::SearchPattern {
+    use BirdSpecies::*;
+    use crate::bird_ai::components::SearchPattern;
+    match species {
+        // Grid searchers (systematic)
+        Robin | BrownThrasher | WoodThrush => SearchPattern::Grid,
+        DownyWoodpecker | HairyWoodpecker => SearchPattern::Grid,
+        
+        // Spiral searchers (expanding outward)
+        BlueJay | CommonCrow | NorthernMockingbird => SearchPattern::Spiral,
+        Cardinal | TuftedTitmouse => SearchPattern::Spiral,
+        
+        // Linear searchers (back and forth)
+        RedWingedBlackbird | CommonGrackle => SearchPattern::Linear,
+        BeltedKingfisher => SearchPattern::Linear,
+        
+        // Random foragers
+        _ => SearchPattern::Random,
+    }
+}
+
+fn get_species_hover_ability(species: BirdSpecies) -> f32 {
+    use BirdSpecies::*;
+    match species {
+        // Excellent hoverers
+        RubyThroatedHummingbird => 1.0,
+        
+        // Good hoverers
+        BelttedKingfisher => 0.8,
+        PeregrineFalcon => 0.7,
+        
+        // Moderate hovering (brief hover capability)
+        Goldfinch | PurpleFinch | CedarWaxwing => 0.4,
+        YellowWarbler | BaltimoreOriole => 0.3,
+        
+        // Limited hovering
+        Chickadee | TuftedTitmouse => 0.2,
+        
+        // No hovering ability
+        _ => 0.0,
+    }
+}
+
+fn get_species_cache_memory(species: BirdSpecies) -> f32 {
+    use BirdSpecies::*;
+    match species {
+        // Excellent memory
+        BlueJay | CommonCrow => 0.95,
+        WhiteBreastedNuthatch | BrownCreeper => 0.9,
+        
+        // Good memory
+        Chickadee | TuftedTitmouse => 0.8,
+        DownyWoodpecker | HairyWoodpecker => 0.75,
+        
+        // Moderate memory
+        Cardinal | HouseFinch => 0.6,
+        
+        // Poor memory (don't cache much anyway)
+        _ => 0.4,
+    }
+}
+
+fn get_species_max_cache(species: BirdSpecies) -> u32 {
+    use BirdSpecies::*;
+    match species {
+        // High cache capacity
+        BlueJay | CommonCrow => 15,
+        WhiteBreastedNuthatch | BrownCreeper => 12,
+        
+        // Moderate cache capacity
+        Chickadee | TuftedTitmouse => 8,
+        DownyWoodpecker | HairyWoodpecker => 6,
+        
+        // Low cache capacity
+        Cardinal | HouseFinch => 3,
+        
+        // No caching
+        RubyThroatedHummingbird | RedTailedHawk | CoopersHawk | PeregrineFalcon | BaldEagle => 0,
+        
+        _ => 2, // Default minimal caching
     }
 }

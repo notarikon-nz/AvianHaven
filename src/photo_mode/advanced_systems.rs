@@ -96,7 +96,7 @@ pub fn camera_controls_system(
         return;
     }
     
-    let Ok((mut camera_transform, mut projection, mut controls)) = camera_query.get_single_mut() else {
+    let Ok((mut camera_transform, mut projection, mut controls)) = camera_query.single_mut() else {
         return;
     };
     
@@ -164,7 +164,7 @@ pub fn camera_settings_panel_system(
     }
     
     // Update camera settings display
-    if let Ok(controls) = camera_query.get_single() {
+    if let Ok(controls) = camera_query.single() {
         // This would update the text display with current camera values
         // Implementation would require tracking specific text entities
     }
@@ -426,6 +426,26 @@ fn analyze_storytelling_elements(
                 story_score += 15; // Solo feeding moment
             }
         },
+        BirdState::Foraging => {
+            // Ground foraging shows natural behavior
+            let foraging_birds = bird_query.iter()
+                .filter(|(_, _, state)| matches!(state, BirdState::Foraging))
+                .count();
+            if foraging_birds > 1 {
+                story_score += 30; // Multiple birds foraging together
+            } else {
+                story_score += 20; // Solo natural foraging
+            }
+        },
+        BirdState::Caching => {
+            story_score += 40; // Rare intelligent caching behavior
+        },
+        BirdState::Retrieving => {
+            story_score += 35; // Smart cache retrieval behavior
+        },
+        BirdState::HoverFeeding => {
+            story_score += 45; // Spectacular hovering behavior
+        },
         BirdState::Bathing => {
             story_score += 35; // Rare and interesting behavior
         },
@@ -485,8 +505,12 @@ fn calculate_enhanced_rarity_bonus(
     
     // Behavior rarity
     match bird_state {
-        BirdState::Bathing => bonus += 25,  // Rare behavior
-        BirdState::Fleeing => bonus += 20,  // Action shots are harder
+        BirdState::Bathing => bonus += 25,      // Rare behavior
+        BirdState::Fleeing => bonus += 20,      // Action shots are harder
+        BirdState::Caching => bonus += 30,      // Very rare intelligent behavior
+        BirdState::HoverFeeding => bonus += 35, // Spectacular rare behavior
+        BirdState::Retrieving => bonus += 25,   // Smart cache retrieval
+        BirdState::Foraging => bonus += 10,     // Natural but noteworthy
         _ => {}
     }
     
@@ -548,11 +572,19 @@ fn get_behavior_score(bird_state: BirdState) -> u32 {
         BirdState::Eating => 50,
         BirdState::Drinking => 45,
         BirdState::Bathing => 60,
-        BirdState::Playing => 65,    // Rare and very cute behavior
-        BirdState::Nesting => 70,    // Rare nesting behavior
-        BirdState::Exploring => 40,  // Interesting investigative behavior
-        BirdState::Roosting => 55,   // Evening gathering behavior
-        BirdState::Sheltering => 50, // Weather response behavior
+        BirdState::Playing => 65,     // Rare and very cute behavior
+        BirdState::Nesting => 70,     // Rare nesting behavior
+        BirdState::Exploring => 40,   // Interesting investigative behavior
+        BirdState::Roosting => 55,    // Evening gathering behavior
+        BirdState::Sheltering => 50,  // Weather response behavior
+        BirdState::Courting => 75,    // Spectacular courtship display
+        BirdState::Following => 35,   // Social following behavior
+        BirdState::Territorial => 55, // Aggressive territorial display
+        BirdState::Flocking => 40,    // Mixed species flocking behavior
+        BirdState::Foraging => 45,    // Natural ground foraging behavior
+        BirdState::Caching => 65,     // Rare seed caching behavior
+        BirdState::Retrieving => 55,  // Intelligent cache retrieval behavior
+        BirdState::HoverFeeding => 70, // Spectacular hovering nectar feeding
         BirdState::Fleeing => 30,
         BirdState::Resting => 25,
         BirdState::MovingToTarget => 20,

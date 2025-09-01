@@ -119,7 +119,7 @@ pub fn capture_photo_system(
         return;
     }
 
-    let Ok((mut camera, camera_controls)) = camera_query.get_single_mut() else {
+    let Ok((mut camera, camera_controls)) = camera_query.single_mut() else {
         warn!("No photo target camera found");
         return;
     };
@@ -322,6 +322,14 @@ fn calculate_photo_score(
         BirdState::Exploring => 40,  // Interesting investigative behavior
         BirdState::Roosting => 55,   // Evening gathering behavior
         BirdState::Sheltering => 50, // Weather response behavior
+        BirdState::Courting => 75,   // Spectacular courtship display
+        BirdState::Following => 35,  // Social following behavior
+        BirdState::Territorial => 55, // Aggressive territorial display
+        BirdState::Flocking => 40,   // Mixed species flocking behavior
+        BirdState::Foraging => 45,   // Natural ground foraging behavior
+        BirdState::Caching => 65,    // Rare seed caching behavior
+        BirdState::Retrieving => 55, // Intelligent cache retrieval behavior
+        BirdState::HoverFeeding => 70, // Spectacular hovering nectar feeding
         BirdState::Fleeing => 30,    // Action shot bonus
         BirdState::Resting => 25,    // Peaceful moment
         BirdState::MovingToTarget => 20, // Bird in motion
@@ -338,6 +346,10 @@ fn calculate_photo_score(
         BirdState::Playing => 35, // Fun playful moments
         BirdState::Nesting => 45, // Rare nesting behavior
         BirdState::Exploring => 20, // Curiosity behavior
+        BirdState::Courting => 50, // Perfect timing for courtship display
+        BirdState::Territorial => 35, // Action shot of aggressive display
+        BirdState::Flocking => 30, // Multiple birds interacting
+        BirdState::Following => 15, // Social behavior
         _ => 10,
     };
     

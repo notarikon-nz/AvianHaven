@@ -45,7 +45,7 @@ pub fn save_game_system(
             Err(e) => (false, Some(e.to_string())),
         };
         
-        save_complete_events.send(SaveCompleteEvent {
+        save_complete_events.write(SaveCompleteEvent {
             slot: save_event.slot,
             success,
             error_message: error_message.clone(),
@@ -97,7 +97,7 @@ pub fn load_game_system(
             Err(e) => (false, Some(e.to_string())),
         };
         
-        load_complete_events.send(LoadCompleteEvent {
+        load_complete_events.write(LoadCompleteEvent {
             slot: load_event.slot,
             success,
             error_message: error_message.clone(),
@@ -121,7 +121,7 @@ pub fn auto_save_system(
         
         if save_manager.auto_save_timer.just_finished() {
             if let Some(slot) = save_manager.current_save_slot {
-                save_events.send(SaveGameEvent {
+                save_events.write(SaveGameEvent {
                     slot,
                     save_name: Some("Auto Save".to_string()),
                 });

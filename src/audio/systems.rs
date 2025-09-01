@@ -197,7 +197,7 @@ pub fn bird_vocalization_system(
     asset_server: Res<AssetServer>,
     time: Res<Time>,
 ) {
-    let Ok(camera_transform) = camera_query.get_single() else {
+    let Ok(camera_transform) = camera_query.single() else {
         return;
     };
     let camera_pos = camera_transform.translation.truncate();
@@ -464,7 +464,7 @@ pub fn ambient_feeder_audio_system(
     asset_server: Res<AssetServer>,
     time: Res<Time>,
 ) {
-    let Ok(camera_transform) = camera_query.get_single() else {
+    let Ok(camera_transform) = camera_query.single() else {
         return;
     };
     let camera_pos = camera_transform.translation.truncate();

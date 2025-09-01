@@ -12,7 +12,7 @@ pub fn check_tutorial_needed(
     if tutorial_progress.should_show_tutorial() {
         tutorial_state.is_active = true;
         tutorial_state.current_step = TutorialStep::Welcome;
-        tutorial_events.send(TutorialEvent {
+        tutorial_events.write(TutorialEvent {
             action: TutorialAction::Start,
         });
     }
@@ -49,7 +49,7 @@ pub fn tutorial_step_system(
                 
                 // Clean up UI
                 for entity in tutorial_ui_query.iter() {
-                    commands.entity(entity).despawn_recursive();
+                    commands.entity(entity).despawn();
                 }
             }
             TutorialAction::Complete => {
@@ -57,7 +57,7 @@ pub fn tutorial_step_system(
                 
                 // Clean up UI
                 for entity in tutorial_ui_query.iter() {
-                    commands.entity(entity).despawn_recursive();
+                    commands.entity(entity).despawn();
                 }
             }
             TutorialAction::Show => {
@@ -69,7 +69,7 @@ pub fn tutorial_step_system(
             TutorialAction::Hide => {
                 tutorial_state.show_ui = false;
                 for entity in tutorial_ui_query.iter() {
-                    commands.entity(entity).despawn_recursive();
+                    commands.entity(entity).despawn();
                 }
             }
         }
@@ -89,7 +89,7 @@ pub fn tutorial_input_handler(
     
     // ESC to skip tutorial
     if input.just_pressed(KeyCode::Escape) {
-        tutorial_events.send(TutorialEvent {
+        tutorial_events.write(TutorialEvent {
             action: TutorialAction::Skip,
         });
         return;
@@ -98,11 +98,11 @@ pub fn tutorial_input_handler(
     // F1 to toggle tutorial UI
     if input.just_pressed(KeyCode::F1) {
         if tutorial_state.show_ui {
-            tutorial_events.send(TutorialEvent {
+            tutorial_events.write(TutorialEvent {
                 action: TutorialAction::Hide,
             });
         } else {
-            tutorial_events.send(TutorialEvent {
+            tutorial_events.write(TutorialEvent {
                 action: TutorialAction::Show,
             });
         }
@@ -119,7 +119,7 @@ pub fn tutorial_input_handler(
                input.just_pressed(KeyCode::ArrowDown) ||
                input.just_pressed(KeyCode::ArrowLeft) ||
                input.just_pressed(KeyCode::ArrowRight) {
-                step_complete_events.send(TutorialStepCompleteEvent {
+                step_complete_events.write(TutorialStepCompleteEvent {
                     step: TutorialStep::CameraMovement,
                     auto_advance: true,
                 });
@@ -127,7 +127,7 @@ pub fn tutorial_input_handler(
         }
         TutorialStep::PhotoMode => {
             if input.just_pressed(KeyCode::KeyP) {
-                step_complete_events.send(TutorialStepCompleteEvent {
+                step_complete_events.write(TutorialStepCompleteEvent {
                     step: TutorialStep::PhotoMode,
                     auto_advance: true,
                 });
@@ -135,7 +135,7 @@ pub fn tutorial_input_handler(
         }
         TutorialStep::TakePhoto => {
             if input.just_pressed(KeyCode::Space) && photo_mode_settings.is_active {
-                step_complete_events.send(TutorialStepCompleteEvent {
+                step_complete_events.write(TutorialStepCompleteEvent {
                     step: TutorialStep::TakePhoto,
                     auto_advance: true,
                 });
@@ -143,7 +143,7 @@ pub fn tutorial_input_handler(
         }
         TutorialStep::ViewJournal => {
             if input.just_pressed(KeyCode::Tab) {
-                step_complete_events.send(TutorialStepCompleteEvent {
+                step_complete_events.write(TutorialStepCompleteEvent {
                     step: TutorialStep::ViewJournal,
                     auto_advance: true,
                 });
@@ -151,7 +151,7 @@ pub fn tutorial_input_handler(
         }
         TutorialStep::OpenCatalog => {
             if input.just_pressed(KeyCode::KeyC) {
-                step_complete_events.send(TutorialStepCompleteEvent {
+                step_complete_events.write(TutorialStepCompleteEvent {
                     step: TutorialStep::OpenCatalog,
                     auto_advance: true,
                 });
@@ -171,7 +171,7 @@ pub fn tutorial_ui_update_system(
     }
     
     // Update dialog text
-    if let Ok(mut text) = tutorial_dialog_query.get_single_mut() {
+    if let Ok(mut text) = tutorial_dialog_query.single_mut() {
         *text = Text::new(format!(
             "{}\n\n{}",
             tutorial_state.current_step.title(),
@@ -180,7 +180,7 @@ pub fn tutorial_ui_update_system(
     }
     
     // Update button text based on step
-    if let Ok(mut button_text) = tutorial_button_query.get_single_mut() {
+    if let Ok(mut button_text) = tutorial_button_query.single_mut() {
         let button_label = match tutorial_state.current_step {
             TutorialStep::Welcome => "Begin Tutorial",
             TutorialStep::Complete => "Finish",
@@ -204,7 +204,7 @@ pub fn tutorial_highlight_system(
     if !tutorial_state.is_active {
         // Clean up highlights if tutorial is not active
         for entity in highlight_query.iter() {
-            commands.entity(entity).despawn_recursive();
+            commands.entity(entity).despawn();
         }
         return;
     }
@@ -225,14 +225,14 @@ pub fn tutorial_completion_system(
         
         if event.auto_advance {
             if tutorial_state.current_step.next().is_some() {
-                tutorial_events.send(TutorialEvent {
+                tutorial_events.write(TutorialEvent {
                     action: TutorialAction::NextStep,
                 });
             } else {
                 tutorial_progress.tutorial_completed = true;
                 let _ = tutorial_progress.save_to_file();
                 
-                tutorial_events.send(TutorialEvent {
+                tutorial_events.write(TutorialEvent {
                     action: TutorialAction::Complete,
                 });
             }
@@ -257,18 +257,18 @@ pub fn tutorial_button_system(
                 *bg_color = Color::srgb(0.5, 0.7, 0.5).into();
                 
                 if skip_button.is_some() {
-                    tutorial_events.send(TutorialEvent {
+                    tutorial_events.write(TutorialEvent {
                         action: TutorialAction::Skip,
                     });
                 } else if next_button.is_some() {
                     match tutorial_state.current_step {
                         TutorialStep::Complete => {
-                            tutorial_events.send(TutorialEvent {
+                            tutorial_events.write(TutorialEvent {
                                 action: TutorialAction::Complete,
                             });
                         }
                         _ => {
-                            step_complete_events.send(TutorialStepCompleteEvent {
+                            step_complete_events.write(TutorialStepCompleteEvent {
                                 step: tutorial_state.current_step,
                                 auto_advance: true,
                             });

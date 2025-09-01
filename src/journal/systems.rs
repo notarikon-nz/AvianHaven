@@ -481,7 +481,7 @@ pub fn teardown_journal_menu_system(
     journal_query: Query<Entity, With<JournalMenu>>,
 ) {
     for entity in journal_query.iter() {
-        commands.entity(entity).despawn_recursive();
+        commands.entity(entity).despawn();
     }
 }
 
@@ -506,7 +506,7 @@ pub fn journal_tab_system(
                     
                     // Refresh content area
                     for entity in content_query.iter() {
-                        commands.entity(entity).despawn_recursive();
+                        commands.entity(entity).despawn();
                     }
                     
                     // Note: In a full implementation, we'd re-spawn the content here

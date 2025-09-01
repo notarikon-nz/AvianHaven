@@ -253,7 +253,7 @@ pub fn handle_purchase_buttons(
         if *interaction == Interaction::Pressed {
             let price = purchase_button.item_type.price();
             if inventory.currency >= price {
-                purchase_events.send(PurchaseItemEvent {
+                purchase_events.write(PurchaseItemEvent {
                     item_type: purchase_button.item_type.clone(),
                 });
             }
@@ -295,14 +295,14 @@ pub fn handle_purchase_events(
             // Trigger UI update
             catalog_state.set_changed();
             
-            notifications.send(crate::notifications::resources::ShowNotificationEvent {
+            notifications.write(crate::notifications::resources::ShowNotificationEvent {
                 notification: crate::notifications::components::NotificationType::Currency {
                     amount: price,
                     reason: format!("Bought {}", event.item_type.name()),
                 },
             });
         } else {
-            notifications.send(crate::notifications::resources::ShowNotificationEvent {
+            notifications.write(crate::notifications::resources::ShowNotificationEvent {
                 notification: crate::notifications::components::NotificationType::Warning {
                     message: format!("Need {} coins to buy {}", price, event.item_type.name()),
                 },
@@ -401,7 +401,7 @@ pub fn update_catalog_ui(
         }
         
         // Clear and rebuild items grid
-        if let Ok(grid_entity) = items_grid_query.get_single_mut() {
+        if let Ok(grid_entity) = items_grid_query.single_mut() {
             // Despawn all existing item cards
             if let Ok(mut entity_commands) = commands.get_entity(grid_entity) {
                 entity_commands.despawn();
@@ -616,8 +616,8 @@ pub fn handle_object_placement(
     asset_server: Res<AssetServer>,
     mut place_events: EventWriter<PlaceObjectEvent>,
 ) {
-    let Ok(window) = windows.get_single() else { return };
-    let Ok((camera, camera_transform)) = camera_query.get_single() else { return };
+    let Ok(window) = windows.single() else { return };
+    let Ok((camera, camera_transform)) = camera_query.single() else { return };
     
     // Handle placement mode
     if placed_objects.placement_mode {
@@ -636,7 +636,7 @@ pub fn handle_object_placement(
             // Place object on left click
             if mouse_button.just_pressed(MouseButton::Left) {
                 if let Some(item_type) = &catalog_state.selected_item {
-                    place_events.send(PlaceObjectEvent {
+                    place_events.write(PlaceObjectEvent {
                         item_type: item_type.clone(),
                         position: world_position.extend(1.0),
                     });

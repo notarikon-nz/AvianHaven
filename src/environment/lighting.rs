@@ -64,9 +64,9 @@ pub fn dynamic_lighting_system(
     let weather_modifier = weather_state.current_weather.lighting_modifier();
     
     // Update ambient lighting
-    if let Ok(mut ambient) = ambient_query.get_single_mut() {
+    if let Ok(mut ambient) = ambient_query.single_mut() {
         // Get seasonal tint
-        if let Ok(seasonal) = seasonal_query.get_single() {
+        if let Ok(seasonal) = seasonal_query.single() {
             ambient.seasonal_tint = get_seasonal_color(season, seasonal);
         }
         
@@ -75,7 +75,7 @@ pub fn dynamic_lighting_system(
     }
     
     // Update day/night overlay
-    if let Ok((mut sprite, mut overlay)) = overlay_query.get_single_mut() {
+    if let Ok((mut sprite, mut overlay)) = overlay_query.single_mut() {
         let night_intensity = calculate_night_intensity(time_state.hour);
         overlay.opacity = night_intensity * weather_modifier;
         
@@ -92,7 +92,7 @@ pub fn dynamic_lighting_system(
     }
     
     // Update directional light (sun position and color)
-    if let Ok(mut light) = directional_query.get_single_mut() {
+    if let Ok(mut light) = directional_query.single_mut() {
         // Calculate sun position based on time
         let sun_angle = (time_state.hour - 12.0) * std::f32::consts::PI / 12.0; // -π to π over 24 hours
         light.direction = Vec3::new(
@@ -112,7 +112,7 @@ pub fn seasonal_lighting_transition_system(
     mut seasonal_query: Query<&mut SeasonalLighting>,
     time: Res<Time>,
 ) {
-    let Ok(mut seasonal) = seasonal_query.get_single_mut() else {
+    let Ok(mut seasonal) = seasonal_query.single_mut() else {
         return;
     };
     
@@ -201,12 +201,12 @@ pub fn weather_lighting_system(
     let weather_modifier = weather_state.current_weather.lighting_modifier();
     
     // Update ambient light based on weather
-    if let Ok(mut ambient) = ambient_query.get_single_mut() {
+    if let Ok(mut ambient) = ambient_query.single_mut() {
         ambient.weather_modifier = weather_modifier;
     }
     
     // Update directional light based on weather
-    if let Ok(mut light) = directional_query.get_single_mut() {
+    if let Ok(mut light) = directional_query.single_mut() {
         light.intensity *= weather_modifier;
         
         // Adjust sun color for weather conditions

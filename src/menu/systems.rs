@@ -483,25 +483,25 @@ pub fn main_menu_button_system(
                     MainMenuAction::NewGame => {
                         // Start a new game - switch to playing state
                         save_manager.current_save_slot = Some(0); // Default to slot 0
-                        menu_nav_events.send(MenuNavigationEvent {
+                        menu_nav_events.write(MenuNavigationEvent {
                             target_menu: MenuType::InGame,
                             target_app_state: Some(crate::AppState::Playing),
                         });
                     }
                     MainMenuAction::LoadGame => {
-                        menu_nav_events.send(MenuNavigationEvent {
+                        menu_nav_events.write(MenuNavigationEvent {
                             target_menu: MenuType::LoadGame,
                             target_app_state: Some(crate::AppState::LoadGame),
                         });
                     }
                     MainMenuAction::Settings => {
-                        menu_nav_events.send(MenuNavigationEvent {
+                        menu_nav_events.write(MenuNavigationEvent {
                             target_menu: MenuType::Settings,
                             target_app_state: Some(crate::AppState::Settings),
                         });
                     }
                     MainMenuAction::Quit => {
-                        app_exit_events.send(AppExit::Success);
+                        app_exit_events.write(AppExit::Success);
                     }
                 }
             }
@@ -527,7 +527,7 @@ pub fn settings_button_system(
         if *interaction == Interaction::Pressed {
             match settings_button.action {
                 SettingsAction::BackToMain => {
-                    menu_nav_events.send(MenuNavigationEvent {
+                    menu_nav_events.write(MenuNavigationEvent {
                         target_menu: MenuType::MainMenu,
                         target_app_state: Some(crate::AppState::MainMenu),
                     });
@@ -560,11 +560,11 @@ pub fn load_game_button_system(
     for (interaction, load_button) in interaction_query.iter() {
         if *interaction == Interaction::Pressed {
             save_manager.current_save_slot = Some(load_button.save_slot);
-            load_events.send(LoadGameEvent {
+            load_events.write(LoadGameEvent {
                 slot: load_button.save_slot,
             });
             
-            menu_nav_events.send(MenuNavigationEvent {
+            menu_nav_events.write(MenuNavigationEvent {
                 target_menu: MenuType::InGame,
                 target_app_state: Some(crate::AppState::Playing),
             });
@@ -596,19 +596,19 @@ pub fn escape_key_system(
     if input.just_pressed(KeyCode::Escape) {
         match current_state.get() {
             crate::AppState::Settings => {
-                menu_nav_events.send(MenuNavigationEvent {
+                menu_nav_events.write(MenuNavigationEvent {
                     target_menu: MenuType::MainMenu,
                     target_app_state: Some(crate::AppState::MainMenu),
                 });
             }
             crate::AppState::LoadGame => {
-                menu_nav_events.send(MenuNavigationEvent {
+                menu_nav_events.write(MenuNavigationEvent {
                     target_menu: MenuType::MainMenu,
                     target_app_state: Some(crate::AppState::MainMenu),
                 });
             }
             crate::AppState::Playing => {
-                menu_nav_events.send(MenuNavigationEvent {
+                menu_nav_events.write(MenuNavigationEvent {
                     target_menu: MenuType::MainMenu,
                     target_app_state: Some(crate::AppState::MainMenu),
                 });
@@ -623,6 +623,6 @@ pub fn cleanup_menu_ui(
     menu_query: Query<Entity, With<MenuUI>>,
 ) {
     for entity in menu_query.iter() {
-        commands.entity(entity).despawn_recursive();
+        commands.entity(entity).despawn();
     }
 }
