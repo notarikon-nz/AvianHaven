@@ -7,6 +7,8 @@ use crate::bird_ai::components::{BirdAI, BirdState, Blackboard, InternalState};
 use crate::animation::components::AnimatedBird;
 use crate::feeder::FeederType;
 use crate::environment::resources::{TimeState, WeatherState, SeasonalState};
+use crate::environment::components::Season;
+use crate::journal::resources::BirdEducationData;
 
 pub struct BirdPlugin;
 
@@ -353,6 +355,38 @@ impl BirdSpecies {
             0.3  // Not preferred, but will still use if desperate
         }
     }
+    
+    /// Returns true if this species is typically a year-round resident
+    pub fn is_year_round_resident(&self) -> bool {
+        match self {
+            Self::Cardinal | Self::BlueJay | Self::Sparrow | Self::Chickadee |
+            Self::WhiteBreastedNuthatch | Self::TuftedTitmouse | Self::CarolinaWren |
+            Self::DownyWoodpecker | Self::HairyWoodpecker | Self::RedHeadedWoodpecker |
+            Self::CommonCrow | Self::NorthernMockingbird | Self::RedTailedHawk |
+            Self::GreatHornedOwl | Self::BelttedKingfisher => true,
+            _ => false,
+        }
+    }
+    
+    /// Returns true if this species typically breeds in summer in this region
+    pub fn is_summer_breeder(&self) -> bool {
+        match self {
+            Self::RubyThroatedHummingbird | Self::BaltimoreOriole | Self::ScarletTanager |
+            Self::RoseBreastedGrosbeak | Self::ProthonotaryWarbler | Self::KentuckyWarbler |
+            Self::GoldenWingedWarbler | Self::EasternBluebird | Self::WoodThrush => true,
+            _ => self.is_year_round_resident(),
+        }
+    }
+    
+    /// Returns true if this species is present during winter
+    pub fn is_winter_resident(&self) -> bool {
+        match self {
+            Self::CommonGrackle | Self::EuropeanStarling | Self::MourningDove |
+            Self::HouseFinch | Self::PurpleFinch | Self::CedarWaxwing |
+            Self::YellowBelledSapsucker => true,
+            _ => self.is_year_round_resident(),
+        }
+    }
 }
 
 #[derive(Component)]
@@ -496,18 +530,20 @@ pub fn environmental_bird_spawning_system(
     seasonal_state: Res<SeasonalState>,
     time: Res<Time>,
     bird_registry: Res<crate::bird_data::BirdDataRegistry>,
+    education_data: Res<BirdEducationData>,
 ) {
     // Environmental spawning logic
     let season = time_state.get_season();
     let base_activity = season.bird_activity_modifier();
     let weather_activity = weather_state.current_weather.bird_activity_modifier();
     let time_activity = time_state.daylight_factor();
+    let song_activity = time_state.song_period_activity(); // Dawn chorus and evening song multiplier
     
-    let spawn_chance = base_activity * weather_activity * time_activity * 0.001; // Base spawn rate per frame
+    let spawn_chance = base_activity * weather_activity * time_activity * song_activity * 0.001; // Base spawn rate per frame
     
     // Only spawn if we're under the bird limit and conditions are favorable
     if bird_count.0 < 15 && rand::rng().random::<f32>() < spawn_chance {
-        spawn_seasonal_bird(&mut commands, &seasonal_state, &bird_registry, season);
+        spawn_seasonal_bird(&mut commands, &seasonal_state, &bird_registry, &education_data, season);
     }
 }
 
@@ -515,15 +551,21 @@ fn spawn_seasonal_bird(
     commands: &mut Commands, 
     seasonal_state: &SeasonalState,
     bird_registry: &crate::bird_data::BirdDataRegistry,
-    season: crate::environment::components::Season,
+    education_data: &BirdEducationData,
+    season: Season,
 ) {
     let mut rng = rand::rng();
     
-    // Select species based on seasonal availability using external data
+    // Select species based on seasonal availability and migration data
     let available_species: Vec<(BirdSpecies, f32)> = seasonal_state.available_species.iter()
         .map(|(species, _)| {
-            // Use external data for spawn probability calculation
-            let probability = bird_registry.get_spawn_probability(species, season);
+            let mut probability = bird_registry.get_spawn_probability(species, season);
+            
+            // Apply migration logic based on education data
+            if let Some(migration_data) = education_data.migration_data.get(species) {
+                probability *= get_migration_availability(*species, migration_data, season);
+            }
+            
             (*species, probability)
         })
         .filter(|(_, prob)| *prob > 0.0) // Only include species available this season
@@ -593,4 +635,59 @@ fn spawn_specific_bird(commands: &mut Commands, species: BirdSpecies) {
         crate::animation::components::AnimationController::default(),
         crate::animation::components::AnimationLibrary::default(),
     ));
+}
+
+/// Determines migration availability based on education data and current season
+fn get_migration_availability(
+    species: BirdSpecies,
+    migration_data: &crate::journal::resources::MigrationData,
+    season: Season,
+) -> f32 {
+    // Non-migratory species are always available (but still subject to seasonal variations)
+    if !migration_data.is_migratory {
+        return 1.0;
+    }
+    
+    // Parse migration timing to determine seasonal availability
+    let timing = migration_data.migration_timing.to_lowercase();
+    
+    match season {
+        Season::Spring => {
+            if timing.contains("spring") || timing.contains("march") || 
+               timing.contains("april") || timing.contains("may") {
+                1.2 // Higher chance during migration season
+            } else if species.is_year_round_resident() {
+                1.0 // Year-round residents
+            } else {
+                0.3 // Low chance if not migration season
+            }
+        },
+        Season::Summer => {
+            // Most migrants should be in breeding range during summer
+            if species.is_summer_breeder() {
+                1.0
+            } else if species.is_year_round_resident() {
+                1.0
+            } else {
+                0.2 // Very low chance for winter-only species
+            }
+        },
+        Season::Fall => {
+            if timing.contains("fall") || timing.contains("september") || 
+               timing.contains("october") || timing.contains("november") {
+                1.2 // Higher chance during fall migration
+            } else if species.is_year_round_resident() {
+                1.0
+            } else {
+                0.4
+            }
+        },
+        Season::Winter => {
+            if species.is_winter_resident() || species.is_year_round_resident() {
+                1.0
+            } else {
+                0.1 // Very low chance for summer migrants
+            }
+        }
+    }
 }

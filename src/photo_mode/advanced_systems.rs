@@ -548,6 +548,10 @@ fn get_behavior_score(bird_state: BirdState) -> u32 {
         BirdState::Eating => 50,
         BirdState::Drinking => 45,
         BirdState::Bathing => 60,
+        BirdState::Playing => 65,    // Rare and very cute behavior
+        BirdState::Nesting => 70,    // Rare nesting behavior
+        BirdState::Exploring => 40,  // Interesting investigative behavior
+        BirdState::Roosting => 55,   // Evening gathering behavior
         BirdState::Fleeing => 30,
         BirdState::Resting => 25,
         BirdState::MovingToTarget => 20,

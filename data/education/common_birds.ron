@@ -1,0 +1,180 @@
+EducationDataConfig(
+    species: [
+        BirdEducationEntry(
+            species: Cardinal,
+            facts: BirdFacts(
+                common_name: "Northern Cardinal",
+                scientific_name: "Cardinalis cardinalis",
+                habitat: "Woodland edges, overgrown fields, parks, gardens, brushy areas",
+                diet: "Seeds, fruits, insects, snails. Favorites include sunflower seeds, safflower, and cracked corn",
+                nesting: "Dense shrub nests 3-10 feet high, 2-5 pale blue-green eggs with brown spots",
+                behavior: "Non-migratory resident. Males are highly territorial and sing year-round. Both sexes crack seeds with their powerful beaks",
+                identification_tips: "Male: Brilliant red with black face mask. Female: Warm brown with red tinges on wings, tail, and crest. Both have prominent crests and thick orange-red bills",
+                fun_fact: "Cardinals mate for life and the male feeds the female beak-to-beak during courtship and while she incubates eggs!"
+            ),
+            conservation_status: LeastConcern,
+            migration_data: MigrationData(
+                is_migratory: false,
+                breeding_range: "Eastern United States from Maine to Texas, expanding westward",
+                wintering_range: "Same as breeding range - non-migratory resident",
+                migration_timing: "N/A - Resident year-round",
+                migration_distance: None,
+                interesting_fact: "Cardinals have expanded their range northward over the past century, likely due to bird feeders and habitat changes"
+            )
+        ),
+        BirdEducationEntry(
+            species: BlueJay,
+            facts: BirdFacts(
+                common_name: "Blue Jay",
+                scientific_name: "Cyanocitta cristata",
+                habitat: "Deciduous and mixed forests, parks, residential areas with oak trees",
+                diet: "Omnivorous - acorns, nuts, seeds, insects, eggs, nestlings. Caches thousands of acorns for winter",
+                nesting: "Builds stick nests in tree forks 10-25 feet high, 3-6 blue-green eggs with brown spots",
+                behavior: "Highly intelligent and social. Known to mob predators and mimic hawk calls. Forms loose flocks in winter",
+                identification_tips: "Brilliant blue above, white below with blue crest. Black necklace across throat and around head. White patches on wings and tail",
+                fun_fact: "Blue Jays are excellent mimics and can imitate the calls of hawks to scare other birds away from food sources!"
+            ),
+            conservation_status: LeastConcern,
+            migration_data: MigrationData(
+                is_migratory: true,
+                breeding_range: "Eastern North America from southern Canada to Gulf Coast",
+                wintering_range: "Breeding range plus parts of central United States",
+                migration_timing: "Fall: September-October, Spring: March-April",
+                migration_distance: Some(500.0),
+                interesting_fact: "Not all Blue Jays migrate - some are residents while others migrate, and individuals may migrate some years but not others"
+            )
+        ),
+        BirdEducationEntry(
+            species: Robin,
+            facts: BirdFacts(
+                common_name: "American Robin",
+                scientific_name: "Turdus migratorius",
+                habitat: "Open woodlands, parks, gardens, lawns, agricultural areas",
+                diet: "Earthworms, insects, berries, fruits. Diet shifts seasonally from worms in spring to fruits in fall",
+                nesting: "Cup-shaped mud and grass nests in trees or shrubs, 3-5 distinctive blue eggs",
+                behavior: "Often seen hopping on lawns searching for worms. Forms large roosting flocks in winter",
+                identification_tips: "Orange-red breast and belly, dark gray head and back, yellow bill. Males have darker heads than females",
+                fun_fact: "Robins can live up to 13 years and are often among the first birds to sing at dawn and last to sing at dusk!"
+            ),
+            conservation_status: LeastConcern,
+            migration_data: MigrationData(
+                is_migratory: true,
+                breeding_range: "Alaska and Canada south to Mexico and Guatemala",
+                wintering_range: "Southern United States to Central America",
+                migration_timing: "Spring: February-May, Fall: August-November",
+                migration_distance: Some(2500.0),
+                interesting_fact: "Some robins are year-round residents in mild climates, while others migrate thousands of miles. They use magnetic fields for navigation!"
+            )
+        ),
+        BirdEducationEntry(
+            species: Sparrow,
+            facts: BirdFacts(
+                common_name: "House Sparrow",
+                scientific_name: "Passer domesticus",
+                habitat: "Urban and suburban areas, farmland, always near human settlements",
+                diet: "Seeds, grains, insects, food scraps. Feeds young primarily insects for protein",
+                nesting: "Builds messy nests in cavities, signs, or dense shrubs, 3-6 whitish eggs with gray markings",
+                behavior: "Highly social, forms large flocks. Dust bathes frequently and chirps constantly",
+                identification_tips: "Male: Gray crown, black bib, brown and black streaked back. Female: Plain brown and gray with streaked back",
+                fun_fact: "House Sparrows were introduced to North America in 1851 and are now one of the most widespread birds in the world!"
+            ),
+            conservation_status: LeastConcern,
+            migration_data: MigrationData(
+                is_migratory: false,
+                breeding_range: "Worldwide, closely associated with human habitation",
+                wintering_range: "Same as breeding range - non-migratory",
+                migration_timing: "N/A - Resident year-round",
+                migration_distance: None,
+                interesting_fact: "House Sparrows are actually not native to North America - they're European birds that have become completely adapted to urban life"
+            )
+        ),
+        BirdEducationEntry(
+            species: Chickadee,
+            facts: BirdFacts(
+                common_name: "Black-capped Chickadee",
+                scientific_name: "Poecile atricapillus",
+                habitat: "Deciduous and mixed forests, parks, suburban areas with trees",
+                diet: "Insects, seeds, berries. Caches seeds individually in bark crevices and can remember thousands of locations",
+                nesting: "Excavates nest holes in soft wood or uses existing cavities, 6-8 white eggs with reddish spots",
+                behavior: "Extremely acrobatic, can hang upside down while foraging. Forms mixed flocks with other small birds in winter",
+                identification_tips: "Black cap and bib, white cheeks, gray back and wings, buff sides",
+                fun_fact: "Chickadees can lower their body temperature at night to conserve energy and increase their brain size each fall to remember more cache locations!"
+            ),
+            conservation_status: LeastConcern,
+            migration_data: MigrationData(
+                is_migratory: false,
+                breeding_range: "Northern United States and southern Canada",
+                wintering_range: "Same as breeding range with some wandering",
+                migration_timing: "N/A - Non-migratory resident",
+                migration_distance: None,
+                interesting_fact: "Chickadees have different alarm calls for different predators - they can warn of aerial vs. ground threats with specific calls"
+            )
+        ),
+        BirdEducationEntry(
+            species: Goldfinch,
+            facts: BirdFacts(
+                common_name: "American Goldfinch",
+                scientific_name: "Spinus tristis",
+                habitat: "Open fields, meadows, suburbs with trees, especially areas with thistles and sunflowers",
+                diet: "Almost exclusively seeds - thistle, sunflower, elm, alder. Rarely eats insects",
+                nesting: "Late nester (July-August), builds tightly woven cup nest, 4-6 pale blue eggs",
+                behavior: "Flies in undulating pattern with distinctive flight call. Forms large flocks in winter",
+                identification_tips: "Summer male: Bright yellow with black cap and wings. Female and winter birds: Olive-brown with yellow highlights",
+                fun_fact: "Goldfinches molt twice a year - unusual among songbirds. Males turn brilliant yellow for breeding season!"
+            ),
+            conservation_status: LeastConcern,
+            migration_data: MigrationData(
+                is_migratory: true,
+                breeding_range: "Southern Canada to North Carolina, west to California",
+                wintering_range: "Southern United States to Mexico",
+                migration_timing: "Fall: September-November, Spring: April-May",
+                migration_distance: Some(1200.0),
+                interesting_fact: "Goldfinches are one of the strictest vegetarians in the bird world - they feed their young regurgitated seeds, not insects"
+            )
+        ),
+        BirdEducationEntry(
+            species: MourningDove,
+            facts: BirdFacts(
+                common_name: "Mourning Dove",
+                scientific_name: "Zenaida macroura",
+                habitat: "Open woodlands, parks, suburbs, farmland, desert areas",
+                diet: "Almost exclusively seeds. Can consume 12-20% of body weight in seeds per day",
+                nesting: "Flimsy platform nest of twigs, typically 2 white eggs. Can have up to 6 broods per year",
+                behavior: "Fast, direct flight with whistling wing sounds. Ground forager that swallows seeds whole",
+                identification_tips: "Gray-brown with black spots on wings, long pointed tail with white edges, small head",
+                fun_fact: "Mourning Doves produce 'crop milk' to feed their young - a nutritious secretion few birds can make!"
+            ),
+            conservation_status: LeastConcern,
+            migration_data: MigrationData(
+                is_migratory: true,
+                breeding_range: "Southern Canada to Panama",
+                wintering_range: "Southern United States to Central America",
+                migration_timing: "Fall: September-October, Spring: March-April",
+                migration_distance: Some(800.0),
+                interesting_fact: "Mourning Doves are prolific breeders - a pair can potentially raise up to 6 broods in a single season in warm climates"
+            )
+        ),
+        BirdEducationEntry(
+            species: CommonCrow,
+            facts: BirdFacts(
+                common_name: "American Crow",
+                scientific_name: "Corvus brachyrhynchos",
+                habitat: "Almost everywhere - forests, fields, parks, cities, suburbs",
+                diet: "Omnivorous - insects, earthworms, seeds, fruits, eggs, nestlings, carrion, garbage",
+                nesting: "Large stick nest high in trees, 3-9 blue-green eggs with dark markings",
+                behavior: "Highly intelligent and social. Lives in family groups and can use tools. Excellent memory for faces",
+                identification_tips: "All black with glossy sheen, thick straight bill, square tail in flight",
+                fun_fact: "Crows can recognize individual human faces and remember them for years, even passing the knowledge to their offspring!"
+            ),
+            conservation_status: LeastConcern,
+            migration_data: MigrationData(
+                is_migratory: true,
+                breeding_range: "Most of North America except southwestern deserts",
+                wintering_range: "Most of United States, some birds resident year-round",
+                migration_timing: "Fall: October-November, Spring: March-April",
+                migration_distance: Some(400.0),
+                interesting_fact: "Crows form massive communal roosts in winter, sometimes containing tens of thousands of birds"
+            )
+        )
+    ]
+)

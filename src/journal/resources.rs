@@ -36,7 +36,7 @@ pub struct BirdFacts {
     pub fun_fact: String,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub enum ConservationStatus {
     LeastConcern,
     NearThreatened,
@@ -83,78 +83,61 @@ pub struct MigrationData {
     pub interesting_fact: String,
 }
 
-#[derive(Resource)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EducationDataConfig {
+    pub species: Vec<BirdEducationEntry>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BirdEducationEntry {
+    pub species: BirdSpecies,
+    pub facts: BirdFacts,
+    pub conservation_status: ConservationStatus,
+    pub migration_data: MigrationData,
+}
+
+#[derive(Resource, Default)]
 pub struct BirdEducationData {
     pub species_facts: HashMap<BirdSpecies, BirdFacts>,
     pub conservation_status: HashMap<BirdSpecies, ConservationStatus>,
     pub migration_data: HashMap<BirdSpecies, MigrationData>,
-}
-
-impl Default for BirdEducationData {
-    fn default() -> Self {
-        let mut education_data = Self {
-            species_facts: HashMap::new(),
-            conservation_status: HashMap::new(),
-            migration_data: HashMap::new(),
-        };
-        
-        education_data.populate_default_data();
-        education_data
-    }
+    pub loaded_files: Vec<String>,
 }
 
 impl BirdEducationData {
-    fn populate_default_data(&mut self) {
-        // Sample data for a few species - in production this would be loaded from files
+    pub fn load_from_files(&mut self) {
+        let data_files = vec![
+            "data/education/common_birds.ron",
+            "data/education/uncommon_birds.ron", 
+            "data/education/rare_birds.ron",
+            "data/education/legendary_birds.ron",
+        ];
         
-        // American Robin
-        self.species_facts.insert(BirdSpecies::AmericanRobin, BirdFacts {
-            common_name: "American Robin".to_string(),
-            scientific_name: "Turdus migratorius".to_string(),
-            habitat: "Open woodlands, parks, gardens, lawns".to_string(),
-            diet: "Earthworms, insects, berries, fruits".to_string(),
-            nesting: "Cup-shaped nests in trees or shrubs, 3-5 blue eggs".to_string(),
-            behavior: "Often seen hopping on lawns searching for worms. Forms large flocks in winter.".to_string(),
-            identification_tips: "Orange-red breast, dark head, yellow bill. Males darker than females.".to_string(),
-            fun_fact: "Robins can live up to 13 years and are often the first birds to sing at dawn!".to_string(),
-        });
+        for file_path in data_files {
+            if let Err(e) = self.load_education_file(file_path) {
+                error!("Failed to load education data from {}: {}", file_path, e);
+            } else {
+                info!("Successfully loaded education data from {}", file_path);
+                self.loaded_files.push(file_path.to_string());
+            }
+        }
         
-        self.conservation_status.insert(BirdSpecies::AmericanRobin, ConservationStatus::LeastConcern);
+        info!("Education data registry initialized with {} species", self.species_facts.len());
+    }
+    
+    fn load_education_file(&mut self, file_path: &str) -> Result<(), Box<dyn std::error::Error>> {
+        use std::fs;
         
-        self.migration_data.insert(BirdSpecies::AmericanRobin, MigrationData {
-            is_migratory: true,
-            breeding_range: "Alaska and Canada south to Mexico".to_string(),
-            wintering_range: "Southern United States to Central America".to_string(),
-            migration_timing: "Spring: March-May, Fall: September-November".to_string(),
-            migration_distance: Some(2500.0),
-            interesting_fact: "Some robins don't migrate at all if food sources remain available!".to_string(),
-        });
+        let content = fs::read_to_string(file_path)?;
+        let config: EducationDataConfig = ron::from_str(&content)?;
         
-        // Northern Cardinal  
-        self.species_facts.insert(BirdSpecies::NorthernCardinal, BirdFacts {
-            common_name: "Northern Cardinal".to_string(),
-            scientific_name: "Cardinalis cardinalis".to_string(),
-            habitat: "Woodland edges, overgrown fields, parks, gardens".to_string(),
-            diet: "Seeds, fruits, insects, snails".to_string(),
-            nesting: "Dense shrub nests, 2-5 eggs, multiple broods per year".to_string(),
-            behavior: "Non-migratory. Males sing year-round and are highly territorial.".to_string(),
-            identification_tips: "Male: Bright red with black face. Female: Brown with red tinges.".to_string(),
-            fun_fact: "Cardinals can live up to 15 years and mate for life!".to_string(),
-        });
+        for entry in config.species {
+            self.species_facts.insert(entry.species, entry.facts);
+            self.conservation_status.insert(entry.species, entry.conservation_status);
+            self.migration_data.insert(entry.species, entry.migration_data);
+        }
         
-        self.conservation_status.insert(BirdSpecies::NorthernCardinal, ConservationStatus::LeastConcern);
-        
-        self.migration_data.insert(BirdSpecies::NorthernCardinal, MigrationData {
-            is_migratory: false,
-            breeding_range: "Eastern United States, extending west and north".to_string(),
-            wintering_range: "Same as breeding range - non-migratory".to_string(),
-            migration_timing: "N/A - Resident year-round".to_string(),
-            migration_distance: None,
-            interesting_fact: "Cardinals have expanded their range northward over the past century due to bird feeders!".to_string(),
-        });
-        
-        // Add similar data for more species...
-        // In production, this would be loaded from comprehensive JSON/RON files
+        Ok(())
     }
 }
 

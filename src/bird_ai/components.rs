@@ -43,6 +43,7 @@ pub enum BirdState {
     Playing,     // For interaction with toys
     Exploring,   // For investigating decorative items
     Nesting,     // For using nesting boxes and bird houses
+    Roosting,    // For evening gathering behavior
 }
 
 #[derive(Component)]
@@ -64,4 +65,5 @@ pub enum BirdAction {
     Play,      // For toys and interactive objects
     Explore,   // For decorative items that encourage investigation
     Nest,      // For nesting boxes and houses
+    Roost,     // For evening roosting and gathering behavior
 }

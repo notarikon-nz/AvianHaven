@@ -1,0 +1,114 @@
+EducationDataConfig(
+    species: [
+        BirdEducationEntry(
+            species: DownyWoodpecker,
+            facts: BirdFacts(
+                common_name: "Downy Woodpecker",
+                scientific_name: "Picoides pubescens",
+                habitat: "Deciduous forests, parks, orchards, suburban areas with trees",
+                diet: "Insects and larvae found in bark, also seeds, nuts, and berries",
+                nesting: "Excavates nest holes in dead wood, 3-8 glossy white eggs",
+                behavior: "Smallest North American woodpecker. Often joins mixed flocks in winter",
+                identification_tips: "Black and white spotted pattern, males have red patch on back of head",
+                fun_fact: "Downys have specially adapted skulls and neck muscles to prevent brain damage while hammering!"
+            ),
+            conservation_status: LeastConcern,
+            migration_data: MigrationData(
+                is_migratory: false,
+                breeding_range: "Most of North America from Alaska to Florida",
+                wintering_range: "Same as breeding range - non-migratory",
+                migration_timing: "N/A - Resident year-round",
+                migration_distance: None,
+                interesting_fact: "Downy Woodpeckers can extend their tongues up to 2 inches beyond their bill tip to reach insects in crevices"
+            )
+        ),
+        BirdEducationEntry(
+            species: RubyThroatedHummingbird,
+            facts: BirdFacts(
+                common_name: "Ruby-throated Hummingbird",
+                scientific_name: "Archilochus colubris",
+                habitat: "Gardens, parks, woodland edges, areas with flowering plants",
+                diet: "Nectar from flowers, tree sap, small insects and spiders for protein",
+                nesting: "Tiny cup nest about the size of a golf ball, 2 white eggs the size of navy beans",
+                behavior: "Beats wings 53 times per second, can fly backwards and hover in place",
+                identification_tips: "Males have brilliant red throat, females have white throat with possible red spots",
+                fun_fact: "Ruby-throated hummingbirds can fly non-stop 500 miles across the Gulf of Mexico during migration!"
+            ),
+            conservation_status: LeastConcern,
+            migration_data: MigrationData(
+                is_migratory: true,
+                breeding_range: "Eastern North America from southern Canada to Gulf Coast",
+                wintering_range: "Mexico and Central America",
+                migration_timing: "Spring: March-May, Fall: July-October",
+                migration_distance: Some(2000.0),
+                interesting_fact: "These tiny birds double their body weight before migration to fuel their incredible journey"
+            )
+        ),
+        BirdEducationEntry(
+            species: BaltimoreOriole,
+            facts: BirdFacts(
+                common_name: "Baltimore Oriole",
+                scientific_name: "Icterus galbula",
+                habitat: "Open woodlands, parks, suburbs with large trees, especially elms and maples",
+                diet: "Insects, fruits, nectar. Loves oranges, grape jelly, and sugar water",
+                nesting: "Weaves elaborate hanging pouch nests, 3-7 bluish eggs with dark markings",
+                behavior: "Males arrive first in spring and establish territories with beautiful songs",
+                identification_tips: "Males are brilliant orange with black head and back. Females are yellowish with gray-brown wings",
+                fun_fact: "Orioles are master weavers - females can take up to 12 days to build their intricate hanging nests!"
+            ),
+            conservation_status: LeastConcern,
+            migration_data: MigrationData(
+                is_migratory: true,
+                breeding_range: "Eastern and central North America",
+                wintering_range: "Mexico to northern South America",
+                migration_timing: "Spring: April-May, Fall: August-September",
+                migration_distance: Some(3000.0),
+                interesting_fact: "Baltimore Orioles navigate using the stars and can travel up to 150 miles in a single night during migration"
+            )
+        ),
+        BirdEducationEntry(
+            species: ScarletTanager,
+            facts: BirdFacts(
+                common_name: "Scarlet Tanager",
+                scientific_name: "Piranga olivacea",
+                habitat: "Mature deciduous forests, especially oak-hickory woods",
+                diet: "Insects caught in the forest canopy, berries and fruits in fall",
+                nesting: "Shallow cup nest on horizontal branch, 3-5 blue-green eggs with brown spots",
+                behavior: "Stays high in forest canopy, can be hard to spot despite bright colors",
+                identification_tips: "Breeding males are brilliant red with jet-black wings. Females are olive-green with dark wings",
+                fun_fact: "Male Scarlet Tanagers molt into female-like plumage after breeding season, becoming olive-green for migration!"
+            ),
+            conservation_status: LeastConcern,
+            migration_data: MigrationData(
+                is_migratory: true,
+                breeding_range: "Eastern United States and southeastern Canada",
+                wintering_range: "South America from Colombia to Bolivia",
+                migration_timing: "Spring: April-May, Fall: August-October",
+                migration_distance: Some(4000.0),
+                interesting_fact: "Scarlet Tanagers winter in South American cloud forests and can live up to 10 years"
+            )
+        ),
+        BirdEducationEntry(
+            species: RoseBreastedGrosbeak,
+            facts: BirdFacts(
+                common_name: "Rose-breasted Grosbeak",
+                scientific_name: "Pheucticus ludovicianus",
+                habitat: "Deciduous and mixed forests, parks, large suburban yards",
+                diet: "Seeds, buds, fruits, and insects. Loves sunflower seeds at feeders",
+                nesting: "Loose cup nest in tree fork, 3-5 blue-green eggs with brown spots",
+                behavior: "Males share incubation duties and sing while on the nest - unusual among songbirds",
+                identification_tips: "Males have black head and back with white patches and rose-red chest triangle. Females are streaky brown with white eyebrow",
+                fun_fact: "Rose-breasted Grosbeaks have such powerful bills they can crack cherry pits and eat the kernels inside!"
+            ),
+            conservation_status: LeastConcern,
+            migration_data: MigrationData(
+                is_migratory: true,
+                breeding_range: "Northeastern United States and southeastern Canada",
+                wintering_range: "Mexico to northern South America",
+                migration_timing: "Spring: April-May, Fall: August-October",
+                migration_distance: Some(2500.0),
+                interesting_fact: "These birds are known as 'cut-throat' birds in some areas due to their distinctive red chest patch"
+            )
+        )
+    ]
+)

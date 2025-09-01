@@ -16,6 +16,7 @@ impl Plugin for JournalPlugin {
             .init_resource::<DiscoveredSpecies>()
             .init_resource::<JournalState>()
             .init_resource::<BirdEducationData>()
+            .add_systems(Startup, load_education_data)
             .add_systems(Update, toggle_journal_system)
             .add_systems(OnEnter(crate::AppState::Journal), setup_journal_menu_system)
             .add_systems(OnExit(crate::AppState::Journal), teardown_journal_menu_system)

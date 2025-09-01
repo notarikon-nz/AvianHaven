@@ -177,6 +177,7 @@ impl BirdAction {
             Self::Play => 0.03,   // Play behavior has moderate decay
             Self::Explore => 0.04, // Curiosity satisfaction
             Self::Nest => 0.01,   // Nesting instinct persists longest
+            Self::Roost => 0.015, // Roosting instinct persists during evening hours
         }
     }
     
@@ -189,6 +190,7 @@ impl BirdAction {
             Self::Play => (5.0, 12.0),   // 5-12 seconds playing
             Self::Explore => (4.0, 10.0), // 4-10 seconds investigating
             Self::Nest => (15.0, 45.0),  // 15-45 seconds in nesting area
+            Self::Roost => (30.0, 90.0), // 30-90 seconds roosting/gathering
         }
     }
 }

@@ -46,6 +46,32 @@ impl TimeState {
             1.0 // Daylight - full activity
         }
     }
+    
+    /// Returns true during dawn chorus period (6-8 AM)
+    pub fn is_dawn_chorus(&self) -> bool {
+        self.hour >= 6.0 && self.hour <= 8.0
+    }
+    
+    /// Returns true during evening song period (17-19 PM)
+    pub fn is_evening_song(&self) -> bool {
+        self.hour >= 17.0 && self.hour <= 19.0
+    }
+    
+    /// Returns activity multiplier for dawn/evening song periods
+    pub fn song_period_activity(&self) -> f32 {
+        if self.is_dawn_chorus() {
+            // Peak dawn chorus between 6:30-7:30 AM
+            if self.hour >= 6.5 && self.hour <= 7.5 {
+                1.8 // Peak dawn activity
+            } else {
+                1.4 // High dawn activity
+            }
+        } else if self.is_evening_song() {
+            1.3 // Evening song activity
+        } else {
+            1.0 // Normal activity
+        }
+    }
 }
 
 #[derive(Resource)]

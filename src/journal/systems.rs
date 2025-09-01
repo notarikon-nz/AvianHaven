@@ -2,6 +2,10 @@ use bevy::prelude::*;
 use crate::journal::{components::*, resources::*};
 use crate::photo_mode::components::PhotoTakenEvent;
 
+pub fn load_education_data(mut education_data: ResMut<BirdEducationData>) {
+    education_data.load_from_files();
+}
+
 pub fn toggle_journal_system(
     keyboard: Res<ButtonInput<KeyCode>>,
     mut next_state: ResMut<NextState<crate::AppState>>,

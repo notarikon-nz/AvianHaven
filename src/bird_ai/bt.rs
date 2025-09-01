@@ -1,12 +1,24 @@
 use crate::bird_ai::components::*;
+use crate::environment::resources::TimeState;
 
-pub fn evaluate_behavior_tree(blackboard: &Blackboard) -> BirdState {
+pub fn evaluate_behavior_tree(blackboard: &Blackboard, time_state: &TimeState) -> BirdState {
     let internal = &blackboard.internal;
     let world = &blackboard.world_knowledge;
     
     // High priority: Fear response
     if internal.fear > 0.7 {
         return BirdState::Fleeing;
+    }
+    
+    // Roosting behavior during dusk/evening hours (high priority before nightfall)
+    if time_state.hour >= 18.0 && time_state.hour <= 20.0 {
+        if world.available_actions.contains_key(&BirdAction::Roost) {
+            return BirdState::MovingToTarget;
+        }
+        // If no roosting spots available, prioritize safe perching
+        if world.available_actions.contains_key(&BirdAction::Perch) {
+            return BirdState::MovingToTarget;
+        }
     }
     
     // Critical needs - survival first

@@ -1,0 +1,114 @@
+EducationDataConfig(
+    species: [
+        BirdEducationEntry(
+            species: RedTailedHawk,
+            facts: BirdFacts(
+                common_name: "Red-tailed Hawk",
+                scientific_name: "Buteo jamaicensis",
+                habitat: "Open areas with scattered trees, farmland, parks, highways with perches",
+                diet: "Small mammals, birds, reptiles, amphibians. Hunts from perches or while soaring",
+                nesting: "Large stick nest high in trees or on cliffs, 1-5 whitish eggs with brown markings",
+                behavior: "Often seen soaring in circles or perched on posts and trees along roadsides",
+                identification_tips: "Brown above, light below with dark belly band. Adults have distinctive rusty-red tail",
+                fun_fact: "Red-tailed Hawks have eyesight 8 times sharper than humans and can spot a mouse from 2 miles away!"
+            ),
+            conservation_status: LeastConcern,
+            migration_data: MigrationData(
+                is_migratory: true,
+                breeding_range: "Most of North America from Alaska to Panama",
+                wintering_range: "Southern breeding range to Central America",
+                migration_timing: "Fall: September-November, Spring: February-April",
+                migration_distance: Some(1500.0),
+                interesting_fact: "Red-tailed Hawks are the most common hawk in North America and can live over 20 years in the wild"
+            )
+        ),
+        BirdEducationEntry(
+            species: GreatHornedOwl,
+            facts: BirdFacts(
+                common_name: "Great Horned Owl",
+                scientific_name: "Bubo virginianus",
+                habitat: "Forests, swamps, parks, deserts - very adaptable to various environments",
+                diet: "Mammals, birds, reptiles, amphibians, fish. Can take prey as large as geese",
+                nesting: "Uses old hawk, crow, or squirrel nests. 1-4 dull white eggs",
+                behavior: "Primarily nocturnal hunter with silent flight. Hoots with deep, resonant calls",
+                identification_tips: "Large size, prominent ear tufts, yellow eyes, mottled brown plumage",
+                fun_fact: "Great Horned Owls have a grip strength of 300 psi - stronger than a human hand and comparable to a golden eagle!"
+            ),
+            conservation_status: LeastConcern,
+            migration_data: MigrationData(
+                is_migratory: false,
+                breeding_range: "Throughout the Americas from Alaska to South America",
+                wintering_range: "Same as breeding range - non-migratory",
+                migration_timing: "N/A - Resident year-round",
+                migration_distance: None,
+                interesting_fact: "These owls are one of the earliest nesters, often laying eggs in January or February while snow is still on the ground"
+            )
+        ),
+        BirdEducationEntry(
+            species: EasternBluebird,
+            facts: BirdFacts(
+                common_name: "Eastern Bluebird",
+                scientific_name: "Sialia sialis",
+                habitat: "Open country with scattered trees, parks, golf courses, farmland with nest boxes",
+                diet: "Insects caught from perches, berries and fruits in fall and winter",
+                nesting: "Cavity nester, uses nest boxes or natural holes, 3-7 pale blue eggs",
+                behavior: "Perches on fences and low branches, drops down to catch insects on ground",
+                identification_tips: "Males are brilliant blue above with rusty breast. Females are grayer with blue wings and tail",
+                fun_fact: "Eastern Bluebird populations declined severely due to habitat loss but recovered thanks to nest box programs!"
+            ),
+            conservation_status: LeastConcern,
+            migration_data: MigrationData(
+                is_migratory: true,
+                breeding_range: "Eastern North America from southern Canada to Gulf Coast",
+                wintering_range: "Southern United States to Central America",
+                migration_timing: "Fall: September-November, Spring: February-April",
+                migration_distance: Some(1200.0),
+                interesting_fact: "Bluebirds are the state bird of New York and Missouri, symbolizing happiness and hope"
+            )
+        ),
+        BirdEducationEntry(
+            species: BelttedKingfisher,
+            facts: BirdFacts(
+                common_name: "Belted Kingfisher",
+                scientific_name: "Megaceryle alcyon",
+                habitat: "Near water - streams, rivers, lakes, ponds, coastlines",
+                diet: "Almost exclusively fish, also aquatic insects, frogs, and crayfish",
+                nesting: "Excavates tunnel burrows in banks near water, 5-8 glossy white eggs",
+                behavior: "Dives headfirst into water to catch fish, has rattling call",
+                identification_tips: "Blue-gray above, white below with blue breast band. Females also have rusty band",
+                fun_fact: "Kingfishers are one of the few bird species where females are more colorful than males!"
+            ),
+            conservation_status: LeastConcern,
+            migration_data: MigrationData(
+                is_migratory: true,
+                breeding_range: "Most of North America except southwestern deserts",
+                wintering_range: "Southern United States to Central America and Caribbean",
+                migration_timing: "Fall: August-October, Spring: March-April",
+                migration_distance: Some(2000.0),
+                interesting_fact: "Belted Kingfishers can dive up to 24 inches underwater and have a third eyelid to protect their eyes while diving"
+            )
+        ),
+        BirdEducationEntry(
+            species: PaintedBunting,
+            facts: BirdFacts(
+                common_name: "Painted Bunting",
+                scientific_name: "Passerina ciris",
+                habitat: "Dense thickets, woodland edges, gardens with dense cover",
+                diet: "Seeds, especially grass seeds, some insects during breeding season",
+                nesting: "Cup nest in dense shrub, 3-4 pale blue eggs with brown spots",
+                behavior: "Males are secretive despite bright colors, often singing from hidden perches",
+                identification_tips: "Males have blue head, red underparts, and green back. Females are bright green above, yellowish below",
+                fun_fact: "Painted Buntings are sometimes called the most beautiful bird in North America due to their stunning plumage!"
+            ),
+            conservation_status: NearThreatened,
+            migration_data: MigrationData(
+                is_migratory: true,
+                breeding_range: "South-central United States",
+                wintering_range: "Southern Florida, Caribbean, Mexico to Panama",
+                migration_timing: "Spring: April-May, Fall: August-October",
+                migration_distance: Some(1800.0),
+                interesting_fact: "Painted Buntings are declining due to habitat loss and were once heavily trapped for the pet trade"
+            )
+        )
+    ]
+)

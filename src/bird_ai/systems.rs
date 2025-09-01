@@ -56,9 +56,10 @@ pub fn world_utility_query_system(
                 let weather_modifier = weather_state.current_weather.feeder_preference_modifier(&feeder.feeder_type);
                 let time_modifier = if time_state.is_prime_feeding_time() { 1.2 } else { 0.8 };
                 let daylight_modifier = time_state.daylight_factor();
+                let song_activity_modifier = time_state.song_period_activity(); // Dawn chorus boost
                 
                 let final_score = utility.base_utility * distance_factor * species_modifier * 
-                                weather_modifier * time_modifier * daylight_modifier;
+                                weather_modifier * time_modifier * daylight_modifier * song_activity_modifier;
                 
                 let entry = UtilityEntry { entity, score: final_score };
                 
@@ -80,7 +81,8 @@ pub fn world_utility_query_system(
             let distance = bird_transform.translation.distance(obj_transform.translation);
             if distance <= utility.range {
                 let distance_factor = 1.0 - (distance / utility.range);
-                let final_score = utility.base_utility * distance_factor;
+                let song_activity_modifier = time_state.song_period_activity(); // Dawn chorus boost for all activities
+                let final_score = utility.base_utility * distance_factor * song_activity_modifier;
                 
                 let entry = UtilityEntry { entity, score: final_score };
                 
@@ -100,19 +102,23 @@ pub fn behavior_tree_system(
     mut bird_query: Query<(&mut BirdState, &mut Blackboard), With<BirdAI>>,
     mut timer: ResMut<BehaviorTreeTimer>,
     time: Res<Time>,
+    time_state: Res<TimeState>,
 ) {
     timer.0.tick(time.delta());
     if !timer.0.finished() { return; }
     
     for (mut state, mut blackboard) in bird_query.iter_mut() {
-        let new_state = evaluate_behavior_tree(&blackboard);
+        let new_state = evaluate_behavior_tree(&blackboard, &time_state);
         
         if new_state == BirdState::MovingToTarget {
             // Set target based on highest priority need
             let internal = &blackboard.internal;
             let actions = &blackboard.world_knowledge.available_actions;
             
-            blackboard.current_target = if internal.hunger > 0.5 {
+            blackboard.current_target = if time_state.hour >= 18.0 && time_state.hour <= 20.0 && actions.contains_key(&BirdAction::Roost) {
+                // Evening roosting takes priority during dusk hours
+                actions.get(&BirdAction::Roost).map(|e| e.entity)
+            } else if internal.hunger > 0.5 {
                 actions.get(&BirdAction::Eat).map(|e| e.entity)
             } else if internal.thirst > 0.5 {
                 actions.get(&BirdAction::Drink).map(|e| e.entity)
@@ -177,6 +183,7 @@ pub fn moving_to_target_system(
                                     BirdAction::Play => BirdState::Playing,
                                     BirdAction::Explore => BirdState::Exploring,
                                     BirdAction::Nest => BirdState::Nesting,
+                                    BirdAction::Roost => BirdState::Roosting,
                                 };
                             }
                         }

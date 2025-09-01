@@ -1,0 +1,114 @@
+EducationDataConfig(
+    species: [
+        BirdEducationEntry(
+            species: BaldEagle,
+            facts: BirdFacts(
+                common_name: "Bald Eagle",
+                scientific_name: "Haliaeetus leucocephalus",
+                habitat: "Near large bodies of water - rivers, lakes, coasts, wetlands",
+                diet: "Fish (primary), waterfowl, small mammals, carrion. Opportunistic hunter",
+                nesting: "Massive stick nests in tall trees, can weigh over 2,000 pounds. 1-3 white eggs",
+                behavior: "Soars on thermal currents, spectacular aerial courtship displays, long-lived pairs",
+                identification_tips: "Adults have white head and tail with dark brown body. Takes 5 years to develop adult plumage",
+                fun_fact: "Bald Eagles aren't actually bald - their name comes from the Old English 'balde' meaning white!"
+            ),
+            conservation_status: LeastConcern,
+            migration_data: MigrationData(
+                is_migratory: true,
+                breeding_range: "Alaska, Canada, northern United States, expanding south",
+                wintering_range: "Throughout United States wherever water remains unfrozen",
+                migration_timing: "Fall: September-December, Spring: February-April",
+                migration_distance: Some(2000.0),
+                interesting_fact: "Bald Eagles were nearly extinct due to DDT but made a remarkable recovery - removed from Endangered Species List in 2007"
+            )
+        ),
+        BirdEducationEntry(
+            species: PeregrineFalcon,
+            facts: BirdFacts(
+                common_name: "Peregrine Falcon",
+                scientific_name: "Falco peregrinus",
+                habitat: "Cities with tall buildings, cliffs, bridges, open areas for hunting",
+                diet: "Almost exclusively birds caught in spectacular high-speed dives",
+                nesting: "Scrapes on cliff ledges, building tops, bridges. 3-4 reddish-brown eggs",
+                behavior: "Fastest bird in the world when diving, can exceed 240 mph",
+                identification_tips: "Blue-gray above, barred below, distinctive 'tear marks' below eyes",
+                fun_fact: "Peregrines are found on every continent except Antarctica - they're the most widespread bird species!"
+            ),
+            conservation_status: LeastConcern,
+            migration_data: MigrationData(
+                is_migratory: true,
+                breeding_range: "Worldwide, from Arctic to tropics",
+                wintering_range: "Temperate and tropical regions worldwide",
+                migration_timing: "Fall: August-October, Spring: March-May",
+                migration_distance: Some(15000.0),
+                interesting_fact: "Some Peregrine Falcons make the longest migrations of any North American bird, traveling from Arctic to Argentina"
+            )
+        ),
+        BirdEducationEntry(
+            species: ProthonotaryWarbler,
+            facts: BirdFacts(
+                common_name: "Prothonotary Warbler",
+                scientific_name: "Protonotaria citrea",
+                habitat: "Wooded swamps, bottomland forests, near water with dead trees for nesting",
+                diet: "Insects, larvae, some fruits and seeds, caught by gleaning from foliage",
+                nesting: "Cavity nester in dead trees over water, 3-8 creamy white eggs with brown spots",
+                behavior: "One of few warblers that nests in cavities, often low over water",
+                identification_tips: "Golden-yellow head and underparts, blue-gray wings, white undertail",
+                fun_fact: "Named after papal clerks called prothonotaries who wore golden robes similar to this bird's plumage!"
+            ),
+            conservation_status: LeastConcern,
+            migration_data: MigrationData(
+                is_migratory: true,
+                breeding_range: "Eastern United States in wooded swamps and bottomlands",
+                wintering_range: "Central America from Mexico to Colombia",
+                migration_timing: "Spring: April-May, Fall: July-September",
+                migration_distance: Some(3000.0),
+                interesting_fact: "Prothonotary Warblers are unique among warblers for nesting in tree cavities and are indicators of healthy wetland ecosystems"
+            )
+        ),
+        BirdEducationEntry(
+            species: KentuckyWarbler,
+            facts: BirdFacts(
+                common_name: "Kentucky Warbler",
+                scientific_name: "Geothlypis formosa",
+                habitat: "Dense understory of deciduous forests, especially near streams",
+                diet: "Insects and larvae gleaned from ground and low vegetation",
+                nesting: "Cup nest on or near ground in dense cover, 4-5 creamy white eggs with brown spots",
+                behavior: "Secretive ground-dweller, walks rather than hops, loud distinctive song",
+                identification_tips: "Bright yellow below, olive above, black sideburns and crown stripe",
+                fun_fact: "Kentucky Warblers are declining due to forest fragmentation and are considered a species of conservation concern!"
+            ),
+            conservation_status: NearThreatened,
+            migration_data: MigrationData(
+                is_migratory: true,
+                breeding_range: "Eastern United States in mature forests",
+                wintering_range: "Mexico to northern South America",
+                migration_timing: "Spring: April-May, Fall: August-September",
+                migration_distance: Some(2500.0),
+                interesting_fact: "Despite the name, Kentucky Warblers are more common in other southeastern states than in Kentucky"
+            )
+        ),
+        BirdEducationEntry(
+            species: GoldenWingedWarbler,
+            facts: BirdFacts(
+                common_name: "Golden-winged Warbler",
+                scientific_name: "Vermivora chrysoptera",
+                habitat: "Early successional forests, shrublands, forest edges and openings",
+                diet: "Insects and larvae, especially caterpillars, gleaned from foliage",
+                nesting: "Cup nest on ground or low in shrub, 4-5 white eggs with brown spots",
+                behavior: "Declining rapidly, often hybridizes with Blue-winged Warblers",
+                identification_tips: "Gray above, white below, black ear patch and throat, golden wing patches",
+                fun_fact: "Golden-winged Warblers are declining faster than almost any other songbird - populations have dropped 66% since 1966!"
+            ),
+            conservation_status: NearThreatened,
+            migration_data: MigrationData(
+                is_migratory: true,
+                breeding_range: "Northeastern United States and southeastern Canada",
+                wintering_range: "Central and South America from Guatemala to Colombia",
+                migration_timing: "Spring: April-May, Fall: August-September",
+                migration_distance: Some(4000.0),
+                interesting_fact: "This species is a conservation priority due to rapid decline from habitat loss and climate change"
+            )
+        )
+    ]
+)
