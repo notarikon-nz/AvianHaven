@@ -120,7 +120,7 @@ fn main() {
         .add_plugins(ForagingEcologyPlugin)
         .add_plugins(PredatorPreyPlugin)
         .add_plugins(SocialFeaturesPlugin)
-        // .add_plugins(SanctuaryManagementPlugin)  // TODO: Will fix after other plugins working
+        .add_plugins(SanctuaryManagementPlugin)
         // .add_plugins(HanabiEffectsPlugin)  // TODO: Test without this first
         .add_systems(Startup, setup)
         .add_systems(PostUpdate, robust_despawn_system)
