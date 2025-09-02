@@ -4,6 +4,7 @@ use rand::Rng;
 
 use crate::{AppState, resources::{GameConfig, BirdCount, SpawnBirdEvent}};
 use crate::bird_ai::components::{BirdAI, BirdState, Blackboard, InternalState, SocialBirdTraits, SocialRelationships, ForagingTraits, CacheData, ForagingState};
+use crate::nocturnal_behaviors::{NocturnalBehavior, NocturnalTraits};
 use crate::animation::components::AnimatedBird;
 use crate::feeder::FeederType;
 use crate::environment::resources::{TimeState, WeatherState, SeasonalState};
@@ -683,6 +684,17 @@ fn spawn_bird(commands: &mut Commands) {
         },
         ForagingState::default(),
     ));
+    
+    // Add nocturnal behavior components
+    let nocturnal_traits = species.nocturnal_traits();
+    commands.entity(bird_entity).insert(NocturnalBehavior {
+        traits: nocturnal_traits,
+        current_roost: None,
+        hunting_success_rate: 0.0,
+        energy_level: rng.random_range(0.5..1.0),
+        last_hunt_time: 0.0,
+        roost_arrival_time: None,
+    });
     
     // Add animation components
     commands.entity(bird_entity).insert((
