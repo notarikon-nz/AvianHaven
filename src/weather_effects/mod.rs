@@ -19,8 +19,8 @@ impl Plugin for WeatherEffectsPlugin {
                 snow_particle_movement,
                 environmental_particle_system,
                 environmental_particle_movement,
-                interactive_particle_system,
-                interactive_particle_movement,
+                // interactive_particle_system,
+                // interactive_particle_movement,
                 particle_cleanup_system,
             ).run_if(in_state(crate::AppState::Playing)));
     }

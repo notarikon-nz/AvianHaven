@@ -8,7 +8,8 @@ pub struct UiPlugin;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, setup_ui)
+        app.add_systems(OnEnter(AppState::Playing), setup_ui)
+            .add_systems(OnExit(AppState::Playing), cleanup_gameplay_ui)
             .add_systems(
                 Update,
                 (
@@ -34,37 +35,22 @@ struct EnvironmentText;
 struct CurrencyText;
 
 fn setup_ui(mut commands: Commands) {
-    // Root UI container
+    // Bottom UI container (non-blocking)
     commands.spawn((
         Node {
             width: Val::Percent(100.0),
-            height: Val::Percent(100.0),
-            flex_direction: FlexDirection::Column,
-            justify_content: JustifyContent::SpaceBetween,
+            height: Val::Auto,
+            position_type: PositionType::Absolute,
+            bottom: Val::Px(20.0),
+            left: Val::Px(0.0),
+            flex_direction: FlexDirection::Row,
+            justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
+            column_gap: Val::Px(20.0),
             padding: UiRect::all(Val::Px(20.0)),
             ..default()
         },
     )).with_children(|parent| {
-        // Title
-        parent.spawn((
-            Text::new("Avian Haven Prototype"),
-            TextFont {
-                font_size: 48.0,
-                ..default()
-            },
-            TextColor(Color::WHITE),
-        ));
-        
-        // Bottom UI container
-        parent.spawn((
-            Node {
-                flex_direction: FlexDirection::Row,
-                align_items: AlignItems::Center,
-                column_gap: Val::Px(20.0),
-                ..default()
-            },
-        )).with_children(|parent| {
             // Bird counter
             parent.spawn((
                 Text::new("Birds: 0"),
@@ -123,8 +109,7 @@ fn setup_ui(mut commands: Commands) {
                 ));
             });
         });
-    });
-}
+    }
 
 fn button_interaction(
     mut interaction_query: Query<
@@ -187,5 +172,19 @@ fn update_currency_ui(
         for mut text in text_query.iter_mut() {
             **text = format!("Currency: {}", currency.0);
         }
+    }
+}
+
+fn cleanup_gameplay_ui(
+    mut commands: Commands,
+    ui_query: Query<Entity, Or<(
+        With<SpawnButton>, 
+        With<BirdCounterText>, 
+        With<EnvironmentText>, 
+        With<CurrencyText>
+    )>>,
+) {
+    for entity in ui_query.iter() {
+        commands.entity(entity).despawn_recursive();
     }
 }

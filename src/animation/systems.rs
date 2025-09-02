@@ -109,6 +109,14 @@ pub fn animation_state_system(
             controller.timer = Timer::from_seconds(1.0 / animation_data.fps, TimerMode::Repeating);
             
             commands.entity(entity).insert(AnimationStateChange);
+        } else {
+            // Fallback: Create a colored rectangle for this bird species when assets are missing
+            let fallback_color = get_species_fallback_color(animated_bird.species);
+            commands.entity(entity).insert(Sprite {
+                color: fallback_color,
+                custom_size: Some(Vec2::new(16.0, 16.0)),
+                ..default()
+            });
         }
     }
 }
@@ -164,5 +172,33 @@ pub fn update_sprite_on_state_change_system(
         }
         
         commands.entity(entity).remove::<AnimationStateChange>();
+    }
+}
+
+/// Get a fallback color for a bird species when sprites are unavailable
+fn get_species_fallback_color(species: BirdSpecies) -> Color {
+    match species {
+        BirdSpecies::Cardinal => Color::srgb(0.8, 0.2, 0.2),          // Red
+        BirdSpecies::BlueJay => Color::srgb(0.2, 0.4, 0.8),          // Blue
+        BirdSpecies::Robin => Color::srgb(0.8, 0.4, 0.1),            // Orange-brown
+        BirdSpecies::Sparrow => Color::srgb(0.6, 0.5, 0.3),          // Brown
+        BirdSpecies::Chickadee => Color::srgb(0.3, 0.3, 0.3),        // Gray
+        BirdSpecies::Goldfinch => Color::srgb(0.9, 0.8, 0.2),        // Yellow
+        BirdSpecies::NorthernMockingbird => Color::srgb(0.7, 0.7, 0.7),  // Light gray
+        BirdSpecies::RedWingedBlackbird => Color::srgb(0.2, 0.2, 0.2),   // Black
+        BirdSpecies::CommonGrackle => Color::srgb(0.1, 0.1, 0.3),    // Dark blue-black
+        BirdSpecies::BrownThrasher => Color::srgb(0.6, 0.3, 0.2),    // Rust brown
+        BirdSpecies::CedarWaxwing => Color::srgb(0.8, 0.6, 0.4),     // Tan
+        BirdSpecies::WhiteBreastedNuthatch => Color::srgb(0.8, 0.8, 0.9), // Light blue-gray
+        BirdSpecies::TuftedTitmouse => Color::srgb(0.6, 0.6, 0.7),   // Blue-gray
+        BirdSpecies::CarolinaWren => Color::srgb(0.7, 0.4, 0.2),     // Reddish brown
+        BirdSpecies::HouseFinch => Color::srgb(0.7, 0.3, 0.3),       // Rose red
+        BirdSpecies::EuropeanStarling => Color::srgb(0.3, 0.3, 0.4), // Dark gray
+        BirdSpecies::MourningDove => Color::srgb(0.7, 0.6, 0.5),     // Soft brown
+        BirdSpecies::CommonCrow => Color::srgb(0.1, 0.1, 0.1),       // Black
+        BirdSpecies::BlueGrayGnatcatcher => Color::srgb(0.5, 0.6, 0.7), // Blue-gray
+        BirdSpecies::YellowWarbler => Color::srgb(0.9, 0.9, 0.3),    // Bright yellow
+        BirdSpecies::DownyWoodpecker => Color::srgb(0.9, 0.9, 0.9),  // White
+        _ => Color::srgb(0.5, 0.5, 0.5), // Default gray for any unspecified species
     }
 }

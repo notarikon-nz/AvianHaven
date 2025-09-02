@@ -64,7 +64,7 @@ pub fn setup_journal_menu_system(
             BorderColor(Color::srgb(0.7, 0.6, 0.5)),
         )).with_children(|header| {
             header.spawn((
-                Text::new("🦅 Field Journal"),
+                Text::new("Field Journal"),
                 TextFont {
                     font_size: 24.0,
                     ..default()
@@ -108,11 +108,11 @@ pub fn setup_journal_menu_system(
             BorderColor(Color::srgb(0.6, 0.5, 0.4)),
         )).with_children(|tabs| {
             let tab_configs = [
-                (JournalTab::Species, "🐦 Species", "Discovered bird species"),
-                (JournalTab::Photos, "📸 Photos", "Photo collection"),
-                (JournalTab::Conservation, "🌿 Conservation", "Species status & protection"),
-                (JournalTab::Migration, "🗺️ Migration", "Migration patterns & routes"),
-                (JournalTab::Achievements, "🏆 Progress", "Achievements & milestones"),
+                (JournalTab::Species, "Species", "Discovered bird species"),
+                (JournalTab::Photos, "Photos", "Photo collection"),
+                (JournalTab::Conservation, "Conservation", "Species status & protection"),
+                (JournalTab::Migration, "Migration", "Migration patterns & routes"),
+                (JournalTab::Achievements, "Progress", "Achievements & milestones"),
             ];
             
             for (tab, title, _tooltip) in tab_configs {
@@ -174,7 +174,7 @@ pub fn setup_journal_menu_system(
                         },
                     )).with_children(|species_content| {
                         species_content.spawn((
-                            Text::new(format!("📋 Species Discovered: {}", discovered.0.len())),
+                            Text::new(format!("Species Discovered: {}", discovered.0.len())),
                             TextFont {
                                 font_size: 18.0,
                                 ..default()
@@ -284,7 +284,7 @@ pub fn setup_journal_menu_system(
                         },
                     )).with_children(|photos_content| {
                         photos_content.spawn((
-                            Text::new("📸 Photo Gallery"),
+                            Text::new("Photo Gallery"),
                             TextFont {
                                 font_size: 20.0,
                                 ..default()
@@ -318,7 +318,7 @@ pub fn setup_journal_menu_system(
                         },
                     )).with_children(|conservation_content| {
                         conservation_content.spawn((
-                            Text::new("🌿 Conservation Status"),
+                            Text::new("Conservation Status"),
                             TextFont {
                                 font_size: 18.0,
                                 ..default()
@@ -382,7 +382,7 @@ pub fn setup_journal_menu_system(
                         
                         // Educational text
                         conservation_content.spawn((
-                            Text::new("🔬 Learn about conservation efforts and how you can help protect bird species in your area. Each species' conservation status is based on IUCN Red List data."),
+                            Text::new("Learn about conservation efforts and how you can help protect bird species in your area. Each species' conservation status is based on IUCN Red List data."),
                             TextFont {
                                 font_size: 12.0,
                                 ..default()
@@ -407,7 +407,7 @@ pub fn setup_journal_menu_system(
                         },
                     )).with_children(|migration_content| {
                         migration_content.spawn((
-                            Text::new("🗺️ Migration Patterns"),
+                            Text::new("Migration Patterns"),
                             TextFont {
                                 font_size: 18.0,
                                 ..default()
@@ -427,7 +427,7 @@ pub fn setup_journal_menu_system(
                         let resident_count = discovered.0.len() - migratory_count;
                         
                         migration_content.spawn((
-                            Text::new(format!("📊 Migratory: {} | Resident: {}", migratory_count, resident_count)),
+                            Text::new(format!("Migratory: {} | Resident: {}", migratory_count, resident_count)),
                             TextFont {
                                 font_size: 14.0,
                                 ..default()
@@ -449,7 +449,7 @@ pub fn setup_journal_menu_system(
                         },
                     )).with_children(|achievements_content| {
                         achievements_content.spawn((
-                            Text::new("🏆 Achievements & Progress"),
+                            Text::new("Achievements & Progress"),
                             TextFont {
                                 font_size: 20.0,
                                 ..default()

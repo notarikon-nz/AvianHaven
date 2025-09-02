@@ -304,12 +304,12 @@ fn spawn_seed_scatter(commands: &mut Commands, position: Vec2, species: crate::b
 fn spawn_water_splash(commands: &mut Commands, position: Vec2, is_bathing: bool) {
     let mut rng = rand::rng();
     
-    let splash_size = if is_bathing { 8.0 } else { 4.0 };
+    let splash_size = if is_bathing { 8.0 } else { 6.0 }; // Ensure minimum size > 5.0
     let particle_count = if is_bathing { 8 } else { 4 };
     
     for _ in 0..particle_count {
         let angle = rng.random_range(0.0..std::f32::consts::TAU);
-        let distance = rng.random_range(5.0..splash_size);
+        let distance = rng.random_range(2.0..splash_size); // Start from 2.0 instead of 5.0
         let splash_pos = position + Vec2::new(
             angle.cos() * distance,
             angle.sin() * distance

@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::diagnostic::FrameTimeDiagnosticsPlugin;
 use bevy_rapier2d::prelude::*;
 
 mod bird;
@@ -27,6 +28,8 @@ mod catalog;
 mod save_load;
 mod menu;
 mod tutorial;
+mod social_features; // Phase 4: Community features
+mod sanctuary_management; // Phase 4: Advanced sanctuary management
 
 use user_interface::UserInterfacePlugin;
 use bird::BirdPlugin;
@@ -68,7 +71,10 @@ pub enum AppState {
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
+        .add_plugins((
+            RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0),
+            FrameTimeDiagnosticsPlugin::default(),
+        ))
         .init_state::<AppState>()
         .init_resource::<GameConfig>()
         .add_plugins((

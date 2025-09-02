@@ -75,7 +75,7 @@ pub fn setup_catalog_items(
                 BackgroundColor(Color::srgb(0.7, 0.5, 0.3)),
             )).with_children(|title| {
                 title.spawn((
-                    Text::new("🐦 Bird Garden Catalog"),
+                    Text::new("Bird Garden Catalog"),
                     TextFont {
                         font_size: 24.0,
                         ..default()
@@ -85,7 +85,7 @@ pub fn setup_catalog_items(
                 
                 // Currency display
                 title.spawn((
-                    Text::new("💰 0"),
+                    Text::new("Credits: 0"),
                     TextFont {
                         font_size: 20.0,
                         ..default()
@@ -131,11 +131,11 @@ pub fn setup_catalog_items(
                     
                     // Category buttons
                     let categories = [
-                        (ItemCategory::Comfort, "🛏️ Comfort"),
-                        (ItemCategory::Food, "🌰 Food"),
-                        (ItemCategory::Water, "💧 Water"),
-                        (ItemCategory::Decorative, "🎨 Decorative"),
-                        (ItemCategory::Special, "⭐ Special"),
+                        (ItemCategory::Comfort, "Comfort"),
+                        (ItemCategory::Food, "Food"),
+                        (ItemCategory::Water, "Water"),
+                        (ItemCategory::Decorative, "Decorative"),
+                        (ItemCategory::Special, "Special"),
                     ];
                     
                     for (category, label) in categories {
@@ -395,7 +395,7 @@ pub fn update_catalog_ui(
         // Update currency display
         for text_entity in currency_text_query.iter() {
             if let Ok(mut text) = text_query.get_mut(text_entity) {
-                text.0 = format!("💰 {}", inventory.currency);
+                text.0 = format!("Credits: {}", inventory.currency);
                 break; // Only update the first currency text found
             }
         }
@@ -510,7 +510,7 @@ pub fn update_catalog_ui(
                                     },
                                 )).with_children(|info| {
                                     info.spawn((
-                                        Text::new(format!("💰 {}", price)),
+                                        Text::new(format!("${}", price)),
                                         TextFont {
                                             font_size: 10.0,
                                             ..default()
@@ -683,6 +683,31 @@ pub fn start_placement_mode(
             )).id();
             
             placed_objects.ghost_entity = Some(ghost);
+        }
+    }
+}
+
+pub fn cleanup_catalog_ui(
+    mut commands: Commands,
+    catalog_ui_query: Query<Entity, With<crate::catalog::components::CatalogUI>>,
+) {
+    for entity in catalog_ui_query.iter() {
+        commands.entity(entity).despawn_recursive();
+    }
+}
+
+/// Simplified catalog visibility management without content rebuilding
+pub fn update_catalog_visibility(
+    catalog_state: Res<CatalogState>,
+    mut catalog_query: Query<&mut Node, With<CatalogUI>>,
+) {
+    if catalog_state.is_changed() {
+        for mut node in catalog_query.iter_mut() {
+            node.display = if catalog_state.is_open {
+                Display::Flex
+            } else {
+                Display::None
+            };
         }
     }
 }

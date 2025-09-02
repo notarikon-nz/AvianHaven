@@ -25,10 +25,14 @@ impl Plugin for MenuPlugin {
             .add_systems(OnExit(AppState::LoadGame), cleanup_menu_ui)
             .add_systems(Update, (
                 main_menu_button_system,
-                settings_button_system,
-                load_game_button_system,
                 menu_navigation_system,
-                escape_key_system,
+            ).run_if(in_state(AppState::MainMenu)))
+            .add_systems(Update, settings_button_system.run_if(in_state(AppState::Settings)))
+            .add_systems(Update, load_game_button_system.run_if(in_state(AppState::LoadGame)))
+            .add_systems(Update, escape_key_system.run_if(
+                in_state(AppState::MainMenu)
+                    .or(in_state(AppState::Settings))
+                    .or(in_state(AppState::LoadGame))
             ));
     }
 }

@@ -31,10 +31,10 @@ pub enum NotificationType {
 impl NotificationType {
     pub fn icon(&self) -> &'static str {
         match self {
-            Self::Achievement { .. } => "🏆",
-            Self::Currency { .. } => "💰",
-            Self::Warning { .. } => "⚠️",
-            Self::Info { .. } => "ℹ️",
+            Self::Achievement { .. } => "[ACHIEVEMENT]",
+            Self::Currency { .. } => "[CURRENCY]",
+            Self::Warning { .. } => "[WARNING]",
+            Self::Info { .. } => "[INFO]",
         }
     }
     

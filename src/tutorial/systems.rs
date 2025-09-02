@@ -9,7 +9,8 @@ pub fn check_tutorial_needed(
     tutorial_progress: Res<TutorialProgress>,
     mut tutorial_events: EventWriter<TutorialEvent>,
 ) {
-    if tutorial_progress.should_show_tutorial() {
+    // Only start tutorial if it should be shown AND hasn't been started yet this session
+    if tutorial_progress.should_show_tutorial() && !tutorial_state.is_active && !tutorial_state.is_skipped {
         tutorial_state.is_active = true;
         tutorial_state.current_step = TutorialStep::Welcome;
         tutorial_events.write(TutorialEvent {

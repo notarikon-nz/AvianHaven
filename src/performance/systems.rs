@@ -186,13 +186,13 @@ pub fn fps_display_system(
             Node {
                 position_type: PositionType::Absolute,
                 top: Val::Px(10.0),
-                right: Val::Px(10.0),
+                left: Val::Px(10.0),
                 ..default()
             },
             FpsDisplay,
             TextColor(Color::WHITE),
             TextFont {
-                font_size: 24.0,
+                font_size: 12.0,
                 ..default()
             },
         ));
@@ -263,7 +263,7 @@ pub fn performance_display_system(
             let warnings_text = if metrics.warnings.is_empty() {
                 "No warnings".to_string()
             } else {
-                format!("⚠ {}", metrics.warnings.join("\n⚠ "))
+                format!("WARNING: {}", metrics.warnings.join("\nWARNING: "))
             };
             
             text.0 = format!(

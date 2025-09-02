@@ -34,7 +34,7 @@ pub fn setup_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
         )).with_children(|menu| {
             // Title
             menu.spawn((
-                Text::new("🐦 Avian Haven"),
+                Text::new("Avian Haven"),
                 TextFont {
                     font_size: 36.0,
                     ..default()
@@ -141,7 +141,7 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                 },
             )).with_children(|section| {
                 section.spawn((
-                    Text::new("🔊 Audio"),
+                    Text::new("Audio"),
                     TextFont {
                         font_size: 20.0,
                         ..default()
@@ -201,7 +201,7 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                 },
             )).with_children(|section| {
                 section.spawn((
-                    Text::new("🎮 Gameplay"),
+                    Text::new("Gameplay"),
                     TextFont {
                         font_size: 20.0,
                         ..default()
@@ -325,7 +325,7 @@ pub fn setup_load_game_menu(
         )).with_children(|load_menu| {
             // Title
             load_menu.spawn((
-                Text::new("📁 Load Game"),
+                Text::new("Load Game"),
                 TextFont {
                     font_size: 28.0,
                     ..default()

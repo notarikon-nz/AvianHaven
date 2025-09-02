@@ -123,7 +123,7 @@ pub fn predator_avoidance_system(
             if rng.random::<f32>() < 0.1 {
                 PREDATOR_TIMER = 0.0;
                 
-                info!("🦅 Predator spotted! Birds scatter!");
+                info!("Predator spotted! Birds scatter!");
                 
                 // All birds flee
                 for (entity, transform, mut velocity, _bird, mut state) in bird_query.iter_mut() {

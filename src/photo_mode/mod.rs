@@ -4,11 +4,13 @@ pub mod components;
 pub mod resources;
 pub mod systems;
 pub mod advanced_systems;
+pub mod advanced_photo; // Phase 4: Advanced Photography Features
 
 use components::*;
 use resources::*;
 use systems::*;
 use advanced_systems::*;
+use advanced_photo::*;
 
 pub struct PhotoModePlugin;
 
