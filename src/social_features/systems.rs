@@ -1,6 +1,6 @@
 // Social Features Systems - Phase 4
 use bevy::prelude::*;
-use crate::social_features::*;
+use super::components::*;
 use crate::photo_mode::components::PhotoTakenEvent;
 use crate::bird::BirdSpecies;
 use crate::{AppState, resources::BirdCount};
@@ -261,9 +261,12 @@ pub fn challenge_tracking_system(
     mut challenge_events: EventWriter<ChallengeCompletedEvent>,
     mut badge_events: EventWriter<BadgeEarnedEvent>,
 ) {
+    let mut completed_challenges = Vec::new();
+    let mut badge_to_send = None;
+    
     for photo_event in photo_events.read() {
-        // Check each active challenge
-        for challenge in &mut community_system.active_challenges {
+        // First pass: check challenges and collect completion info
+        for (index, challenge) in community_system.active_challenges.iter_mut().enumerate() {
             if challenge.is_active() {
                 let completed = challenge.check_completion(
                     photo_event.score.total_score,
@@ -271,34 +274,45 @@ pub fn challenge_tracking_system(
                 );
                 
                 if completed {
-                    challenge_events.send(ChallengeCompletedEvent {
-                        challenge_id: challenge.id,
-                        photo_score: photo_event.score.total_score,
-                    });
-                    
-                    // Update player stats
-                    community_system.player_stats.challenges_completed += 1;
-                    community_system.player_stats.current_streak += 1;
-                    
-                    if community_system.player_stats.current_streak > community_system.player_stats.longest_streak {
-                        community_system.player_stats.longest_streak = community_system.player_stats.current_streak;
-                    }
-                    
-                    // Check for streak badges
-                    if community_system.player_stats.current_streak == 7 {
-                        badge_events.send(BadgeEarnedEvent {
-                            badge: Badge {
-                                id: "week_streak".to_string(),
-                                name: "Week Warrior".to_string(),
-                                description: "Complete challenges for 7 days straight".to_string(),
-                                icon: "streak_7".to_string(),
-                                earned_date: "2025-01-01".to_string(), // Would use actual date
-                                rarity: BadgeRarity::Uncommon,
-                            },
-                        });
-                    }
+                    completed_challenges.push((index, challenge.id, photo_event.score.total_score));
                 }
             }
+        }
+        
+        // Second pass: update player stats and send events
+        for (_, challenge_id, photo_score) in &completed_challenges {
+            challenge_events.send(ChallengeCompletedEvent {
+                challenge_id: *challenge_id,
+                photo_score: *photo_score,
+            });
+            
+            // Update player stats
+            community_system.player_stats.challenges_completed += 1;
+            community_system.player_stats.current_streak += 1;
+            
+            let current_streak = community_system.player_stats.current_streak;
+            let longest_streak = community_system.player_stats.longest_streak;
+            
+            if current_streak > longest_streak {
+                community_system.player_stats.longest_streak = current_streak;
+            }
+            
+            // Check for streak badges
+            if current_streak == 7 {
+                badge_to_send = Some(Badge {
+                    id: "week_streak".to_string(),
+                    name: "Week Warrior".to_string(),
+                    description: "Complete challenges for 7 days straight".to_string(),
+                    icon: "streak_7".to_string(),
+                    earned_date: "2025-01-01".to_string(),
+                    rarity: BadgeRarity::Uncommon,
+                });
+            }
+        }
+        
+        // Send badge if earned
+        if let Some(badge) = badge_to_send.take() {
+            badge_events.send(BadgeEarnedEvent { badge });
         }
         
         // Update general stats
@@ -471,7 +485,7 @@ pub fn challenge_ui_update_system(
     if community_system.is_changed() {
         // Clear existing challenge cards
         for card_entity in challenge_card_query.iter() {
-            commands.entity(card_entity).despawn_recursive();
+            commands.entity(card_entity).despawn();
         }
         
         // Rebuild challenge cards

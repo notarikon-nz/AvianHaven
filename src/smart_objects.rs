@@ -3,7 +3,7 @@ use bevy_rapier2d::prelude::*;
 use crate::bird_ai::components::{SmartObject, ProvidesUtility, BirdAction, BirdState};
 use crate::environment::components::Season;
 use crate::bird::BirdSpecies;
-use crate::sanctuary_management::{WeatherShelter, ShelterType as SanctuaryShelterType, NestingBox, NestingBoxType, NestingStatus, PredatorDeterrent, DeterrentType};
+use crate::sanctuary_management::{NestingBox, NestingStatus, PredatorDeterrent, DeterrentType};
 
 pub struct SmartObjectsPlugin;
 
@@ -228,8 +228,7 @@ pub fn setup_smart_objects(mut commands: Commands) {
     // Spawn water features
     spawn_water_features(&mut commands);
     
-    // Spawn Phase 4 sanctuary management objects
-    spawn_sanctuary_objects(&mut commands);
+    // Phase 4 sanctuary management objects (TODO: implement properly)
 }
 
 fn spawn_perching_spots(commands: &mut Commands) {
@@ -530,8 +529,8 @@ pub fn water_feature_system(
     }
 }
 
-// === PHASE 4 SANCTUARY MANAGEMENT ===
-
+// === PHASE 4 SANCTUARY MANAGEMENT === (TEMPORARILY DISABLED)
+/*
 fn spawn_sanctuary_objects(commands: &mut Commands) {
     // Weather shelter - insulated hut for cold protection
     let weather_shelter = WeatherShelter {
@@ -654,6 +653,7 @@ fn spawn_sanctuary_objects(commands: &mut Commands) {
         reflective_tape,
     ));
 }
+*/
 
 pub fn seasonal_object_system(
     time_state: Res<crate::environment::resources::TimeState>,
@@ -714,34 +714,11 @@ pub fn seasonal_object_system(
 // === SANCTUARY MANAGEMENT SYSTEMS ===
 
 pub fn sanctuary_interaction_system(
-    mut weather_shelter_query: Query<(&Transform, &mut WeatherShelter)>,
     mut nesting_box_query: Query<(&Transform, &mut NestingBox)>,
     bird_query: Query<(Entity, &Transform, &BirdState, &crate::bird::Bird), With<crate::bird_ai::components::BirdAI>>,
-    weather_state: Res<crate::environment::resources::WeatherState>,
     time_state: Res<crate::environment::resources::TimeState>,
 ) {
     let current_season = time_state.get_season();
-    
-    // Update weather shelter occupancy
-    for (shelter_transform, mut shelter) in &mut weather_shelter_query {
-        let mut new_occupancy = 0;
-        
-        for (_bird_entity, bird_transform, bird_state, _bird) in &bird_query {
-            if matches!(bird_state, BirdState::Resting | BirdState::Fleeing) {
-                let distance = shelter_transform.translation.distance(bird_transform.translation);
-                
-                // Birds seek shelter in bad weather
-                let weather_protection_needed = shelter.weather_protection
-                    .contains(&weather_state.current_weather);
-                
-                if distance < 90.0 && weather_protection_needed && new_occupancy < shelter.capacity {
-                    new_occupancy += 1;
-                }
-            }
-        }
-        
-        shelter.current_occupancy = new_occupancy;
-    }
     
     // Update nesting box usage during breeding season
     for (_nesting_transform, mut nesting_box) in &mut nesting_box_query {

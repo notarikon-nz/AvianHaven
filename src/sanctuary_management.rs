@@ -4,65 +4,37 @@ use serde::{Serialize, Deserialize};
 use crate::bird::{BirdSpecies, Bird};
 use crate::bird_ai::components::{SmartObject, ProvidesUtility, BirdState};
 use crate::environment::components::{Season, Weather};
+use crate::advanced_weather::{WeatherShelter, ShelterType};
 
-// Weather Shelter System
-#[derive(Component, Debug, Clone)]
-pub struct WeatherShelter {
-    pub shelter_type: ShelterType,
-    pub capacity: u32,
-    pub current_occupancy: u32,
-    pub weather_protection: Vec<Weather>,
-    pub comfort_level: f32, // 0.0-1.0
-    pub maintenance_level: f32, // 0.0-1.0, degrades over time
-}
-
-#[derive(Debug, Clone, Copy, PartialEq)]
-pub enum ShelterType {
-    BasicLeanTo,      // Simple weather protection
-    InsulatedHut,     // Cold weather protection
-    OpenPavilion,     // Rain protection, good airflow
-    UndergroundBurrow, // Extreme weather protection
-    TreeHollow,       // Natural-style shelter
-}
-
+// Additional sanctuary management extensions to ShelterType
 impl ShelterType {
-    pub fn protection_rating(&self) -> f32 {
-        match self {
-            Self::BasicLeanTo => 0.3,
-            Self::InsulatedHut => 0.8,
-            Self::OpenPavilion => 0.5,
-            Self::UndergroundBurrow => 0.9,
-            Self::TreeHollow => 0.7,
-        }
-    }
-    
-    pub fn capacity(&self) -> u32 {
-        match self {
-            Self::BasicLeanTo => 5,
-            Self::InsulatedHut => 8,
-            Self::OpenPavilion => 12,
-            Self::UndergroundBurrow => 6,
-            Self::TreeHollow => 4,
-        }
-    }
-    
     pub fn cost(&self) -> u32 {
         match self {
-            Self::BasicLeanTo => 200,
-            Self::InsulatedHut => 500,
-            Self::OpenPavilion => 400,
-            Self::UndergroundBurrow => 800,
+            Self::DenseVegetation => 300,
+            Self::Building => 1200,
             Self::TreeHollow => 600,
+            Self::RockFormation => 800,
+            Self::Feeder => 500,
+        }
+    }
+    
+    pub fn maintenance_needs(&self) -> f32 {
+        match self {
+            Self::DenseVegetation => 0.1,  // Natural, low maintenance
+            Self::Building => 0.3,         // Requires upkeep
+            Self::TreeHollow => 0.05,      // Natural, minimal maintenance
+            Self::RockFormation => 0.0,    // No maintenance needed
+            Self::Feeder => 0.2,           // Regular cleaning needed
         }
     }
     
     pub fn name(&self) -> &'static str {
         match self {
-            Self::BasicLeanTo => "Basic Lean-To",
-            Self::InsulatedHut => "Insulated Hut",
-            Self::OpenPavilion => "Open Pavilion",
-            Self::UndergroundBurrow => "Underground Burrow",
+            Self::DenseVegetation => "Dense Vegetation",
+            Self::Building => "Building Shelter",
             Self::TreeHollow => "Tree Hollow",
+            Self::RockFormation => "Rock Formation",
+            Self::Feeder => "Covered Feeder",
         }
     }
 }
@@ -76,6 +48,7 @@ pub struct NestingBox {
     pub breeding_season: Vec<Season>,
     pub success_rate: f32,
     pub maintenance_required: bool,
+    pub maintenance_level: f32,
     pub eggs_laid: u32,
     pub fledglings_raised: u32,
 }
@@ -297,6 +270,7 @@ impl EnhancementType {
     }
 }
 
+
 // Note: WeatherShelter and NestingBox are components, not trait implementations
 // They integrate with the SmartObject system through the existing BirdAction mechanism
 
@@ -326,4 +300,97 @@ pub enum NestingEventType {
 pub struct ShelterOccupancyEvent {
     pub shelter_id: Entity,
     pub occupancy_change: i32, // +1 for entry, -1 for exit
+}
+
+// Sanctuary Management Plugin
+pub struct SanctuaryManagementPlugin;
+
+impl Plugin for SanctuaryManagementPlugin {
+    fn build(&self, app: &mut App) {
+        app
+            .add_event::<PredatorSpottedEvent>()
+            .add_event::<NestingEvent>()
+            .add_event::<ShelterOccupancyEvent>()
+            .add_systems(OnEnter(crate::AppState::Playing), setup_sanctuary_objects)
+            .add_systems(Update, (
+                nesting_box_system,
+                predator_management_system,
+                shelter_maintenance_system,
+            ).run_if(in_state(crate::AppState::Playing)));
+    }
+}
+
+// Setup sanctuary objects
+fn setup_sanctuary_objects(mut commands: Commands) {
+    // Spawn some predator deterrents
+    commands.spawn((
+        Transform::from_xyz(-200.0, 100.0, 0.8),
+        Sprite::from_color(Color::srgb(0.7, 0.7, 0.7), Vec2::new(30.0, 80.0)),
+        PredatorDeterrent {
+            deterrent_type: DeterrentType::ReflectiveTape,
+            position: Vec3::new(-200.0, 100.0, 0.8),
+            effectiveness: 0.7,
+            range: 150.0,
+            maintenance_timer: Timer::from_seconds(300.0, TimerMode::Repeating),
+            active: true,
+        },
+    ));
+    
+    // Spawn nesting boxes
+    commands.spawn((
+        Transform::from_xyz(150.0, 120.0, 0.6),
+        Sprite::from_color(Color::srgb(0.6, 0.4, 0.2), Vec2::new(25.0, 30.0)),
+        NestingBox {
+            box_type: NestingBoxType::SmallCavity,
+            target_species: vec![BirdSpecies::Chickadee, BirdSpecies::CarolinaWren],
+            occupancy_status: NestingStatus::Empty,
+            breeding_season: vec![Season::Spring, Season::Summer],
+            success_rate: 0.75,
+            maintenance_required: false,
+            maintenance_level: 1.0,
+            eggs_laid: 0,
+            fledglings_raised: 0,
+        },
+        SmartObject,
+        ProvidesUtility {
+            action: crate::bird_ai::components::BirdAction::Nest,
+            base_utility: 0.8,
+            range: 100.0,
+        },
+    ));
+}
+
+// Basic systems for sanctuary management
+fn nesting_box_system(
+    mut nesting_query: Query<&mut NestingBox>,
+    time: Res<Time>,
+) {
+    for mut nesting_box in nesting_query.iter_mut() {
+        // Simple nesting box decay
+        nesting_box.maintenance_level -= time.delta_secs() * 0.001; // Slow decay
+        nesting_box.maintenance_level = nesting_box.maintenance_level.max(0.0);
+    }
+}
+
+fn predator_management_system(
+    deterrent_query: Query<&PredatorDeterrent>,
+    mut predator_events: EventWriter<PredatorSpottedEvent>,
+) {
+    // Simple predator deterrent system - would be expanded later
+    for _deterrent in deterrent_query.iter() {
+        // Deterrents reduce predator spawn chances
+    }
+}
+
+fn shelter_maintenance_system(
+    mut shelter_query: Query<&mut WeatherShelter>,
+    time: Res<Time>,
+) {
+    for mut shelter in shelter_query.iter_mut() {
+        // Maintenance system would be implemented here
+        // For now, just ensure occupancy doesn't exceed capacity
+        if shelter.current_occupancy > shelter.capacity {
+            shelter.current_occupancy = shelter.capacity;
+        }
+    }
 }

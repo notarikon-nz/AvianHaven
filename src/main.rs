@@ -34,6 +34,7 @@ mod foraging_ecology; // Advanced foraging patterns and mixed flocks
 mod social_features; // Phase 4: Community features
 mod sanctuary_management; // Phase 4: Advanced sanctuary management
 mod hanabi_effects; // Phase 4: GPU-accelerated particle effects
+mod predator_prey; // Phase 4: Predator-prey dynamics
 
 use user_interface::UserInterfacePlugin;
 use bird::BirdPlugin;
@@ -64,7 +65,10 @@ use tutorial::TutorialPlugin;
 use nocturnal_behaviors::NocturnalBehaviorPlugin;
 use advanced_weather::AdvancedWeatherPlugin;
 use foraging_ecology::ForagingEcologyPlugin;
+use social_features::SocialFeaturesPlugin;
+use sanctuary_management::SanctuaryManagementPlugin;
 use hanabi_effects::HanabiEffectsPlugin;
+use predator_prey::PredatorPreyPlugin;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, Default, States)]
 pub enum AppState {
@@ -114,7 +118,10 @@ fn main() {
         .add_plugins(NocturnalBehaviorPlugin)
         .add_plugins(AdvancedWeatherPlugin)
         .add_plugins(ForagingEcologyPlugin)
-        .add_plugins(HanabiEffectsPlugin)
+        .add_plugins(PredatorPreyPlugin)
+        .add_plugins(SocialFeaturesPlugin)
+        // .add_plugins(SanctuaryManagementPlugin)  // TODO: Will fix after other plugins working
+        // .add_plugins(HanabiEffectsPlugin)  // TODO: Test without this first
         .add_systems(Startup, setup)
         .add_systems(PostUpdate, robust_despawn_system)
         .run();
