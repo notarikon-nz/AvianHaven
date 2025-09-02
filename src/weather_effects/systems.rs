@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use crate::despawn::SafeDespawn;
 use super::components::*;
 use crate::environment::{resources::{WeatherState, WeatherChangeEvent, TimeState}, components::{Weather, Season}};
 use crate::bird_ai::components::{BirdAI, BirdState};
@@ -37,10 +38,10 @@ pub fn weather_particle_system(
         if effects_state.active_weather != new_weather_type {
             // Despawn existing particles
             for entity in &rain_query {
-                commands.entity(entity).despawn();
+                commands.entity(entity).safe_despawn();
             }
             for entity in &snow_query {
-                commands.entity(entity).despawn();
+                commands.entity(entity).safe_despawn();
             }
             effects_state.particle_count = 0;
         }
@@ -456,7 +457,7 @@ pub fn particle_cleanup_system(
     // Clean up expired or off-screen rain particles
     for (entity, transform, particle) in &rain_query {
         if particle.lifetime <= 0.0 || transform.translation.y < -600.0 {
-            commands.entity(entity).despawn();
+            commands.entity(entity).safe_despawn();
             effects_state.particle_count = effects_state.particle_count.saturating_sub(1);
         }
     }
@@ -464,7 +465,7 @@ pub fn particle_cleanup_system(
     // Clean up expired or off-screen snow particles
     for (entity, transform, particle) in &snow_query {
         if particle.lifetime <= 0.0 || transform.translation.y < -600.0 {
-            commands.entity(entity).despawn();
+            commands.entity(entity).safe_despawn();
             effects_state.particle_count = effects_state.particle_count.saturating_sub(1);
         }
     }
@@ -474,14 +475,14 @@ pub fn particle_cleanup_system(
         if particle.lifetime <= 0.0 || 
            transform.translation.y < -600.0 || 
            transform.translation.distance(Vec3::ZERO) > 1000.0 {
-            commands.entity(entity).despawn();
+            commands.entity(entity).safe_despawn();
         }
     }
     
     // Clean up interactive particles
     for (entity, transform, particle) in &interactive_query {
         if particle.lifetime <= 0.0 || transform.translation.y < -600.0 {
-            commands.entity(entity).despawn();
+            commands.entity(entity).safe_despawn();
         }
     }
 }

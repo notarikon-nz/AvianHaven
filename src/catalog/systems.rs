@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use crate::catalog::{components::*, resources::*};
 use crate::bird_ai::components::{SmartObject, ProvidesUtility};
+use crate::despawn::SafeDespawn;
 
 // Helper function to get filename for object sprites
 pub fn object_filename(item_type: &PlaceableItemType) -> String {
@@ -404,7 +405,7 @@ pub fn update_catalog_ui(
         if let Ok(grid_entity) = items_grid_query.single_mut() {
             // Despawn all existing item cards
             if let Ok(mut entity_commands) = commands.get_entity(grid_entity) {
-                entity_commands.despawn();
+                entity_commands.safe_despawn();
             }
             // Respawn the grid entity 
             let new_grid = commands.spawn((
@@ -644,7 +645,7 @@ pub fn handle_object_placement(
                     // Exit placement mode
                     placed_objects.placement_mode = false;
                     if let Some(ghost) = placed_objects.ghost_entity.take() {
-                        commands.entity(ghost).despawn();
+                        commands.entity(ghost).safe_despawn();
                     }
                 }
             }
@@ -654,7 +655,7 @@ pub fn handle_object_placement(
         if mouse_button.just_pressed(MouseButton::Right) {
             placed_objects.placement_mode = false;
             if let Some(ghost) = placed_objects.ghost_entity.take() {
-                commands.entity(ghost).despawn();
+                commands.entity(ghost).safe_despawn();
             }
         }
     }

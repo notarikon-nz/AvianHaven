@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use crate::despawn::SafeDespawn;
 use bevy::diagnostic::{DiagnosticsStore, FrameTimeDiagnosticsPlugin};
 use std::time::Instant;
 use crate::bird::Bird;
@@ -48,7 +49,7 @@ pub fn bird_culling_system(
     
     // Perform culling
     for entity in birds_to_cull {
-        commands.entity(entity).despawn();
+        commands.entity(entity).safe_despawn();
     }
 }
 
@@ -231,7 +232,7 @@ pub fn performance_display_system(
         if !DISPLAY_ENABLED || !settings.enable_performance_display {
             // Remove display if disabled
             for entity in display_query.iter() {
-                commands.entity(entity).despawn();
+                commands.entity(entity).safe_despawn();
             }
             return;
         }

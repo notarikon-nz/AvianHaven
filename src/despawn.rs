@@ -9,24 +9,23 @@ pub struct PendingDespawn {
 pub fn robust_despawn_system(
     mut commands: Commands,
     mut pending_query: Query<(Entity, &mut PendingDespawn)>,
-    already_despawned_query: Query<Entity, With<PendingDespawn>>,
     time: Res<Time>,
 ) {
-    // Clean up any entities that got marked as already despawned
-    for entity in already_despawned_query.iter() {
-        if let Ok(mut entity_commands) = commands.get_entity(entity) {
-            entity_commands.try_despawn();
-        }
-    }
+    let mut entities_to_despawn = Vec::new();
     
     // Process pending despawns with delay for safety
     for (entity, mut pending) in pending_query.iter_mut() {
         pending.delay -= time.delta_secs();
         
         if pending.delay <= 0.0 {
-            if let Ok(mut entity_commands) = commands.get_entity(entity) {
-                entity_commands.try_despawn();
-            }
+            entities_to_despawn.push(entity);
+        }
+    }
+    
+    // Safely despawn entities that are ready
+    for entity in entities_to_despawn {
+        if let Ok(mut entity_commands) = commands.get_entity(entity) {
+            entity_commands.despawn();
         }
     }
 }

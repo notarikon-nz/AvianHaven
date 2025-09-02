@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use crate::tutorial::{components::*, resources::*};
 use crate::photo_mode::resources::PhotoModeSettings;
+use crate::despawn::SafeDespawn;
 
 // Tutorial Management Systems
 
@@ -50,7 +51,7 @@ pub fn tutorial_step_system(
                 
                 // Clean up UI
                 for entity in tutorial_ui_query.iter() {
-                    commands.entity(entity).despawn();
+                    commands.entity(entity).safe_despawn();
                 }
             }
             TutorialAction::Complete => {
@@ -58,7 +59,7 @@ pub fn tutorial_step_system(
                 
                 // Clean up UI
                 for entity in tutorial_ui_query.iter() {
-                    commands.entity(entity).despawn();
+                    commands.entity(entity).safe_despawn();
                 }
             }
             TutorialAction::Show => {
@@ -70,7 +71,7 @@ pub fn tutorial_step_system(
             TutorialAction::Hide => {
                 tutorial_state.show_ui = false;
                 for entity in tutorial_ui_query.iter() {
-                    commands.entity(entity).despawn();
+                    commands.entity(entity).safe_despawn();
                 }
             }
         }
@@ -205,7 +206,7 @@ pub fn tutorial_highlight_system(
     if !tutorial_state.is_active {
         // Clean up highlights if tutorial is not active
         for entity in highlight_query.iter() {
-            commands.entity(entity).despawn();
+            commands.entity(entity).safe_despawn();
         }
         return;
     }

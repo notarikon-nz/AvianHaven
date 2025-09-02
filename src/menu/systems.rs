@@ -1,6 +1,7 @@
 use bevy::prelude::*;
 use crate::menu::{components::*, resources::*};
 use crate::save_load::resources::{SaveGameEvent, LoadGameEvent, SaveManager};
+use crate::despawn::SafeDespawn;
 
 // Setup Systems
 
@@ -623,6 +624,6 @@ pub fn cleanup_menu_ui(
     menu_query: Query<Entity, With<MenuUI>>,
 ) {
     for entity in menu_query.iter() {
-        commands.entity(entity).despawn();
+        commands.entity(entity).safe_despawn();
     }
 }

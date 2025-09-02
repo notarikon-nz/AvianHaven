@@ -10,6 +10,7 @@ use crate::environment::resources::{TimeState, WeatherState};
 use crate::achievements::{AchievementProgress, Achievement};
 use crate::catalog::components::{PlaceableObject, PlaceableItemType};
 use crate::save_load::components::PersistentObject;
+use crate::despawn::SafeDespawn;
 
 pub fn save_game_system(
     mut save_events: EventReader<SaveGameEvent>,
@@ -236,7 +237,7 @@ fn perform_load(
     
     // Clear existing placed objects
     for entity in placed_object_query.iter() {
-        commands.entity(entity).despawn();
+        commands.entity(entity).safe_despawn();
     }
     placed_objects.objects.clear();
     

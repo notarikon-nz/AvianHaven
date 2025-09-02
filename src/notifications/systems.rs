@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 use super::{components::*, resources::*};
+use crate::despawn::SafeDespawn;
 use std::time::Duration;
 
 pub fn setup_notification_container(mut commands: Commands) {
@@ -201,7 +202,7 @@ pub fn notification_cleanup_system(
 ) {
     for (entity, notification) in &notification_query {
         if notification.lifetime.finished() {
-            commands.entity(entity).despawn();
+            commands.entity(entity).safe_despawn();
             notification_queue.notification_completed();
         }
     }
