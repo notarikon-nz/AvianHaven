@@ -29,6 +29,8 @@ mod save_load;
 mod menu;
 mod tutorial;
 mod nocturnal_behaviors;
+mod advanced_weather; // Advanced weather effects and storm behaviors
+mod foraging_ecology; // Advanced foraging patterns and mixed flocks
 mod social_features; // Phase 4: Community features
 mod sanctuary_management; // Phase 4: Advanced sanctuary management
 mod hanabi_effects; // Phase 4: GPU-accelerated particle effects
@@ -60,6 +62,8 @@ use save_load::SaveLoadPlugin;
 use menu::MenuPlugin;
 use tutorial::TutorialPlugin;
 use nocturnal_behaviors::NocturnalBehaviorPlugin;
+use advanced_weather::AdvancedWeatherPlugin;
+use foraging_ecology::ForagingEcologyPlugin;
 use hanabi_effects::HanabiEffectsPlugin;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, Default, States)]
@@ -108,6 +112,8 @@ fn main() {
         .add_plugins(MenuPlugin)
         .add_plugins(TutorialPlugin)
         .add_plugins(NocturnalBehaviorPlugin)
+        .add_plugins(AdvancedWeatherPlugin)
+        .add_plugins(ForagingEcologyPlugin)
         .add_plugins(HanabiEffectsPlugin)
         .add_systems(Startup, setup)
         .add_systems(PostUpdate, robust_despawn_system)
