@@ -7,6 +7,7 @@ use crate::environment::components::{Weather, Season};
 use crate::flocking::components::Flock;
 use rand::Rng;
 
+
 pub struct AdvancedWeatherPlugin;
 
 impl Plugin for AdvancedWeatherPlugin {
