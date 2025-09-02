@@ -121,7 +121,7 @@ fn main() {
         .add_plugins(PredatorPreyPlugin)
         .add_plugins(SocialFeaturesPlugin)
         .add_plugins(SanctuaryManagementPlugin)
-        // .add_plugins(HanabiEffectsPlugin)  // TODO: Test without this first
+        .add_plugins(HanabiEffectsPlugin)
         .add_systems(Startup, setup)
         .add_systems(PostUpdate, robust_despawn_system)
         .run();
