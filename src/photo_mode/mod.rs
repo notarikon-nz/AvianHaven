@@ -10,7 +10,6 @@ use components::*;
 use resources::*;
 use systems::*;
 use advanced_systems::*;
-use advanced_photo::*;
 
 pub struct PhotoModePlugin;
 

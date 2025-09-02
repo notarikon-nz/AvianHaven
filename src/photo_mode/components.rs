@@ -68,7 +68,7 @@ pub struct PhotoTakenEvent {
     pub image_handle: Handle<Image>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, serde::Serialize, serde::Deserialize)]
 pub struct PhotoScore {
     pub species_score: u32,
     pub centering_score: u32,

@@ -3,6 +3,7 @@ use bevy_rapier2d::prelude::*;
 use crate::bird_ai::components::{SmartObject, ProvidesUtility, BirdAction, BirdState};
 use crate::environment::components::Season;
 use crate::bird::BirdSpecies;
+use crate::sanctuary_management::{WeatherShelter, ShelterType as SanctuaryShelterType, NestingBox, NestingBoxType, NestingStatus, PredatorDeterrent, DeterrentType};
 
 pub struct SmartObjectsPlugin;
 
@@ -15,6 +16,8 @@ impl Plugin for SmartObjectsPlugin {
                 shelter_usage_system,
                 water_feature_system,
                 seasonal_object_system,
+                sanctuary_interaction_system,
+                predator_deterrent_system,
             ).run_if(in_state(crate::AppState::Playing)));
     }
 }
@@ -224,6 +227,9 @@ pub fn setup_smart_objects(mut commands: Commands) {
     
     // Spawn water features
     spawn_water_features(&mut commands);
+    
+    // Spawn Phase 4 sanctuary management objects
+    spawn_sanctuary_objects(&mut commands);
 }
 
 fn spawn_perching_spots(commands: &mut Commands) {
@@ -524,6 +530,131 @@ pub fn water_feature_system(
     }
 }
 
+// === PHASE 4 SANCTUARY MANAGEMENT ===
+
+fn spawn_sanctuary_objects(commands: &mut Commands) {
+    // Weather shelter - insulated hut for cold protection
+    let weather_shelter = WeatherShelter {
+        shelter_type: SanctuaryShelterType::InsulatedHut,
+        capacity: 8,
+        current_occupancy: 0,
+        weather_protection: vec![
+            crate::environment::components::Weather::Snowy,
+            crate::environment::components::Weather::Rainy,
+            crate::environment::components::Weather::Windy,
+        ],
+        comfort_level: 0.9,
+        maintenance_level: 1.0,
+    };
+    
+    commands.spawn((
+        Sprite::from_color(Color::srgb(0.5, 0.3, 0.2), Vec2::new(100.0, 80.0)),
+        Transform::from_xyz(100.0, -150.0, 0.4),
+        RigidBody::Fixed,
+        Collider::cuboid(50.0, 40.0),
+        Sensor,
+        weather_shelter,
+        SmartObject,
+        ProvidesUtility {
+            action: BirdAction::Shelter,
+            base_utility: 0.8,
+            range: 90.0,
+        },
+    ));
+    
+    // Nesting boxes for different species
+    let small_nesting_box = NestingBox {
+        box_type: NestingBoxType::SmallCavity,
+        target_species: vec![BirdSpecies::Chickadee, BirdSpecies::CarolinaWren],
+        occupancy_status: NestingStatus::Empty,
+        breeding_season: vec![Season::Spring, Season::Summer],
+        success_rate: 0.7,
+        maintenance_required: false,
+        eggs_laid: 0,
+        fledglings_raised: 0,
+    };
+    
+    commands.spawn((
+        Sprite::from_color(Color::srgb(0.6, 0.4, 0.2), Vec2::new(20.0, 25.0)),
+        Transform::from_xyz(-100.0, 80.0, 0.4),
+        RigidBody::Fixed,
+        Collider::cuboid(10.0, 12.5),
+        Sensor,
+        small_nesting_box,
+        SmartObject,
+        ProvidesUtility {
+            action: BirdAction::Nest,
+            base_utility: 0.9,
+            range: 40.0,
+        },
+    ));
+    
+    // Open platform nesting box for Cardinals/Robins
+    let platform_nesting_box = NestingBox {
+        box_type: NestingBoxType::OpenPlatform,
+        target_species: vec![BirdSpecies::Cardinal, BirdSpecies::Robin],
+        occupancy_status: NestingStatus::Empty,
+        breeding_season: vec![Season::Spring, Season::Summer],
+        success_rate: 0.6,
+        maintenance_required: false,
+        eggs_laid: 0,
+        fledglings_raised: 0,
+    };
+    
+    commands.spawn((
+        Sprite::from_color(Color::srgb(0.7, 0.5, 0.3), Vec2::new(30.0, 15.0)),
+        Transform::from_xyz(150.0, 120.0, 0.4),
+        RigidBody::Fixed,
+        Collider::cuboid(15.0, 7.5),
+        Sensor,
+        platform_nesting_box,
+        SmartObject,
+        ProvidesUtility {
+            action: BirdAction::Nest,
+            base_utility: 0.85,
+            range: 50.0,
+        },
+    ));
+    
+    // Predator deterrent - motion-activated sprinkler
+    let motion_sprinkler = PredatorDeterrent {
+        deterrent_type: DeterrentType::MotionActivatedSprinkler,
+        position: Vec3::new(-50.0, -200.0, 0.0),
+        effectiveness: 0.8,
+        range: 100.0,
+        maintenance_timer: Timer::from_seconds(30.0 * 24.0 * 3600.0, TimerMode::Repeating), // 30 days
+        active: true,
+    };
+    
+    commands.spawn((
+        Sprite::from_color(Color::srgb(0.3, 0.5, 0.7), Vec2::new(25.0, 30.0)),
+        Transform::from_xyz(-50.0, -200.0, 0.3),
+        RigidBody::Fixed,
+        Collider::cuboid(12.5, 15.0),
+        Sensor,
+        motion_sprinkler,
+    ));
+    
+    // Reflective tape deterrent for hawks
+    let reflective_tape = PredatorDeterrent {
+        deterrent_type: DeterrentType::ReflectiveTape,
+        position: Vec3::new(250.0, 180.0, 0.0),
+        effectiveness: 0.7,
+        range: 80.0,
+        maintenance_timer: Timer::from_seconds(14.0 * 24.0 * 3600.0, TimerMode::Repeating), // 14 days
+        active: true,
+    };
+    
+    commands.spawn((
+        Sprite::from_color(Color::srgb(0.9, 0.9, 0.9), Vec2::new(60.0, 8.0)),
+        Transform::from_xyz(250.0, 180.0, 0.3),
+        RigidBody::Fixed,
+        Collider::cuboid(30.0, 4.0),
+        Sensor,
+        reflective_tape,
+    ));
+}
+
 pub fn seasonal_object_system(
     time_state: Res<crate::environment::resources::TimeState>,
     mut perch_query: Query<&mut PerchingSpot>,
@@ -576,6 +707,94 @@ pub fn seasonal_object_system(
                 water.temperature = 10.0;
                 water.water_level = 0.9; // Fall rains
             },
+        }
+    }
+}
+
+// === SANCTUARY MANAGEMENT SYSTEMS ===
+
+pub fn sanctuary_interaction_system(
+    mut weather_shelter_query: Query<(&Transform, &mut WeatherShelter)>,
+    mut nesting_box_query: Query<(&Transform, &mut NestingBox)>,
+    bird_query: Query<(Entity, &Transform, &BirdState, &crate::bird::Bird), With<crate::bird_ai::components::BirdAI>>,
+    weather_state: Res<crate::environment::resources::WeatherState>,
+    time_state: Res<crate::environment::resources::TimeState>,
+) {
+    let current_season = time_state.get_season();
+    
+    // Update weather shelter occupancy
+    for (shelter_transform, mut shelter) in &mut weather_shelter_query {
+        let mut new_occupancy = 0;
+        
+        for (_bird_entity, bird_transform, bird_state, _bird) in &bird_query {
+            if matches!(bird_state, BirdState::Resting | BirdState::Fleeing) {
+                let distance = shelter_transform.translation.distance(bird_transform.translation);
+                
+                // Birds seek shelter in bad weather
+                let weather_protection_needed = shelter.weather_protection
+                    .contains(&weather_state.current_weather);
+                
+                if distance < 90.0 && weather_protection_needed && new_occupancy < shelter.capacity {
+                    new_occupancy += 1;
+                }
+            }
+        }
+        
+        shelter.current_occupancy = new_occupancy;
+    }
+    
+    // Update nesting box usage during breeding season
+    for (_nesting_transform, mut nesting_box) in &mut nesting_box_query {
+        if nesting_box.breeding_season.contains(&current_season) {
+            // Simulate breeding activity during appropriate seasons
+            if matches!(nesting_box.occupancy_status, NestingStatus::Empty) {
+                // Check for birds that might want to nest
+                for (_bird_entity, _bird_transform, bird_state, bird) in &bird_query {
+                    if nesting_box.target_species.contains(&bird.species) && 
+                       matches!(bird_state, BirdState::Resting) {
+                        // Small chance to start nesting
+                        if rand::random::<f32>() < 0.001 { // Very low chance per frame
+                            nesting_box.occupancy_status = NestingStatus::UnderConstruction;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+pub fn predator_deterrent_system(
+    mut deterrent_query: Query<&mut PredatorDeterrent>,
+    bird_query: Query<&Transform, (With<crate::bird::Bird>, With<crate::bird_ai::components::BirdAI>)>,
+    time: Res<Time>,
+) {
+    for mut deterrent in &mut deterrent_query {
+        // Update maintenance timer
+        deterrent.maintenance_timer.tick(time.delta());
+        
+        // Check if maintenance is needed
+        if deterrent.maintenance_timer.finished() {
+            deterrent.active = false; // Requires maintenance
+        }
+        
+        // If active, provide protection to nearby birds
+        if deterrent.active {
+            let protected_birds = bird_query.iter()
+                .filter(|bird_transform| {
+                    bird_transform.translation.distance(deterrent.position) < deterrent.range
+                })
+                .count();
+                
+            // Deterrent effectiveness may vary based on number of protected birds
+            deterrent.effectiveness = match deterrent.deterrent_type {
+                DeterrentType::MotionActivatedSprinkler => 0.8,
+                DeterrentType::ReflectiveTape => 0.7,
+                DeterrentType::UltrasonicDevice => 0.6,
+                DeterrentType::ScareOwl => 0.5,
+                DeterrentType::ProtectiveMesh => 0.9,
+                DeterrentType::NaturalBarrier => 0.4,
+            };
         }
     }
 }

@@ -130,7 +130,7 @@ pub struct PredatorManagement {
     pub protection_zones: Vec<ProtectionZone>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Component, Debug, Clone)]
 pub struct PredatorDeterrent {
     pub deterrent_type: DeterrentType,
     pub position: Vec3,
@@ -211,8 +211,9 @@ pub struct PredatorSighting {
     pub deterred: bool,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, Default)]
 pub enum ThreatLevel {
+    #[default]
     Low,
     Moderate,
     High,
@@ -296,74 +297,8 @@ impl EnhancementType {
     }
 }
 
-// Smart Object implementations for new items
-impl SmartObject for WeatherShelter {
-    fn get_interaction_point(&self) -> Vec3 {
-        Vec3::ZERO // Will be overridden with actual position
-    }
-    
-    fn can_interact(&self, _bird_species: BirdSpecies) -> bool {
-        self.current_occupancy < self.capacity && self.maintenance_level > 0.2
-    }
-    
-    fn get_interaction_range(&self) -> f32 {
-        30.0
-    }
-}
-
-impl ProvidesUtility for WeatherShelter {
-    fn get_utility_value(&self, _bird_species: BirdSpecies, weather: Option<Weather>) -> f32 {
-        let base_comfort = self.comfort_level * self.maintenance_level;
-        
-        if let Some(current_weather) = weather {
-            if self.weather_protection.contains(&current_weather) {
-                base_comfort * 2.0 // Double utility during protected weather
-            } else {
-                base_comfort * 0.5 // Still provides some comfort
-            }
-        } else {
-            base_comfort
-        }
-    }
-    
-    fn get_utility_type(&self) -> &'static str {
-        "WeatherShelter"
-    }
-}
-
-impl SmartObject for NestingBox {
-    fn get_interaction_point(&self) -> Vec3 {
-        Vec3::ZERO
-    }
-    
-    fn can_interact(&self, bird_species: BirdSpecies) -> bool {
-        self.target_species.contains(&bird_species) && 
-        matches!(self.occupancy_status, NestingStatus::Empty) &&
-        !self.maintenance_required
-    }
-    
-    fn get_interaction_range(&self) -> f32 {
-        20.0
-    }
-}
-
-impl ProvidesUtility for NestingBox {
-    fn get_utility_value(&self, bird_species: BirdSpecies, _weather: Option<Weather>) -> f32 {
-        if self.target_species.contains(&bird_species) {
-            match self.occupancy_status {
-                NestingStatus::Empty => 0.8,
-                NestingStatus::UnderConstruction => 0.9,
-                _ => 0.0,
-            }
-        } else {
-            0.0
-        }
-    }
-    
-    fn get_utility_type(&self) -> &'static str {
-        "NestingBox"
-    }
-}
+// Note: WeatherShelter and NestingBox are components, not trait implementations
+// They integrate with the SmartObject system through the existing BirdAction mechanism
 
 // Events
 #[derive(Event)]

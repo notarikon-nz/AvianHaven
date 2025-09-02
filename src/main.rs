@@ -30,6 +30,7 @@ mod menu;
 mod tutorial;
 mod social_features; // Phase 4: Community features
 mod sanctuary_management; // Phase 4: Advanced sanctuary management
+mod hanabi_effects; // Phase 4: GPU-accelerated particle effects
 
 use user_interface::UserInterfacePlugin;
 use bird::BirdPlugin;
@@ -57,6 +58,7 @@ use catalog::CatalogPlugin;
 use save_load::SaveLoadPlugin;
 use menu::MenuPlugin;
 use tutorial::TutorialPlugin;
+use hanabi_effects::HanabiEffectsPlugin;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, Default, States)]
 pub enum AppState {
@@ -103,6 +105,7 @@ fn main() {
         .add_plugins(SaveLoadPlugin)
         .add_plugins(MenuPlugin)
         .add_plugins(TutorialPlugin)
+        .add_plugins(HanabiEffectsPlugin)
         .add_systems(Startup, setup)
         .add_systems(PostUpdate, robust_despawn_system)
         .run();
