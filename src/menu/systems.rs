@@ -2,6 +2,8 @@ use bevy::prelude::*;
 use crate::menu::{components::*, resources::*};
 use crate::save_load::resources::{SaveGameEvent, LoadGameEvent, SaveManager};
 use crate::despawn::SafeDespawn;
+use crate::ui_widgets::{SliderWidget, SliderValueChanged, SliderValueText, SliderTrack, SliderHandle};
+use crate::audio::resources::AudioSettings;
 
 // Setup Systems
 
@@ -125,18 +127,12 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                 },
             ));
             
-            // Audio settings section
-            let audio_settings = [
-                ("Master Volume", SettingType::MasterVolume, settings.master_volume),
-                ("Music Volume", SettingType::MusicVolume, settings.music_volume),
-                ("SFX Volume", SettingType::SfxVolume, settings.sfx_volume),
-            ];
-            
+            // Audio settings section with sliders
             settings_menu.spawn((
                 Node {
                     width: Val::Percent(100.0),
                     flex_direction: FlexDirection::Column,
-                    row_gap: Val::Px(10.0),
+                    row_gap: Val::Px(15.0),
                     margin: UiRect::vertical(Val::Px(20.0)),
                     ..default()
                 },
@@ -149,42 +145,195 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                     },
                     TextColor(Color::srgb(0.2, 0.2, 0.3)),
                     Node {
-                        margin: UiRect::bottom(Val::Px(10.0)),
+                        margin: UiRect::bottom(Val::Px(15.0)),
                         ..default()
                     },
                 ));
                 
-                for (label, _setting_type, value) in &audio_settings {
-                    section.spawn((
+                // Master Volume Slider
+                section.spawn((
+                    Node {
+                        width: Val::Percent(100.0),
+                        flex_direction: FlexDirection::Column,
+                        row_gap: Val::Px(8.0),
+                        ..default()
+                    },
+                    SliderWidget::new(0.0, 1.0, settings.master_volume),
+                    VolumeSlider { setting_type: SettingType::MasterVolume },
+                )).with_children(|slider_container| {
+                    // Label and value row
+                    slider_container.spawn((
                         Node {
                             width: Val::Percent(100.0),
                             flex_direction: FlexDirection::Row,
                             justify_content: JustifyContent::SpaceBetween,
                             align_items: AlignItems::Center,
-                            padding: UiRect::all(Val::Px(10.0)),
                             ..default()
                         },
-                        BackgroundColor(Color::srgb(0.9, 0.9, 0.9)),
-                    )).with_children(|item| {
-                        item.spawn((
-                            Text::new(*label),
-                            TextFont {
-                                font_size: 16.0,
-                                ..default()
-                            },
+                    )).with_children(|label_row| {
+                        label_row.spawn((
+                            Text::new("Master Volume"),
+                            TextFont { font_size: 16.0, ..default() },
                             TextColor(Color::srgb(0.3, 0.2, 0.1)),
                         ));
-                        
-                        item.spawn((
-                            Text::new(format!("{:.0}%", value * 100.0)),
-                            TextFont {
-                                font_size: 16.0,
-                                ..default()
-                            },
-                            TextColor(Color::srgb(0.5, 0.3, 0.2)),
+                        label_row.spawn((
+                            Text::new(format!("{}%", ((settings.master_volume * 100.0) as u32))),
+                            TextFont { font_size: 16.0, ..default() },
+                            TextColor(Color::srgb(0.4, 0.3, 0.2)),
+                            SliderValueText,
                         ));
                     });
-                }
+                    
+                    // Slider track
+                    slider_container.spawn((
+                        Button,
+                        Node {
+                            width: Val::Percent(100.0),
+                            height: Val::Px(20.0),
+                            justify_content: JustifyContent::Start,
+                            align_items: AlignItems::Center,
+                            ..default()
+                        },
+                        BackgroundColor(Color::srgb(0.8, 0.8, 0.8)),
+                        BorderRadius::all(Val::Px(10.0)),
+                        SliderTrack,
+                    )).with_children(|track| {
+                        track.spawn((
+                            Node {
+                                width: Val::Px(16.0),
+                                height: Val::Px(16.0),
+                                position_type: PositionType::Absolute,
+                                left: Val::Percent(settings.master_volume * 100.0),
+                                ..default()
+                            },
+                            BackgroundColor(Color::srgb(0.2, 0.4, 0.8)),
+                            BorderRadius::all(Val::Px(8.0)),
+                            SliderHandle,
+                        ));
+                    });
+                });
+                
+                // Music Volume Slider
+                section.spawn((
+                    Node {
+                        width: Val::Percent(100.0),
+                        flex_direction: FlexDirection::Column,
+                        row_gap: Val::Px(8.0),
+                        ..default()
+                    },
+                    SliderWidget::new(0.0, 1.0, settings.music_volume),
+                    VolumeSlider { setting_type: SettingType::MusicVolume },
+                )).with_children(|slider_container| {
+                    slider_container.spawn((
+                        Node {
+                            width: Val::Percent(100.0),
+                            flex_direction: FlexDirection::Row,
+                            justify_content: JustifyContent::SpaceBetween,
+                            align_items: AlignItems::Center,
+                            ..default()
+                        },
+                    )).with_children(|label_row| {
+                        label_row.spawn((
+                            Text::new("Music Volume"),
+                            TextFont { font_size: 16.0, ..default() },
+                            TextColor(Color::srgb(0.3, 0.2, 0.1)),
+                        ));
+                        label_row.spawn((
+                            Text::new(format!("{}%", ((settings.music_volume * 100.0) as u32))),
+                            TextFont { font_size: 16.0, ..default() },
+                            TextColor(Color::srgb(0.4, 0.3, 0.2)),
+                            SliderValueText,
+                        ));
+                    });
+                    
+                    slider_container.spawn((
+                        Button,
+                        Node {
+                            width: Val::Percent(100.0),
+                            height: Val::Px(20.0),
+                            justify_content: JustifyContent::Start,
+                            align_items: AlignItems::Center,
+                            ..default()
+                        },
+                        BackgroundColor(Color::srgb(0.8, 0.8, 0.8)),
+                        BorderRadius::all(Val::Px(10.0)),
+                        SliderTrack,
+                    )).with_children(|track| {
+                        track.spawn((
+                            Node {
+                                width: Val::Px(16.0),
+                                height: Val::Px(16.0),
+                                position_type: PositionType::Absolute,
+                                left: Val::Percent(settings.music_volume * 100.0),
+                                ..default()
+                            },
+                            BackgroundColor(Color::srgb(0.2, 0.4, 0.8)),
+                            BorderRadius::all(Val::Px(8.0)),
+                            SliderHandle,
+                        ));
+                    });
+                });
+                
+                // SFX Volume Slider
+                section.spawn((
+                    Node {
+                        width: Val::Percent(100.0),
+                        flex_direction: FlexDirection::Column,
+                        row_gap: Val::Px(8.0),
+                        ..default()
+                    },
+                    SliderWidget::new(0.0, 1.0, settings.sfx_volume),
+                    VolumeSlider { setting_type: SettingType::SfxVolume },
+                )).with_children(|slider_container| {
+                    slider_container.spawn((
+                        Node {
+                            width: Val::Percent(100.0),
+                            flex_direction: FlexDirection::Row,
+                            justify_content: JustifyContent::SpaceBetween,
+                            align_items: AlignItems::Center,
+                            ..default()
+                        },
+                    )).with_children(|label_row| {
+                        label_row.spawn((
+                            Text::new("SFX Volume"),
+                            TextFont { font_size: 16.0, ..default() },
+                            TextColor(Color::srgb(0.3, 0.2, 0.1)),
+                        ));
+                        label_row.spawn((
+                            Text::new(format!("{}%", ((settings.sfx_volume * 100.0) as u32))),
+                            TextFont { font_size: 16.0, ..default() },
+                            TextColor(Color::srgb(0.4, 0.3, 0.2)),
+                            SliderValueText,
+                        ));
+                    });
+                    
+                    slider_container.spawn((
+                        Button,
+                        Node {
+                            width: Val::Percent(100.0),
+                            height: Val::Px(20.0),
+                            justify_content: JustifyContent::Start,
+                            align_items: AlignItems::Center,
+                            ..default()
+                        },
+                        BackgroundColor(Color::srgb(0.8, 0.8, 0.8)),
+                        BorderRadius::all(Val::Px(10.0)),
+                        SliderTrack,
+                    )).with_children(|track| {
+                        track.spawn((
+                            Node {
+                                width: Val::Px(16.0),
+                                height: Val::Px(16.0),
+                                position_type: PositionType::Absolute,
+                                left: Val::Percent(settings.sfx_volume * 100.0),
+                                ..default()
+                            },
+                            BackgroundColor(Color::srgb(0.2, 0.4, 0.8)),
+                            BorderRadius::all(Val::Px(8.0)),
+                            SliderHandle,
+                        ));
+                    });
+                });
             });
             
             // Gameplay settings section
@@ -625,5 +774,36 @@ pub fn cleanup_menu_ui(
 ) {
     for entity in menu_query.iter() {
         commands.entity(entity).safe_despawn();
+    }
+}
+
+// System to handle volume slider changes
+pub fn volume_slider_update_system(
+    mut slider_events: EventReader<SliderValueChanged>,
+    volume_slider_query: Query<&VolumeSlider>,
+    mut game_settings: ResMut<GameSettings>,
+    mut audio_settings: ResMut<AudioSettings>,
+) {
+    for event in slider_events.read() {
+        if let Ok(volume_slider) = volume_slider_query.get(event.slider_entity) {
+            match volume_slider.setting_type {
+                SettingType::MasterVolume => {
+                    game_settings.master_volume = event.new_value;
+                    audio_settings.volume = event.new_value;
+                }
+                SettingType::MusicVolume => {
+                    game_settings.music_volume = event.new_value;
+                }
+                SettingType::SfxVolume => {
+                    game_settings.sfx_volume = event.new_value;
+                }
+                _ => {}
+            }
+            
+            // Auto-save settings when changed
+            if let Err(e) = game_settings.save_to_file() {
+                eprintln!("Failed to save settings: {}", e);
+            }
+        }
     }
 }

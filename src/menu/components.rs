@@ -56,3 +56,8 @@ pub enum SettingType {
     SfxVolume,
     AutoSave,
 }
+
+#[derive(Component)]
+pub struct VolumeSlider {
+    pub setting_type: SettingType,
+}

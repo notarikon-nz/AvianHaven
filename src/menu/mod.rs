@@ -17,6 +17,7 @@ impl Plugin for MenuPlugin {
             .init_resource::<MenuState>()
             .init_resource::<GameSettings>()
             .add_event::<MenuNavigationEvent>()
+            .add_event::<crate::ui_widgets::SliderValueChanged>()
             .add_systems(OnEnter(AppState::MainMenu), setup_main_menu)
             .add_systems(OnEnter(AppState::Settings), setup_settings_menu)
             .add_systems(OnEnter(AppState::LoadGame), setup_load_game_menu)
@@ -27,7 +28,11 @@ impl Plugin for MenuPlugin {
                 main_menu_button_system,
                 menu_navigation_system,
             ).run_if(in_state(AppState::MainMenu)))
-            .add_systems(Update, settings_button_system.run_if(in_state(AppState::Settings)))
+            .add_systems(Update, (
+                settings_button_system,
+                crate::ui_widgets::slider_interaction_system,
+                volume_slider_update_system,
+            ).run_if(in_state(AppState::Settings)))
             .add_systems(Update, load_game_button_system.run_if(in_state(AppState::LoadGame)))
             .add_systems(Update, escape_key_system.run_if(
                 in_state(AppState::MainMenu)

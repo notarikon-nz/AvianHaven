@@ -28,6 +28,7 @@ mod catalog;
 mod save_load;
 mod menu;
 mod tutorial;
+mod ui_widgets;
 mod nocturnal_behaviors;
 mod advanced_weather; // Advanced weather effects and storm behaviors
 mod foraging_ecology; // Advanced foraging patterns and mixed flocks
