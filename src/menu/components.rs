@@ -61,3 +61,14 @@ pub enum SettingType {
 pub struct VolumeSlider {
     pub setting_type: SettingType,
 }
+
+#[derive(Component)]
+pub struct GraphicsToggle {
+    pub setting_type: GraphicsSettingType,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum GraphicsSettingType {
+    VSync,
+    Fullscreen,
+}

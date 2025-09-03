@@ -336,6 +336,138 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                 });
             });
             
+            // Graphics settings section
+            settings_menu.spawn((
+                Node {
+                    width: Val::Percent(100.0),
+                    flex_direction: FlexDirection::Column,
+                    row_gap: Val::Px(15.0),
+                    margin: UiRect::vertical(Val::Px(20.0)),
+                    ..default()
+                },
+            )).with_children(|section| {
+                section.spawn((
+                    Text::new("Graphics"),
+                    TextFont {
+                        font_size: 20.0,
+                        ..default()
+                    },
+                    TextColor(Color::srgb(0.2, 0.2, 0.3)),
+                    Node {
+                        margin: UiRect::bottom(Val::Px(15.0)),
+                        ..default()
+                    },
+                ));
+                
+                // Resolution dropdown
+                section.spawn((
+                    Node {
+                        width: Val::Percent(100.0),
+                        flex_direction: FlexDirection::Row,
+                        justify_content: JustifyContent::SpaceBetween,
+                        align_items: AlignItems::Center,
+                        padding: UiRect::all(Val::Px(10.0)),
+                        ..default()
+                    },
+                    BackgroundColor(Color::srgb(0.9, 0.9, 0.9)),
+                )).with_children(|item| {
+                    item.spawn((
+                        Text::new("Resolution"),
+                        TextFont { font_size: 16.0, ..default() },
+                        TextColor(Color::srgb(0.3, 0.2, 0.1)),
+                    ));
+                    item.spawn((
+                        Text::new(format!("{}x{}", settings.window_resolution.0, settings.window_resolution.1)),
+                        TextFont { font_size: 16.0, ..default() },
+                        TextColor(Color::srgb(0.5, 0.3, 0.2)),
+                    ));
+                });
+                
+                // Graphics Quality dropdown
+                section.spawn((
+                    Node {
+                        width: Val::Percent(100.0),
+                        flex_direction: FlexDirection::Row,
+                        justify_content: JustifyContent::SpaceBetween,
+                        align_items: AlignItems::Center,
+                        padding: UiRect::all(Val::Px(10.0)),
+                        ..default()
+                    },
+                    BackgroundColor(Color::srgb(0.9, 0.9, 0.9)),
+                )).with_children(|item| {
+                    item.spawn((
+                        Text::new("Graphics Quality"),
+                        TextFont { font_size: 16.0, ..default() },
+                        TextColor(Color::srgb(0.3, 0.2, 0.1)),
+                    ));
+                    item.spawn((
+                        Text::new(format!("{:?}", settings.graphics_quality)),
+                        TextFont { font_size: 16.0, ..default() },
+                        TextColor(Color::srgb(0.5, 0.3, 0.2)),
+                    ));
+                });
+                
+                // VSync toggle
+                section.spawn((
+                    Button,
+                    Node {
+                        width: Val::Percent(100.0),
+                        flex_direction: FlexDirection::Row,
+                        justify_content: JustifyContent::SpaceBetween,
+                        align_items: AlignItems::Center,
+                        padding: UiRect::all(Val::Px(10.0)),
+                        ..default()
+                    },
+                    BackgroundColor(Color::srgb(0.9, 0.9, 0.9)),
+                    GraphicsToggle { setting_type: GraphicsSettingType::VSync },
+                )).with_children(|item| {
+                    item.spawn((
+                        Text::new("VSync"),
+                        TextFont { font_size: 16.0, ..default() },
+                        TextColor(Color::srgb(0.3, 0.2, 0.1)),
+                    ));
+                    item.spawn((
+                        Text::new(if settings.vsync_enabled { "ON" } else { "OFF" }),
+                        TextFont { font_size: 16.0, ..default() },
+                        TextColor(if settings.vsync_enabled { 
+                            Color::srgb(0.2, 0.6, 0.2) 
+                        } else { 
+                            Color::srgb(0.6, 0.2, 0.2) 
+                        }),
+                    ));
+                });
+                
+                // Fullscreen toggle
+                section.spawn((
+                    Button,
+                    Node {
+                        width: Val::Percent(100.0),
+                        flex_direction: FlexDirection::Row,
+                        justify_content: JustifyContent::SpaceBetween,
+                        align_items: AlignItems::Center,
+                        padding: UiRect::all(Val::Px(10.0)),
+                        ..default()
+                    },
+                    BackgroundColor(Color::srgb(0.9, 0.9, 0.9)),
+                    GraphicsToggle { setting_type: GraphicsSettingType::Fullscreen },
+                )).with_children(|item| {
+                    item.spawn((
+                        Text::new("Fullscreen"),
+                        TextFont { font_size: 16.0, ..default() },
+                        TextColor(Color::srgb(0.3, 0.2, 0.1)),
+                    ));
+                    item.spawn((
+                        Text::new(if settings.fullscreen { "ON" } else { "OFF" }),
+                        TextFont { font_size: 16.0, ..default() },
+                        TextColor(if settings.fullscreen { 
+                            Color::srgb(0.2, 0.6, 0.2) 
+                        } else { 
+                            Color::srgb(0.6, 0.2, 0.2) 
+                        }),
+                    ));
+                });
+            });
+            
             // Gameplay settings section
             let gameplay_settings = [
                 ("Auto Save", SettingType::AutoSave, if settings.auto_save_enabled { 1.0 } else { 0.0 }),
@@ -691,6 +823,48 @@ pub fn settings_button_system(
                         error!("Failed to save settings: {}", e);
                     } else {
                         info!("Settings saved successfully");
+                    }
+                }
+            }
+        }
+    }
+}
+
+pub fn graphics_toggle_system(
+    mut interaction_query: Query<
+        (&Interaction, &GraphicsToggle, &Children),
+        (Changed<Interaction>, With<Button>),
+    >,
+    mut text_query: Query<&mut Text>,
+    mut settings: ResMut<GameSettings>,
+) {
+    for (interaction, toggle, children) in interaction_query.iter() {
+        if *interaction == Interaction::Pressed {
+            match toggle.setting_type {
+                GraphicsSettingType::VSync => {
+                    settings.vsync_enabled = !settings.vsync_enabled;
+                    info!("VSync toggled: {}", settings.vsync_enabled);
+                    
+                    // Update text display
+                    for child in children.iter() {
+                        if let Ok(mut text) = text_query.get_mut(*child) {
+                            if text.contains("ON") || text.contains("OFF") {
+                                **text = if settings.vsync_enabled { "ON" } else { "OFF" }.to_string();
+                            }
+                        }
+                    }
+                }
+                GraphicsSettingType::Fullscreen => {
+                    settings.fullscreen = !settings.fullscreen;
+                    info!("Fullscreen toggled: {}", settings.fullscreen);
+                    
+                    // Update text display
+                    for child in children.iter() {
+                        if let Ok(mut text) = text_query.get_mut(*child) {
+                            if text.contains("ON") || text.contains("OFF") {
+                                **text = if settings.fullscreen { "ON" } else { "OFF" }.to_string();
+                            }
+                        }
                     }
                 }
             }

@@ -3,6 +3,22 @@ use serde::{Serialize, Deserialize};
 use std::fs;
 use std::path::PathBuf;
 
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub enum GraphicsQuality {
+    Low,
+    Medium,
+    High,
+    Ultra,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+pub enum ShadowQuality {
+    Off,
+    Low,
+    Medium,
+    High,
+}
+
 #[derive(Resource, Default)]
 pub struct MenuState {
     pub current_menu: MenuType,
@@ -32,6 +48,10 @@ pub struct GameSettings {
     // Graphics settings
     pub vsync_enabled: bool,
     pub fullscreen: bool,
+    pub window_resolution: (u32, u32),
+    pub graphics_quality: GraphicsQuality,
+    pub particle_density: f32,
+    pub shadow_quality: ShadowQuality,
     
     // Controls
     pub camera_sensitivity: f32,
@@ -48,6 +68,10 @@ impl Default for GameSettings {
             auto_save_interval: 5.0,
             vsync_enabled: true,
             fullscreen: false,
+            window_resolution: (1920, 1080),
+            graphics_quality: GraphicsQuality::High,
+            particle_density: 1.0,
+            shadow_quality: ShadowQuality::Medium,
             camera_sensitivity: 1.0,
             zoom_sensitivity: 1.0,
         }
