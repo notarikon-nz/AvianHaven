@@ -4,6 +4,7 @@ use crate::bird_ai::components::{SmartObject, ProvidesUtility, BirdAction, BirdS
 use crate::environment::components::Season;
 use crate::bird::BirdSpecies;
 use crate::sanctuary_management::{NestingBox, NestingStatus, PredatorDeterrent, DeterrentType};
+use crate::tooltip::Hoverable;
 
 pub struct SmartObjectsPlugin;
 
@@ -255,6 +256,7 @@ fn spawn_perching_spots(commands: &mut Commands) {
             base_utility: branch_perch.base_utility(),
             range: 80.0,
         },
+        Hoverable::new("Natural tree branch - favored by cardinals, jays, and songbirds"),
     ));
     
     // Utility wire - some species love this
@@ -280,6 +282,7 @@ fn spawn_perching_spots(commands: &mut Commands) {
             base_utility: wire_perch.base_utility(),
             range: 60.0,
         },
+        Hoverable::new("Utility wire - preferred by starlings, grackles, and blackbirds"),
     ));
     
     // Natural rock perch
@@ -305,6 +308,7 @@ fn spawn_perching_spots(commands: &mut Commands) {
             base_utility: rock_perch.base_utility(),
             range: 70.0,
         },
+        Hoverable::new("Natural rock outcrop - good vantage point for ground feeders and raptors"),
     ));
 }
 
@@ -402,6 +406,7 @@ fn spawn_water_features(commands: &mut Commands) {
                 base_utility: bird_bath.base_utility(),
                 range: 80.0,
             },
+            Hoverable::new("Bird bath - essential for drinking and bathing. Attracts all species"),
         ));
     }
     
@@ -427,6 +432,7 @@ fn spawn_water_features(commands: &mut Commands) {
                 base_utility: fountain.base_utility(),
                 range: 100.0,
             },
+            Hoverable::new("Decorative fountain - moving water attracts birds from greater distances"),
         ));
     }
     
