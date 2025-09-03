@@ -1,5 +1,9 @@
 use bevy::prelude::*;
 use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+
+// Steam client wrapper that's thread-safe
+pub type SteamClientWrapper = Arc<Mutex<Option<steamworks::SingleClient>>>;
 
 #[derive(Resource)]
 pub struct SteamState {
@@ -7,6 +11,7 @@ pub struct SteamState {
     pub is_connected: bool,
     pub app_id: u32,
     pub user_id: Option<u64>,
+    pub client: SteamClientWrapper,
 }
 
 impl Default for SteamState {
@@ -16,6 +21,7 @@ impl Default for SteamState {
             is_connected: false,
             app_id: 12345678, // Placeholder - will be assigned by Steam
             user_id: None,
+            client: Arc::new(Mutex::new(None)),
         }
     }
 }

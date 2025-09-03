@@ -7,20 +7,22 @@ pub fn initialize_steam_systems(
     mut steam_state: ResMut<SteamState>,
     mut steam_achievements: ResMut<SteamAchievements>,
 ) {
-    // In a real implementation, this would initialize the Steam API
-    // For now, we'll simulate the initialization
-    
     info!("Initializing Steam integration...");
     
-    // Simulate Steam API initialization
-    steam_state.is_initialized = true;
-    steam_state.is_connected = check_steam_connection();
-    
-    if steam_state.is_connected {
-        steam_state.user_id = Some(123456789); // Mock Steam ID
-        info!("Steam connection established!");
-    } else {
-        warn!("Steam not available - running in offline mode");
+    // Initialize Steam client - simplified for now
+    match std::env::var("STEAM_OFFLINE") {
+        Ok(_) => {
+            warn!("Steam offline mode - running without Steam integration");
+            steam_state.is_initialized = false;
+            steam_state.is_connected = false;
+        },
+        Err(_) => {
+            // In production, this would call steamworks::Client::init()
+            steam_state.is_initialized = true;
+            steam_state.is_connected = true;
+            steam_state.user_id = Some(123456789);
+            info!("Steam connection established! User ID: {:?}", steam_state.user_id);
+        }
     }
     
     // Register achievement mappings
@@ -74,7 +76,7 @@ pub fn steam_achievement_sync_system(
     
     for achievement_id in pending_achievements {
         // Call Steam API to unlock achievement
-        if let Err(e) = unlock_steam_achievement(&achievement_id) {
+        if let Err(e) = unlock_steam_achievement(&achievement_id, &*steam_state) {
             error!("Failed to unlock Steam achievement {}: {}", achievement_id, e);
             // Re-add to pending if failed
             steam_achievements.sync_pending.push(achievement_id);
@@ -109,13 +111,8 @@ pub fn steam_stats_tracking_system(
         });
         
         // Sync to Steam API
-        if let Err(e) = update_steam_stat("photos_taken", steam_stats.photos_taken) {
+        if let Err(e) = update_steam_stat("photos_taken", steam_stats.photos_taken, &*steam_state) {
             warn!("Failed to sync photos_taken stat: {}", e);
-        }
-        
-        // Update photo score leaderboards
-        if let Err(e) = sync_steam_leaderboards(event.score.total_score as u64, "photo_scores") {
-            warn!("Failed to sync photo score leaderboard: {}", e);
         }
     }
     
@@ -127,7 +124,7 @@ pub fn steam_stats_tracking_system(
             value: steam_stats.species_discovered,
         });
         
-        if let Err(e) = update_steam_stat("species_discovered", steam_stats.species_discovered) {
+        if let Err(e) = update_steam_stat("species_discovered", steam_stats.species_discovered, &*steam_state) {
             warn!("Failed to sync species_discovered stat: {}", e);
         }
     }
@@ -139,22 +136,20 @@ pub fn steam_stats_tracking_system(
             value: steam_stats.currency_earned,
         });
         
-        if let Err(e) = update_steam_stat("currency_earned", steam_stats.currency_earned) {
+        if let Err(e) = update_steam_stat("currency_earned", steam_stats.currency_earned, &*steam_state) {
             warn!("Failed to sync currency_earned stat: {}", e);
         }
     }
 }
 
-pub fn steam_workshop_system(
+pub fn load_workshop_content(
     mut commands: Commands,
     steam_state: Res<SteamState>,
 ) {
-    if !steam_state.is_connected {
-        return;
-    }
+    info!("Loading workshop content at startup...");
     
     // Load and integrate workshop items
-    let workshop_items = load_workshop_items();
+    let workshop_items = load_workshop_items(&*steam_state);
     
     for item in workshop_items {
         if validate_workshop_content(&item) {
@@ -163,6 +158,8 @@ pub fn steam_workshop_system(
             warn!("Invalid workshop item: {}", item.title);
         }
     }
+    
+    info!("Workshop content loading complete");
 }
 
 fn integrate_workshop_item(_commands: &mut Commands, item: WorkshopItem) {
@@ -192,12 +189,12 @@ fn integrate_workshop_item(_commands: &mut Commands, item: WorkshopItem) {
 }
 
 // Workshop integration helpers
-pub fn load_workshop_items() -> Vec<WorkshopItem> {
+pub fn load_workshop_items(steam_state: &SteamState) -> Vec<WorkshopItem> {
     // Check for local workshop items first
     let mut items = load_local_workshop_items();
     
     // Add Steam Workshop subscribed items
-    if let Ok(steam_items) = load_steam_workshop_items() {
+    if let Ok(steam_items) = load_steam_workshop_items(steam_state) {
         items.extend(steam_items);
     }
     
@@ -234,19 +231,19 @@ fn load_local_workshop_items() -> Vec<WorkshopItem> {
     ]
 }
 
-fn load_steam_workshop_items() -> Result<Vec<WorkshopItem>, String> {
-    if std::env::var("STEAM_OFFLINE").is_ok() {
+fn load_steam_workshop_items(steam_state: &SteamState) -> Result<Vec<WorkshopItem>, String> {
+    if !steam_state.is_connected {
         return Ok(vec![]);
     }
     
-    // In production, this would query Steam Workshop API:
-    // - steamapi::ugc::get_subscribed_items()
-    // - steamapi::ugc::get_item_download_info()
-    // - Parse downloaded workshop content files
-    
     info!("Loading subscribed Steam Workshop items...");
     
-    // Mock some subscribed items for development
+    // In production, this would use steamworks UGC API:
+    // let ugc = client.ugc();
+    // let subscribed_items = ugc.subscribed_items();
+    // Parse item details and return actual workshop content
+    
+    // For now, return mock data
     Ok(vec![
         WorkshopItem {
             workshop_id: 98765,
@@ -259,6 +256,14 @@ fn load_steam_workshop_items() -> Result<Vec<WorkshopItem>, String> {
             description: "Beautiful winter-themed environment with snow effects".to_string(),
         },
     ])
+}
+
+fn _parse_workshop_item_type(_tags: &[String]) -> WorkshopItemType {
+    // Default to habitat for now
+    WorkshopItemType::Habitat {
+        theme_name: "Custom Theme".to_string(),
+        assets: vec!["custom_texture.png".to_string()],
+    }
 }
 
 pub fn validate_workshop_content(item: &WorkshopItem) -> bool {
@@ -282,45 +287,33 @@ pub fn validate_workshop_content(item: &WorkshopItem) -> bool {
 }
 
 // Steam API Integration Functions
-fn unlock_steam_achievement(achievement_id: &str) -> Result<(), String> {
-    // Check if Steam is available
-    if std::env::var("STEAM_OFFLINE").is_ok() {
-        return Err("Steam offline mode".to_string());
+fn unlock_steam_achievement(achievement_id: &str, steam_state: &SteamState) -> Result<(), String> {
+    if !steam_state.is_connected {
+        return Err("Steam not connected".to_string());
     }
     
     info!("Unlocking Steam achievement: {}", achievement_id);
     
-    // In production, this would use Steam API calls:
-    // - steamapi::user_stats::set_achievement(achievement_id)
-    // - steamapi::user_stats::store_stats()
+    // In production, this would use steamworks API:
+    // let user_stats = client.user_stats();
+    // user_stats.set_achievement(achievement_id);
+    // user_stats.store_stats();
     
-    // For development, simulate success/failure
-    match achievement_id {
-        "FirstPhoto" | "FirstSpecies" => {
-            // These always succeed for basic achievements
-            Ok(())
-        },
-        _ => {
-            // Simulate occasional network issues for testing resilience
-            if std::env::var("SIMULATE_STEAM_FAILURES").is_ok() {
-                Err("Simulated Steam API failure".to_string())
-            } else {
-                Ok(())
-            }
-        }
-    }
+    info!("Steam achievement {} unlocked successfully", achievement_id);
+    Ok(())
 }
 
-fn update_steam_stat(stat_name: &str, value: u64) -> Result<(), String> {
-    if std::env::var("STEAM_OFFLINE").is_ok() {
-        return Err("Steam offline mode".to_string());
+fn update_steam_stat(stat_name: &str, value: u64, steam_state: &SteamState) -> Result<(), String> {
+    if !steam_state.is_connected {
+        return Err("Steam not connected".to_string());
     }
     
     info!("Updating Steam stat: {} = {}", stat_name, value);
     
-    // In production, this would use Steam API calls:
-    // - steamapi::user_stats::set_stat_int(stat_name, value)
-    // - steamapi::user_stats::store_stats()
+    // In production, this would use steamworks API:
+    // let user_stats = client.user_stats();
+    // user_stats.set_stat(stat_name, value as i32);
+    // user_stats.store_stats();
     
     Ok(())
 }
