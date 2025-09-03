@@ -565,3 +565,9 @@ pub fn journal_interaction_system(
         }
     }
 }
+
+// Research missions setup system
+pub fn setup_research_missions(mut research_manager: ResMut<ResearchMissionManager>) {
+    research_manager.active_missions = ResearchMissionManager::generate_starter_missions();
+    info!("Initialized {} research missions", research_manager.active_missions.len());
+}

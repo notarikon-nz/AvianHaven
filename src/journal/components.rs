@@ -50,5 +50,17 @@ pub enum JournalTab {
     Photos,
     Conservation,
     Migration,
+    Research,
     Achievements,
 }
+
+#[derive(Component)]
+pub struct ResearchMissionCard {
+    pub mission_id: u32,
+}
+
+#[derive(Component)]
+pub struct MissionProgressBar;
+
+#[derive(Component)]
+pub struct ResearchDataVisualization;
