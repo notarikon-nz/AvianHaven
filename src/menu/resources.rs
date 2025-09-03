@@ -30,6 +30,7 @@ pub enum MenuType {
     #[default]
     MainMenu,
     Settings,
+    SettingsControls,
     LoadGame,
     InGame,
 }

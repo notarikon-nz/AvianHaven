@@ -47,6 +47,8 @@ pub enum SettingsAction {
     BackToMain,
     ResetToDefaults,
     ApplySettings,
+    OpenControls,
+    BackToSettings,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq)]
@@ -71,4 +73,19 @@ pub struct GraphicsToggle {
 pub enum GraphicsSettingType {
     VSync,
     Fullscreen,
+}
+
+#[derive(Component)]
+pub struct KeybindingButton {
+    pub action: crate::keybindings::GameAction,
+}
+
+#[derive(Component)]
+pub struct KeybindingText {
+    pub action: crate::keybindings::GameAction,
+}
+
+#[derive(Component)]
+pub struct KeybindingWaiting {
+    pub action: crate::keybindings::GameAction,
 }

@@ -33,6 +33,7 @@ impl Plugin for MenuPlugin {
                 crate::ui_widgets::slider_interaction_system,
                 volume_slider_update_system,
                 graphics_toggle_system,
+                handle_controls_menu,
             ).run_if(in_state(AppState::Settings)))
             .add_systems(Update, load_game_button_system.run_if(in_state(AppState::LoadGame)))
             .add_systems(Update, escape_key_system.run_if(

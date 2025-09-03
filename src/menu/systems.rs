@@ -540,6 +540,7 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
             )).with_children(|buttons| {
                 let button_configs = [
                     ("Back", SettingsAction::BackToMain),
+                    ("Controls", SettingsAction::OpenControls),
                     ("Reset Defaults", SettingsAction::ResetToDefaults),
                     ("Apply", SettingsAction::ApplySettings),
                 ];
@@ -571,6 +572,259 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
         });
     });
 }
+
+pub fn setup_controls_menu(
+    mut commands: Commands, 
+    keybindings: Res<crate::keybindings::KeyBindings>
+) {
+    commands.spawn((
+        Node {
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            position_type: PositionType::Absolute,
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            ..default()
+        },
+        BackgroundColor(Color::srgb(0.1, 0.1, 0.15)),
+        MenuUI,
+    )).with_children(|parent| {
+        // Controls container
+        parent.spawn((
+            Node {
+                width: Val::Px(800.0),
+                height: Val::Px(700.0),
+                flex_direction: FlexDirection::Column,
+                justify_content: JustifyContent::Start,
+                align_items: AlignItems::Center,
+                row_gap: Val::Px(15.0),
+                padding: UiRect::all(Val::Px(40.0)),
+                ..default()
+            },
+            BackgroundColor(Color::srgb(0.95, 0.92, 0.88)),
+            BorderColor(Color::srgb(0.6, 0.4, 0.2)),
+        )).with_children(|controls_menu| {
+            // Title
+            controls_menu.spawn((
+                Text::new("⌨️ Controls"),
+                TextFont { font_size: 28.0, ..default() },
+                TextColor(Color::srgb(0.3, 0.2, 0.1)),
+                Node { margin: UiRect::bottom(Val::Px(30.0)), ..default() },
+            ));
+            
+            // Scrollable keybinding list
+            controls_menu.spawn((
+                Node {
+                    width: Val::Percent(100.0),
+                    height: Val::Px(500.0),
+                    flex_direction: FlexDirection::Column,
+                    row_gap: Val::Px(10.0),
+                    ..default()
+                },
+            )).with_children(|scroll_area| {
+                // Camera Controls Section
+                scroll_area.spawn((
+                    Text::new("Camera Controls"),
+                    TextFont { font_size: 18.0, ..default() },
+                    TextColor(Color::srgb(0.2, 0.2, 0.3)),
+                    Node { margin: UiRect::vertical(Val::Px(10.0)), ..default() },
+                ));
+                
+                let camera_actions = [
+                    ("Move Up", crate::keybindings::GameAction::CameraMoveUp),
+                    ("Move Down", crate::keybindings::GameAction::CameraMoveDown),
+                    ("Move Left", crate::keybindings::GameAction::CameraMoveLeft),
+                    ("Move Right", crate::keybindings::GameAction::CameraMoveRight),
+                    ("Pan Camera", crate::keybindings::GameAction::CameraPan),
+                ];
+                
+                for (label, action) in camera_actions {
+                    scroll_area.spawn((
+                        Node {
+                            width: Val::Percent(100.0),
+                            flex_direction: FlexDirection::Row,
+                            justify_content: JustifyContent::SpaceBetween,
+                            align_items: AlignItems::Center,
+                            padding: UiRect::all(Val::Px(10.0)),
+                            ..default()
+                        },
+                        BackgroundColor(Color::srgb(0.9, 0.9, 0.9)),
+                    )).with_children(|row| {
+                        row.spawn((
+                            Text::new(label),
+                            TextFont { font_size: 16.0, ..default() },
+                            TextColor(Color::srgb(0.3, 0.2, 0.1)),
+                        ));
+                        row.spawn((
+                            Button,
+                            Node {
+                                width: Val::Px(120.0),
+                                height: Val::Px(30.0),
+                                justify_content: JustifyContent::Center,
+                                align_items: AlignItems::Center,
+                                ..default()
+                            },
+                            BackgroundColor(Color::srgb(0.7, 0.7, 0.7)),
+                            BorderRadius::all(Val::Px(4.0)),
+                            KeybindingButton { action },
+                        )).with_children(|button| {
+                            button.spawn((
+                                Text::new(keybindings.get_display_string(action)),
+                                TextFont { font_size: 14.0, ..default() },
+                                TextColor(Color::srgb(0.2, 0.2, 0.2)),
+                                KeybindingText { action },
+                            ));
+                        });
+                    });
+                }
+                
+                // Photo Mode Section
+                scroll_area.spawn((
+                    Text::new("Photo Mode"),
+                    TextFont { font_size: 18.0, ..default() },
+                    TextColor(Color::srgb(0.2, 0.2, 0.3)),
+                    Node { margin: UiRect::vertical(Val::Px(10.0)), ..default() },
+                ));
+                
+                let photo_actions = [
+                    ("Toggle Photo Mode", crate::keybindings::GameAction::TogglePhotoMode),
+                    ("Take Photo", crate::keybindings::GameAction::TakePhoto),
+                ];
+                
+                for (label, action) in photo_actions {
+                    scroll_area.spawn((
+                        Node {
+                            width: Val::Percent(100.0),
+                            flex_direction: FlexDirection::Row,
+                            justify_content: JustifyContent::SpaceBetween,
+                            align_items: AlignItems::Center,
+                            padding: UiRect::all(Val::Px(10.0)),
+                            ..default()
+                        },
+                        BackgroundColor(Color::srgb(0.9, 0.9, 0.9)),
+                    )).with_children(|row| {
+                        row.spawn((
+                            Text::new(label),
+                            TextFont { font_size: 16.0, ..default() },
+                            TextColor(Color::srgb(0.3, 0.2, 0.1)),
+                        ));
+                        row.spawn((
+                            Button,
+                            Node {
+                                width: Val::Px(120.0),
+                                height: Val::Px(30.0),
+                                justify_content: JustifyContent::Center,
+                                align_items: AlignItems::Center,
+                                ..default()
+                            },
+                            BackgroundColor(Color::srgb(0.7, 0.7, 0.7)),
+                            BorderRadius::all(Val::Px(4.0)),
+                            KeybindingButton { action },
+                        )).with_children(|button| {
+                            button.spawn((
+                                Text::new(keybindings.get_display_string(action)),
+                                TextFont { font_size: 14.0, ..default() },
+                                TextColor(Color::srgb(0.2, 0.2, 0.2)),
+                                KeybindingText { action },
+                            ));
+                        });
+                    });
+                }
+                
+                // UI Navigation Section
+                scroll_area.spawn((
+                    Text::new("UI Navigation"),
+                    TextFont { font_size: 18.0, ..default() },
+                    TextColor(Color::srgb(0.2, 0.2, 0.3)),
+                    Node { margin: UiRect::vertical(Val::Px(10.0)), ..default() },
+                ));
+                
+                let ui_actions = [
+                    ("Open Journal", crate::keybindings::GameAction::OpenJournal),
+                    ("Close Menu", crate::keybindings::GameAction::CloseMenu),
+                ];
+                
+                for (label, action) in ui_actions {
+                    scroll_area.spawn((
+                        Node {
+                            width: Val::Percent(100.0),
+                            flex_direction: FlexDirection::Row,
+                            justify_content: JustifyContent::SpaceBetween,
+                            align_items: AlignItems::Center,
+                            padding: UiRect::all(Val::Px(10.0)),
+                            ..default()
+                        },
+                        BackgroundColor(Color::srgb(0.9, 0.9, 0.9)),
+                    )).with_children(|row| {
+                        row.spawn((
+                            Text::new(label),
+                            TextFont { font_size: 16.0, ..default() },
+                            TextColor(Color::srgb(0.3, 0.2, 0.1)),
+                        ));
+                        row.spawn((
+                            Button,
+                            Node {
+                                width: Val::Px(120.0),
+                                height: Val::Px(30.0),
+                                justify_content: JustifyContent::Center,
+                                align_items: AlignItems::Center,
+                                ..default()
+                            },
+                            BackgroundColor(Color::srgb(0.7, 0.7, 0.7)),
+                            BorderRadius::all(Val::Px(4.0)),
+                            KeybindingButton { action },
+                        )).with_children(|button| {
+                            button.spawn((
+                                Text::new(keybindings.get_display_string(action)),
+                                TextFont { font_size: 14.0, ..default() },
+                                TextColor(Color::srgb(0.2, 0.2, 0.2)),
+                                KeybindingText { action },
+                            ));
+                        });
+                    });
+                }
+            });
+            
+            // Bottom buttons
+            controls_menu.spawn((
+                Node {
+                    width: Val::Percent(100.0),
+                    flex_direction: FlexDirection::Row,
+                    justify_content: JustifyContent::SpaceBetween,
+                    margin: UiRect::top(Val::Px(30.0)),
+                    ..default()
+                },
+            )).with_children(|buttons| {
+                let button_configs = [
+                    ("Back to Settings", SettingsAction::BackToSettings),
+                    ("Apply", SettingsAction::ApplySettings),
+                ];
+                
+                for (text, action) in button_configs {
+                    buttons.spawn((
+                        Button,
+                        Node {
+                            width: Val::Px(150.0),
+                            height: Val::Px(40.0),
+                            justify_content: JustifyContent::Center,
+                            align_items: AlignItems::Center,
+                            ..default()
+                        },
+                        BackgroundColor(Color::srgb(0.6, 0.5, 0.4)),
+                        SettingsButton { action },
+                    )).with_children(|button| {
+                        button.spawn((
+                            Text::new(text),
+                            TextFont { font_size: 16.0, ..default() },
+                            TextColor(Color::WHITE),
+                        ));
+                    });
+                }
+            });
+        });
+    });
+}
+
 
 pub fn setup_load_game_menu(
     mut commands: Commands,
@@ -825,6 +1079,18 @@ pub fn settings_button_system(
                         info!("Settings saved successfully");
                     }
                 }
+                SettingsAction::OpenControls => {
+                    menu_nav_events.write(MenuNavigationEvent {
+                        target_menu: MenuType::SettingsControls,
+                        target_app_state: None,
+                    });
+                }
+                SettingsAction::BackToSettings => {
+                    menu_nav_events.write(MenuNavigationEvent {
+                        target_menu: MenuType::Settings,
+                        target_app_state: Some(crate::AppState::Settings),
+                    });
+                }
             }
         }
     }
@@ -908,6 +1174,31 @@ pub fn menu_navigation_system(
         if let Some(target_state) = &nav_event.target_app_state {
             app_state.set(*target_state);
         }
+        
+        // Handle special menu setups
+        match nav_event.target_menu {
+            MenuType::SettingsControls => {
+                // Controls menu will be handled in setup_controls_menu
+            }
+            _ => {}
+        }
+    }
+}
+
+pub fn handle_controls_menu(
+    mut commands: Commands,
+    menu_state: Res<MenuState>,
+    keybindings: Res<crate::keybindings::KeyBindings>,
+    menu_query: Query<Entity, With<MenuUI>>,
+) {
+    if menu_state.is_changed() && menu_state.current_menu == MenuType::SettingsControls {
+        // Clear existing UI
+        for entity in &menu_query {
+            commands.entity(entity).despawn_recursive();
+        }
+        
+        // Setup controls menu
+        setup_controls_menu(commands, keybindings);
     }
 }
 

@@ -30,6 +30,7 @@ mod menu;
 mod tutorial;
 mod ui_widgets;
 mod tooltip;
+mod keybindings;
 mod nocturnal_behaviors;
 mod advanced_weather; // Advanced weather effects and storm behaviors
 mod foraging_ecology; // Advanced foraging patterns and mixed flocks
@@ -116,6 +117,7 @@ fn main() {
         .add_plugins(CatalogPlugin)
         .add_plugins(SaveLoadPlugin)
         .add_plugins(MenuPlugin)
+        .add_plugins(keybindings::KeyBindingsPlugin)
         .add_plugins(TutorialPlugin)
         .add_plugins(tooltip::TooltipPlugin)
         .add_plugins(NocturnalBehaviorPlugin)
