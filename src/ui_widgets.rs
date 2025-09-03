@@ -88,7 +88,7 @@ pub fn slider_interaction_system(
                 }
                 
                 // Send event for first slider (simplified)
-                slider_events.send(SliderValueChanged {
+                slider_events.write(SliderValueChanged {
                     slider_entity: track_entity, // Using track entity as identifier
                     new_value: slider.current_value,
                     percentage: slider.get_percentage(),

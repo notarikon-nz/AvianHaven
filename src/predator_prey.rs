@@ -144,7 +144,7 @@ pub fn predator_hunting_system(
         if let Some((prey_entity, _)) = closest_prey {
             let success = rand::random::<f32>() < predator.success_rate;
             
-            attack_events.send(PredatorAttackEvent {
+            attack_events.write(PredatorAttackEvent {
                 predator: predator_entity,
                 target: prey_entity,
                 attack_position: predator_pos,
@@ -176,7 +176,7 @@ pub fn prey_response_system(
                     *bird_state = BirdState::Fleeing;
                     
                     // Send alert call
-                    alert_events.send(AlertCallEvent {
+                    alert_events.write(AlertCallEvent {
                         caller: attack_event.target,
                         predator_location: attack_event.attack_position,
                         urgency: 0.9,
@@ -191,7 +191,7 @@ pub fn prey_response_system(
                     *bird_state = BirdState::Territorial; // Aggressive response
                     
                     // Send urgent mobbing call
-                    alert_events.send(AlertCallEvent {
+                    alert_events.write(AlertCallEvent {
                         caller: attack_event.target,
                         predator_location: attack_event.attack_position,
                         urgency: 1.0,
@@ -258,7 +258,7 @@ pub fn predator_detection_system(
                     
                     // Sometimes emit warning call
                     if rand::random::<f32>() < 0.2 { // 20% chance to call
-                        alert_events.send(AlertCallEvent {
+                        alert_events.write(AlertCallEvent {
                             caller: prey_entity,
                             predator_location: predator_transform.translation,
                             urgency: 0.7,

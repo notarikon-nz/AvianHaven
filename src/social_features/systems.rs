@@ -281,7 +281,7 @@ pub fn challenge_tracking_system(
         
         // Second pass: update player stats and send events
         for (_, challenge_id, photo_score) in &completed_challenges {
-            challenge_events.send(ChallengeCompletedEvent {
+            challenge_events.write(ChallengeCompletedEvent {
                 challenge_id: *challenge_id,
                 photo_score: *photo_score,
             });
@@ -312,7 +312,7 @@ pub fn challenge_tracking_system(
         
         // Send badge if earned
         if let Some(badge) = badge_to_send.take() {
-            badge_events.send(BadgeEarnedEvent { badge });
+            badge_events.write(BadgeEarnedEvent { badge });
         }
         
         // Update general stats
@@ -329,7 +329,7 @@ pub fn challenge_tracking_system(
                 let species_count = community_system.player_stats.species_photographed.len();
                 match species_count {
                     5 => {
-                        badge_events.send(BadgeEarnedEvent {
+                        badge_events.write(BadgeEarnedEvent {
                             badge: Badge {
                                 id: "species_5".to_string(),
                                 name: "Beginner Birder".to_string(),
@@ -341,7 +341,7 @@ pub fn challenge_tracking_system(
                         });
                     }
                     10 => {
-                        badge_events.send(BadgeEarnedEvent {
+                        badge_events.write(BadgeEarnedEvent {
                             badge: Badge {
                                 id: "species_10".to_string(),
                                 name: "Avian Explorer".to_string(),
@@ -386,7 +386,7 @@ pub fn photo_submission_system(
             };
             
             community_system.shared_photos.push(shared_photo.clone());
-            share_events.send(PhotoSharedEvent {
+            share_events.write(PhotoSharedEvent {
                 photo: shared_photo,
             });
         }

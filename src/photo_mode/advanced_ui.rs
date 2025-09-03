@@ -367,7 +367,7 @@ pub fn lens_button_system(
             Interaction::Pressed => {
                 if camera_settings.available_lenses.contains(&lens_button.lens_type) {
                     camera_settings.current_lens = lens_button.lens_type;
-                    lens_events.send(LensSwitchEvent {
+                    lens_events.write(LensSwitchEvent {
                         new_lens: lens_button.lens_type,
                     });
                     *bg_color = Color::srgb(0.1, 0.6, 0.9).into();
@@ -406,7 +406,7 @@ pub fn filter_button_system(
             Interaction::Pressed => {
                 if camera_settings.available_filters.contains(&filter_button.filter_type) {
                     camera_settings.current_filter = filter_button.filter_type;
-                    filter_events.send(FilterChangeEvent {
+                    filter_events.write(FilterChangeEvent {
                         new_filter: filter_button.filter_type,
                     });
                     *bg_color = Color::srgb(0.6, 0.1, 0.9).into();
