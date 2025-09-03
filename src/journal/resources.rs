@@ -375,7 +375,7 @@ impl ResearchMissionManager {
                 mission_type: MissionType::MigrationTracking {
                     species_group: vec![
                         BirdSpecies::Robin, BirdSpecies::RedWingedBlackbird,
-                        BirdSpecies::BaltimoreOriole, BirdSpecies::RosebrestedGrosbeak,
+                        BirdSpecies::BaltimoreOriole, BirdSpecies::RubyThroatedHummingbird,
                     ],
                     tracking_duration: 30.0,
                     data_points_needed: 100,

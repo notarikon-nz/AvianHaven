@@ -22,10 +22,10 @@ impl Plugin for TutorialPlugin {
             .add_systems(Update, (
                 tutorial_step_system,
                 tutorial_input_handler,
-                tutorial_ui_update_system,
+                // tutorial_ui_update_system, // Disabled - using Lunex UI
                 tutorial_highlight_system,
                 tutorial_completion_system,
-                tutorial_button_system,
+                // tutorial_button_system, // Disabled - using Lunex UI
             ).run_if(in_state(AppState::Playing)));
     }
 }

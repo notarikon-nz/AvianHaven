@@ -106,13 +106,13 @@ pub fn tooltip_display_system(
 ) {
     // Remove existing tooltips first
     for tooltip_entity in &existing_tooltip_query {
-        commands.entity(tooltip_entity).despawn_recursive();
+        commands.entity(tooltip_entity).despawn();
     }
     
     // Show new tooltip if timer finished and we have a hovered entity
     if let Some(hovered_entity) = tooltip_state.current_tooltip {
         if tooltip_state.hover_timer.finished() {
-            if let Ok(window) = windows.get_single() {
+            if let Ok(window) = windows.single() {
                 if let Some(cursor_pos) = window.cursor_position() {
                     // Spawn tooltip near cursor position
                     commands.spawn((
@@ -152,7 +152,7 @@ pub fn tooltip_cleanup_system(
     // Remove tooltips if nothing is being hovered
     if tooltip_state.current_tooltip.is_none() {
         for tooltip_entity in &tooltip_query {
-            commands.entity(tooltip_entity).despawn_recursive();
+            commands.entity(tooltip_entity).despawn();
         }
     }
 }

@@ -22,15 +22,15 @@ impl Plugin for CatalogPlugin {
             .add_systems(OnExit(AppState::Playing), cleanup_catalog_ui)
 
             .add_systems(Update, (
-                handle_catalog_input,
-                handle_category_buttons,
-                handle_purchase_buttons,
-                handle_place_buttons,
-                handle_purchase_events,
-                handle_place_object_events,
-                handle_object_placement,
-                start_placement_mode,
-                update_catalog_visibility,
+                // handle_catalog_input, // Disabled - using Lunex UI
+                // handle_category_buttons, // Disabled - using Lunex UI
+                // handle_purchase_buttons, // Disabled - using Lunex UI
+                // handle_place_buttons, // Disabled - using Lunex UI
+                handle_purchase_events, // Keep for functionality
+                handle_place_object_events, // Keep for functionality
+                handle_object_placement, // Keep for functionality
+                start_placement_mode, // Keep for functionality
+                // update_catalog_visibility, // Disabled - using Lunex UI
             ).run_if(in_state(AppState::Playing)))
            ;
     }

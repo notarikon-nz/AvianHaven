@@ -221,7 +221,7 @@ fn handle_camera_input(
     mut camera_query: Query<&mut Transform, With<Camera>>,
     time: Res<Time>,
 ) {
-    if let Ok(mut transform) = camera_query.get_single_mut() {
+    if let Ok(mut transform) = camera_query.single_mut() {
         let speed = 300.0 * time.delta_secs();
         
         if keybindings.is_action_pressed(GameAction::CameraMoveUp, &keyboard, &mouse) {
@@ -254,7 +254,10 @@ fn handle_ui_input(
     
     if keybindings.is_action_just_pressed(GameAction::CloseMenu, &keyboard, &mouse) {
         match current_state.get() {
-            crate::AppState::Settings | crate::AppState::Journal | crate::AppState::LoadGame => {
+            crate::AppState::Settings | crate::AppState::LoadGame => {
+                app_state.set(crate::AppState::MainMenu);
+            }
+            crate::AppState::Journal => {
                 app_state.set(crate::AppState::Playing);
             }
             crate::AppState::Playing => {

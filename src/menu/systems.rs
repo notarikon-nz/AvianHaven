@@ -106,16 +106,15 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                 flex_direction: FlexDirection::Column,
                 justify_content: JustifyContent::Start,
                 align_items: AlignItems::Center,
-                row_gap: Val::Px(20.0),
                 padding: UiRect::all(Val::Px(40.0)),
                 ..default()
             },
             BackgroundColor(Color::srgb(0.95, 0.92, 0.88)),
             BorderColor(Color::srgb(0.6, 0.4, 0.2)),
-        )).with_children(|settings_menu| {
-            // Title
-            settings_menu.spawn((
-                Text::new("⚙️ Settings"),
+        )).with_children(|settings_container| {
+            // Title (fixed at top)
+            settings_container.spawn((
+                Text::new("Settings"),
                 TextFont {
                     font_size: 28.0,
                     ..default()
@@ -127,8 +126,21 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                 },
             ));
             
+            // Scrollable content area
+            settings_container.spawn((
+                Node {
+                    width: Val::Percent(100.0),
+                    height: Val::Percent(80.0), // Leave room for title and buttons
+                    flex_direction: FlexDirection::Column,
+                    row_gap: Val::Px(20.0),
+                    overflow: Overflow::clip_y(),
+                    ..default()
+                },
+                BackgroundColor(Color::srgb(0.93, 0.90, 0.86)),
+            )).with_children(|scrollable_content| {
+            
             // Audio settings section with sliders
-            settings_menu.spawn((
+            scrollable_content.spawn((
                 Node {
                     width: Val::Percent(100.0),
                     flex_direction: FlexDirection::Column,
@@ -337,7 +349,7 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
             });
             
             // Graphics settings section
-            settings_menu.spawn((
+            scrollable_content.spawn((
                 Node {
                     width: Val::Percent(100.0),
                     flex_direction: FlexDirection::Column,
@@ -473,7 +485,7 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                 ("Auto Save", SettingType::AutoSave, if settings.auto_save_enabled { 1.0 } else { 0.0 }),
             ];
             
-            settings_menu.spawn((
+            scrollable_content.spawn((
                 Node {
                     width: Val::Percent(100.0),
                     flex_direction: FlexDirection::Column,
@@ -527,9 +539,10 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                     });
                 }
             });
+            }); // End scrollable_content
             
-            // Bottom buttons
-            settings_menu.spawn((
+            // Bottom buttons (outside scrollable area)
+            settings_container.spawn((
                 Node {
                     width: Val::Percent(100.0),
                     flex_direction: FlexDirection::Row,
@@ -606,7 +619,7 @@ pub fn setup_controls_menu(
         )).with_children(|controls_menu| {
             // Title
             controls_menu.spawn((
-                Text::new("⌨️ Controls"),
+                Text::new("Controls"),
                 TextFont { font_size: 28.0, ..default() },
                 TextColor(Color::srgb(0.3, 0.2, 0.1)),
                 Node { margin: UiRect::bottom(Val::Px(30.0)), ..default() },
@@ -1113,7 +1126,7 @@ pub fn graphics_toggle_system(
                     
                     // Update text display
                     for child in children.iter() {
-                        if let Ok(mut text) = text_query.get_mut(*child) {
+                        if let Ok(mut text) = text_query.get_mut(child) {
                             if text.contains("ON") || text.contains("OFF") {
                                 **text = if settings.vsync_enabled { "ON" } else { "OFF" }.to_string();
                             }
@@ -1126,7 +1139,7 @@ pub fn graphics_toggle_system(
                     
                     // Update text display
                     for child in children.iter() {
-                        if let Ok(mut text) = text_query.get_mut(*child) {
+                        if let Ok(mut text) = text_query.get_mut(child) {
                             if text.contains("ON") || text.contains("OFF") {
                                 **text = if settings.fullscreen { "ON" } else { "OFF" }.to_string();
                             }
@@ -1194,7 +1207,7 @@ pub fn handle_controls_menu(
     if menu_state.is_changed() && menu_state.current_menu == MenuType::SettingsControls {
         // Clear existing UI
         for entity in &menu_query {
-            commands.entity(entity).despawn_recursive();
+            commands.entity(entity).despawn();
         }
         
         // Setup controls menu

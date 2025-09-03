@@ -138,7 +138,10 @@ fn setup(mut commands: Commands) {
     commands.spawn((
         Camera2d, 
         Transform::from_xyz(0.0, 0.0, 1000.0)
-            .with_rotation(Quat::from_rotation_x(-0.5)), // 2.5D angled view like Neko Atsume
+            // .with_rotation(Quat::from_rotation_x(-0.5)), // 2.5D angled view like Neko Atsume
+            .with_rotation(Quat::from_rotation_x(0.0)), // 2.5D angled view like Neko Atsume
+        // Ensure orthographic projection uses full window
+        Projection::Orthographic(OrthographicProjection::default_2d()),
         photo_mode::components::PhotoTarget,
         photo_mode::components::CameraControls {
             zoom_level: 1.0,

@@ -35,7 +35,7 @@ pub fn tutorial_step_system(
             TutorialAction::Start => {
                 tutorial_state.is_active = true;
                 tutorial_state.show_ui = true;
-                spawn_tutorial_ui(&mut commands);
+                // spawn_tutorial_ui(&mut commands); // Disabled - using Lunex UI
             }
             TutorialAction::NextStep => {
                 if let Some(next_step) = tutorial_state.current_step.next() {
@@ -64,9 +64,9 @@ pub fn tutorial_step_system(
             }
             TutorialAction::Show => {
                 tutorial_state.show_ui = true;
-                if tutorial_ui_query.is_empty() {
-                    spawn_tutorial_ui(&mut commands);
-                }
+                // if tutorial_ui_query.is_empty() {
+                //     spawn_tutorial_ui(&mut commands); // Disabled - using Lunex UI
+                // }
             }
             TutorialAction::Hide => {
                 tutorial_state.show_ui = false;

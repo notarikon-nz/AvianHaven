@@ -113,6 +113,7 @@ pub fn setup_journal_menu_system(
                 (JournalTab::Photos, "Photos", "Photo collection"),
                 (JournalTab::Conservation, "Conservation", "Species status & protection"),
                 (JournalTab::Migration, "Migration", "Migration patterns & routes"),
+                (JournalTab::Research, "Research", "Active research missions"),
                 (JournalTab::Achievements, "Progress", "Achievements & milestones"),
             ];
             
@@ -431,6 +432,51 @@ pub fn setup_journal_menu_system(
                             Text::new(format!("Migratory: {} | Resident: {}", migratory_count, resident_count)),
                             TextFont {
                                 font_size: 14.0,
+                                ..default()
+                            },
+                            TextColor(Color::srgb(0.4, 0.3, 0.2)),
+                        ));
+                    });
+                },
+                JournalTab::Research => {
+                    // Research missions tab content
+                    content.spawn((
+                        Node {
+                            width: Val::Percent(100.0),
+                            height: Val::Percent(100.0),
+                            flex_direction: FlexDirection::Column,
+                            row_gap: Val::Px(15.0),
+                            padding: UiRect::all(Val::Px(20.0)),
+                            ..default()
+                        },
+                    )).with_children(|research_content| {
+                        research_content.spawn((
+                            Text::new("🔬 Active Research Missions"),
+                            TextFont {
+                                font_size: 20.0,
+                                ..default()
+                            },
+                            TextColor(Color::srgb(0.3, 0.2, 0.1)),
+                        ));
+                        
+                        research_content.spawn((
+                            Text::new("Contribute to citizen science by completing research missions.\nEarn research points and unlock advanced content."),
+                            TextFont {
+                                font_size: 14.0,
+                                ..default()
+                            },
+                            TextColor(Color::srgb(0.5, 0.4, 0.3)),
+                            Node {
+                                margin: UiRect::bottom(Val::Px(15.0)),
+                                ..default()
+                            },
+                        ));
+                        
+                        // Placeholder for research missions list
+                        research_content.spawn((
+                            Text::new("📋 Dawn Chorus Study (Citizen Level)\n   Progress: 0/10 observations\n   Partner: eBird/Cornell Lab\n\n📋 Feeder Interaction Study (Student Level)\n   Progress: 0/20 interactions documented\n   Partner: Project FeederWatch\n\n📋 Climate Impact Assessment (Researcher Level)\n   Progress: 0/100 data points\n   Partner: Audubon Climate Watch"),
+                            TextFont {
+                                font_size: 12.0,
                                 ..default()
                             },
                             TextColor(Color::srgb(0.4, 0.3, 0.2)),

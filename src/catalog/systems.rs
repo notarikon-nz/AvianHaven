@@ -693,7 +693,7 @@ pub fn cleanup_catalog_ui(
     catalog_ui_query: Query<Entity, With<crate::catalog::components::CatalogUI>>,
 ) {
     for entity in catalog_ui_query.iter() {
-        commands.entity(entity).despawn_recursive();
+        commands.entity(entity).despawn();
     }
 }
 

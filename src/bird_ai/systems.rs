@@ -863,7 +863,7 @@ pub fn foraging_system(
                 blackboard.current_target = None;
                 foraging_state.energy_spent = 0.0;
                 foraging_state.items_found = 0;
-                info!("Bird finished foraging session");
+                // info!("Bird finished foraging session");
             }
         }
     }
