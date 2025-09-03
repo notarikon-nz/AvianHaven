@@ -757,7 +757,7 @@ fn leader_follower_dynamics_system(
 }
 
 fn insectivore_behavior_system(
-    mut bird_query: Query<(&mut Transform, &mut BirdState, &mut Blackboard, &Bird), With<BirdAI>>,
+    mut bird_query: Query<(&mut Transform, &mut BirdState, &mut Blackboard, &Bird), (With<BirdAI>, Without<InsectColony>)>,
     insect_query: Query<(Entity, &Transform, &InsectColony)>,
     mut emergence_events: EventReader<InsectEmergenceEvent>,
     time: Res<Time>,
@@ -800,7 +800,7 @@ fn insectivore_behavior_system(
 }
 
 fn frugivore_behavior_system(
-    mut bird_query: Query<(&mut Transform, &mut BirdState, &mut Blackboard, &Bird), With<BirdAI>>,
+    mut bird_query: Query<(&mut Transform, &mut BirdState, &mut Blackboard, &Bird), (With<BirdAI>, Without<FruitTree>)>,
     fruit_query: Query<(Entity, &Transform, &FruitTree)>,
     mut ripening_events: EventReader<FruitRipeningEvent>,
     time: Res<Time>,
