@@ -8,7 +8,8 @@ pub struct UiPlugin;
 
 impl Plugin for UiPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(AppState::Playing), setup_ui)
+        app.init_resource::<TooltipTimer>()
+            .add_systems(OnEnter(AppState::Playing), (setup_ui, update_currency_ui_initial))
             .add_systems(OnExit(AppState::Playing), cleanup_gameplay_ui)
             .add_systems(
                 Update,
@@ -19,6 +20,7 @@ impl Plugin for UiPlugin {
                     update_currency_ui,
                     handle_popout_menu,
                     update_popout_menu_visibility,
+                    handle_menu_tooltips,
                 ).run_if(in_state(AppState::Playing))
             );
     }
@@ -64,7 +66,30 @@ struct CurrencyCounter;
 #[derive(Component)]
 struct MenuItemsContainer;
 
-fn setup_ui(mut commands: Commands) {
+#[derive(Component)]
+struct MenuTooltip {
+    pub text: String,
+}
+
+#[derive(Component)]
+struct TooltipContainer;
+
+#[derive(Resource)]
+struct TooltipTimer {
+    timer: Timer,
+    current_text: Option<String>,
+}
+
+impl Default for TooltipTimer {
+    fn default() -> Self {
+        Self {
+            timer: Timer::from_seconds(0.2, TimerMode::Once), // 200ms delay
+            current_text: None,
+        }
+    }
+}
+
+fn setup_ui(mut commands: Commands, currency: Res<CurrencyResource>) {
     // Pop-out menu in top left
     commands.spawn((
         Node {
@@ -122,16 +147,17 @@ fn setup_ui(mut commands: Commands) {
             Name::new("Menu Items Container"),
         )).with_children(|menu_container| {
             let menu_items = [
-                ("📷", MenuAction::Photography), // Camera icon placeholder
-                ("📖", MenuAction::Journal),     // Book icon placeholder
-                ("🛍️", MenuAction::Catalog),    // Shop icon placeholder
-                ("⚙️", MenuAction::Settings),   // Settings icon placeholder
+                ("📷", MenuAction::Photography, "Toggle Photography Mode (P)"), 
+                ("📖", MenuAction::Journal, "Open Bird Journal (J)"),     
+                ("🛍️", MenuAction::Catalog, "Open Shop & Catalog (C)"),    
+                ("⚙️", MenuAction::Settings, "Open Settings"),   
             ];
             
-            for (icon, action) in menu_items {
+            for (icon, action, tooltip_text) in menu_items {
                 menu_container.spawn((
                     Button,
                     MenuIconButton { action },
+                    MenuTooltip { text: tooltip_text.to_string() },
                     Node {
                         width: Val::Px(48.0),
                         height: Val::Px(48.0),
@@ -187,7 +213,7 @@ fn setup_ui(mut commands: Commands) {
         
         // Currency amount text
         parent.spawn((
-            Text::new("0"),
+            Text::new(currency.0.to_string()),
             TextFont {
                 font_size: 18.0,
                 ..default()
@@ -237,7 +263,7 @@ fn setup_ui(mut commands: Commands) {
             
             // Currency display
             parent.spawn((
-                Text::new("Currency: 0"),
+                Text::new(format!("Currency: {}", currency.0)),
                 TextFont {
                     font_size: 20.0,
                     ..default()
@@ -338,6 +364,16 @@ fn update_currency_ui(
     }
 }
 
+// Initial currency UI update (runs once on setup)
+fn update_currency_ui_initial(
+    currency: Res<CurrencyResource>,
+    mut text_query: Query<&mut Text, With<CurrencyText>>,
+) {
+    for mut text in text_query.iter_mut() {
+        **text = format!("{}", currency.0);
+    }
+}
+
 // System to handle pop-out menu interactions
 fn handle_popout_menu(
     mut interaction_query: Query<
@@ -350,6 +386,7 @@ fn handle_popout_menu(
         (Changed<Interaction>, With<MenuIconButton>, Without<PopOutMenuButton>),
     >,
     mut app_state: ResMut<NextState<crate::AppState>>,
+    current_state: Res<State<crate::AppState>>,
     mut catalog_state: ResMut<crate::catalog::resources::CatalogState>,
 ) {
     // Handle main menu button clicks
@@ -391,7 +428,10 @@ fn handle_popout_menu(
                         app_state.set(crate::AppState::Journal);
                     }
                     MenuAction::Catalog => {
-                        catalog_state.is_open = !catalog_state.is_open;
+                        if *current_state.get() == crate::AppState::Playing {
+                            catalog_state.is_open = true;
+                            app_state.set(crate::AppState::Catalog);
+                        }
                     }
                     MenuAction::Settings => {
                         app_state.set(crate::AppState::Settings);
@@ -421,6 +461,73 @@ fn update_popout_menu_visibility(
     }
 }
 
+// System to handle menu tooltips with delay to prevent flickering
+fn handle_menu_tooltips(
+    mut commands: Commands,
+    time: Res<Time>,
+    mut tooltip_timer: ResMut<TooltipTimer>,
+    tooltip_query: Query<(&Interaction, &MenuTooltip), With<MenuIconButton>>, // Remove Changed filter
+    existing_tooltip: Query<Entity, With<TooltipContainer>>,
+) {
+    let mut should_show_tooltip = false;
+    let mut tooltip_text = String::new();
+    
+    // Check current hover state (not just changes)
+    for (interaction, tooltip) in tooltip_query.iter() {
+        if *interaction == Interaction::Hovered {
+            should_show_tooltip = true;
+            tooltip_text = tooltip.text.clone();
+            break;
+        }
+    }
+    
+    // Update timer and current text
+    if should_show_tooltip {
+        if tooltip_timer.current_text.as_ref() != Some(&tooltip_text) {
+            // New tooltip text, restart timer
+            tooltip_timer.current_text = Some(tooltip_text.clone());
+            tooltip_timer.timer.reset();
+        }
+        tooltip_timer.timer.tick(time.delta());
+    } else {
+        // No hover, clear current text and remove tooltips immediately
+        tooltip_timer.current_text = None;
+        tooltip_timer.timer.reset();
+        for entity in existing_tooltip.iter() {
+            commands.entity(entity).despawn();
+        }
+        return;
+    }
+    
+    // Only show tooltip after timer finishes AND we're still hovering
+    if should_show_tooltip && tooltip_timer.timer.finished() && existing_tooltip.is_empty() {
+        commands.spawn((
+            Node {
+                position_type: PositionType::Absolute,
+                left: Val::Px(75.0), // Position above the menu items  
+                top: Val::Px(5.0), // Just above the menu
+                width: Val::Auto,
+                height: Val::Auto,
+                padding: UiRect::all(Val::Px(8.0)),
+                border: UiRect::all(Val::Px(1.0)),
+                ..default()
+            },
+            BackgroundColor(Color::srgba(0.1, 0.1, 0.1, 0.95)),
+            BorderColor(Color::srgb(0.8, 0.6, 0.2)), // Gold border to match currency
+            TooltipContainer,
+        )).with_children(|tooltip_parent| {
+            tooltip_parent.spawn((
+                Text::new(&tooltip_text),
+                TextFont {
+                    font_size: 14.0,
+                    ..default()
+                },
+                TextColor(Color::WHITE),
+            ));
+        });
+    }
+}
+
 fn cleanup_gameplay_ui(
     mut commands: Commands,
     ui_query: Query<Entity, Or<(
@@ -429,7 +536,8 @@ fn cleanup_gameplay_ui(
         With<EnvironmentText>, 
         With<CurrencyText>,
         With<PopOutMenu>,
-        With<CurrencyCounter>
+        With<CurrencyCounter>,
+        With<TooltipContainer>
     )>>,
 ) {
     for entity in ui_query.iter() {

@@ -22,7 +22,7 @@ impl Plugin for CatalogPlugin {
             .add_systems(OnExit(AppState::Playing), cleanup_catalog_ui)
 
             .add_systems(Update, (
-                // handle_catalog_input, // Disabled - using Lunex UI
+                handle_catalog_input, // Re-enabled for keyboard shortcut
                 // handle_category_buttons, // Disabled - using Lunex UI
                 // handle_purchase_buttons, // Disabled - using Lunex UI
                 // handle_place_buttons, // Disabled - using Lunex UI

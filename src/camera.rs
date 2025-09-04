@@ -10,10 +10,7 @@ impl Plugin for CameraPlugin {
             .init_resource::<CameraState>()
             .add_systems(
                 Update,
-                (
-                    camera_pan_system,
-                    // ensure_camera_viewport,
-                ).run_if(in_state(AppState::Playing))
+                camera_pan_system.run_if(in_state(AppState::Playing))
             );
     }
 }

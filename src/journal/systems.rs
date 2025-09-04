@@ -13,17 +13,22 @@ pub fn toggle_journal_system(
     current_state: Res<State<crate::AppState>>,
     mut journal_state: ResMut<JournalState>,
 ) {
-    if keyboard.just_pressed(KeyCode::Tab) {
+    if keyboard.just_pressed(KeyCode::KeyJ) {
+        info!("🔵 JOURNAL TOGGLE: J key pressed in state: {:?}", current_state.get());
         match current_state.get() {
             crate::AppState::Playing => {
+                info!("🔵 JOURNAL TOGGLE: Opening journal, transitioning Playing -> Journal");
                 journal_state.is_open = true;
                 next_state.set(crate::AppState::Journal);
             }
             crate::AppState::Journal => {
+                info!("🔵 JOURNAL TOGGLE: Closing journal, transitioning Journal -> Playing");
                 journal_state.is_open = false;
                 next_state.set(crate::AppState::Playing);
             }
-            _ => {}
+            _ => {
+                info!("🔵 JOURNAL TOGGLE: J key pressed but in invalid state: {:?}", current_state.get());
+            }
         }
     }
 }

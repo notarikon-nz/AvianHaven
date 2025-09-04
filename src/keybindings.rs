@@ -21,6 +21,7 @@ pub enum GameAction {
     
     // UI Navigation
     OpenJournal,
+    OpenCatalog,
     OpenSettings,
     CloseMenu,
     PauseGame,
@@ -64,7 +65,8 @@ impl Default for KeyBindings {
         bindings.insert(GameAction::PhotoModeSettings, vec![InputBinding::Keyboard(KeyCode::KeyF)]);
         
         // UI Navigation
-        bindings.insert(GameAction::OpenJournal, vec![InputBinding::Keyboard(KeyCode::Tab)]);
+        bindings.insert(GameAction::OpenJournal, vec![InputBinding::Keyboard(KeyCode::KeyJ)]);
+        bindings.insert(GameAction::OpenCatalog, vec![InputBinding::Keyboard(KeyCode::KeyC)]);
         bindings.insert(GameAction::OpenSettings, vec![InputBinding::Keyboard(KeyCode::Escape)]);
         bindings.insert(GameAction::CloseMenu, vec![InputBinding::Keyboard(KeyCode::Escape)]);
         bindings.insert(GameAction::PauseGame, vec![InputBinding::Keyboard(KeyCode::Escape)]);

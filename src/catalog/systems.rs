@@ -186,13 +186,25 @@ pub fn setup_catalog_items(
 
 pub fn handle_catalog_input(
     keyboard: Res<ButtonInput<KeyCode>>,
+    mut app_state: ResMut<NextState<crate::AppState>>,
+    current_state: Res<State<crate::AppState>>,
     mut catalog_state: ResMut<CatalogState>,
     mut placed_objects: ResMut<PlacedObjects>,
     mut catalog_query: Query<&mut Node, With<CatalogUI>>,
 ) {
-    // Toggle catalog with C key
+    // Toggle catalog with C key - now using state transitions
     if keyboard.just_pressed(KeyCode::KeyC) {
-        catalog_state.is_open = !catalog_state.is_open;
+        match current_state.get() {
+            crate::AppState::Catalog => {
+                catalog_state.is_open = false;
+                app_state.set(crate::AppState::Playing);
+            }
+            crate::AppState::Playing => {
+                catalog_state.is_open = true;
+                app_state.set(crate::AppState::Catalog);
+            }
+            _ => {}
+        }
         
         for mut node in catalog_query.iter_mut() {
             node.display = if catalog_state.is_open {

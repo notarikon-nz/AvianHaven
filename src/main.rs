@@ -39,6 +39,7 @@ mod social_features; // Phase 4: Community features
 mod sanctuary_management; // Phase 4: Advanced sanctuary management
 mod hanabi_effects; // Phase 4: GPU-accelerated particle effects
 mod predator_prey; // Phase 4: Predator-prey dynamics
+mod ui_diagnostic; // UI diagnostic and testing tools
 
 use user_interface::UserInterfacePlugin;
 use bird::BirdPlugin;
@@ -80,6 +81,7 @@ pub enum AppState {
     MainMenu,
     Playing,
     Journal,
+    Catalog,
     Settings,
     LoadGame,
 }
@@ -129,6 +131,7 @@ fn main() {
         .add_plugins(SocialFeaturesPlugin)
         .add_plugins(SanctuaryManagementPlugin)
         .add_plugins(HanabiEffectsPlugin)
+        .add_plugins(ui_diagnostic::UiDiagnosticPlugin)
         .add_systems(Startup, setup)
         .add_systems(PostUpdate, robust_despawn_system)
         .run();
@@ -136,7 +139,7 @@ fn main() {
 
 fn setup(mut commands: Commands) {
     commands.spawn((
-        Camera2d, 
+        Camera2d,
         Transform::from_xyz(0.0, 0.0, 1000.0)
             // .with_rotation(Quat::from_rotation_x(-0.5)), // 2.5D angled view like Neko Atsume
             .with_rotation(Quat::from_rotation_x(0.0)), // 2.5D angled view like Neko Atsume
