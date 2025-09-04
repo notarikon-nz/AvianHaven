@@ -1,10 +1,9 @@
 // Nocturnal Bird Behaviors - Night Activity Patterns
 use bevy::prelude::*;
 use crate::bird::{BirdSpecies, Bird};
-use crate::bird_ai::components::{BirdAI, BirdState, Blackboard};
+use crate::bird_ai::components::{BirdAI, BirdState};
 use crate::environment::resources::TimeState;
 use crate::environment::components::Season;
-use crate::despawn::SafeDespawn;
 
 pub struct NocturnalBehaviorPlugin;
 

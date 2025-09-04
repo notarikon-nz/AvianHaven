@@ -73,6 +73,8 @@ pub struct GraphicsToggle {
 pub enum GraphicsSettingType {
     VSync,
     Fullscreen,
+    Resolution,
+    GraphicsQuality,
 }
 
 #[derive(Component)]
@@ -89,3 +91,10 @@ pub struct KeybindingText {
 pub struct KeybindingWaiting {
     pub action: crate::keybindings::GameAction,
 }
+
+// New dropdown components for settings
+#[derive(Component)]
+pub struct ResolutionDropdown;
+
+#[derive(Component)]
+pub struct GraphicsQualityDropdown;

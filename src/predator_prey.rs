@@ -2,8 +2,7 @@
 use bevy::prelude::*;
 use crate::bird::{BirdSpecies, Bird};
 use crate::bird_ai::components::{BirdAI, BirdState, Blackboard};
-use crate::environment::resources::{TimeState, WeatherState};
-use rand::Rng;
+// Note: TimeState, WeatherState, and rand::Rng reserved for future environmental integration
 
 pub struct PredatorPreyPlugin;
 

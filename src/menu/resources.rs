@@ -11,6 +11,35 @@ pub enum GraphicsQuality {
     Ultra,
 }
 
+impl GraphicsQuality {
+    pub fn to_string(&self) -> &'static str {
+        match self {
+            GraphicsQuality::Low => "Low",
+            GraphicsQuality::Medium => "Medium", 
+            GraphicsQuality::High => "High",
+            GraphicsQuality::Ultra => "Ultra",
+        }
+    }
+    
+    pub fn all_qualities() -> Vec<GraphicsQuality> {
+        vec![
+            GraphicsQuality::Low,
+            GraphicsQuality::Medium,
+            GraphicsQuality::High,
+            GraphicsQuality::Ultra,
+        ]
+    }
+    
+    pub fn index(&self) -> usize {
+        match self {
+            GraphicsQuality::Low => 0,
+            GraphicsQuality::Medium => 1,
+            GraphicsQuality::High => 2,
+            GraphicsQuality::Ultra => 3,
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub enum ShadowQuality {
     Off,
@@ -80,6 +109,30 @@ impl Default for GameSettings {
 }
 
 impl GameSettings {
+    pub fn get_common_resolutions() -> Vec<(u32, u32)> {
+        vec![
+            (1280, 720),   // 720p
+            (1920, 1080),  // 1080p
+            (2560, 1440),  // 1440p
+            (3840, 2160),  // 4K
+            (1366, 768),   // Common laptop
+            (1600, 900),   // 16:9 variant
+            (2560, 1080),  // Ultrawide
+            (3440, 1440),  // Ultrawide QHD
+        ]
+    }
+
+    pub fn resolution_to_string(resolution: (u32, u32)) -> String {
+        format!("{}x{}", resolution.0, resolution.1)
+    }
+    
+    pub fn find_resolution_index(&self) -> usize {
+        Self::get_common_resolutions()
+            .iter()
+            .position(|&res| res == self.window_resolution)
+            .unwrap_or(1) // Default to 1080p if not found
+    }
+
     pub fn get_settings_path() -> PathBuf {
         dirs::config_dir()
             .unwrap_or_else(|| PathBuf::from("."))

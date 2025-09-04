@@ -4,7 +4,7 @@ use rand::Rng;
 
 use crate::{AppState, resources::{GameConfig, BirdCount, SpawnBirdEvent}};
 use crate::bird_ai::components::{BirdAI, BirdState, Blackboard, InternalState, SocialBirdTraits, SocialRelationships, ForagingTraits, CacheData, ForagingState};
-use crate::nocturnal_behaviors::{NocturnalBehavior, NocturnalTraits};
+use crate::nocturnal_behaviors::NocturnalBehavior;
 use crate::animation::components::AnimatedBird;
 use crate::feeder::FeederType;
 use crate::environment::resources::{TimeState, WeatherState, SeasonalState};

@@ -34,6 +34,10 @@ impl Plugin for MenuPlugin {
                 volume_slider_update_system,
                 graphics_toggle_system,
                 handle_controls_menu,
+                // New simplified widget systems
+                resolution_dropdown_system,
+                graphics_quality_dropdown_system,
+                settings_toggle_system,
             ).run_if(in_state(AppState::Settings)))
             .add_systems(Update, load_game_button_system.run_if(in_state(AppState::LoadGame)))
             .add_systems(Update, escape_key_system.run_if(

@@ -6,8 +6,6 @@ pub mod styles;
 pub mod resources;
 
 use styles::*;
-use builder::*;
-use resources::*;
 
 pub struct UserInterfacePlugin;
 

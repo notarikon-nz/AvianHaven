@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use crate::menu::{components::*, resources::*};
 use crate::save_load::resources::{SaveGameEvent, LoadGameEvent, SaveManager};
 use crate::despawn::SafeDespawn;
-use crate::ui_widgets::{SliderWidget, SliderValueChanged, SliderValueText, SliderTrack, SliderHandle};
+use crate::ui_widgets::{SliderWidget, SliderValueChanged, SliderValueText, SliderTrack, SliderHandle, ToggleButton};
 use crate::audio::resources::AudioSettings;
 
 // Setup Systems
@@ -34,6 +34,7 @@ pub fn setup_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
             },
             BackgroundColor(Color::srgb(0.95, 0.92, 0.88)),
             BorderColor(Color::srgb(0.6, 0.4, 0.2)),
+            BorderRadius::all(Val::Px(6.0)),
         )).with_children(|menu| {
             // Title
             menu.spawn((
@@ -69,6 +70,7 @@ pub fn setup_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
                         ..default()
                     },
                     BackgroundColor(Color::srgb(0.6, 0.5, 0.4)),
+                    BorderRadius::all(Val::Px(6.0)),
                     MainMenuButton { action },
                 )).with_children(|button| {
                     button.spawn((
@@ -111,6 +113,7 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
             },
             BackgroundColor(Color::srgb(0.95, 0.92, 0.88)),
             BorderColor(Color::srgb(0.6, 0.4, 0.2)),
+            BorderRadius::all(Val::Px(6.0)),
         )).with_children(|settings_container| {
             // Title (fixed at top)
             settings_container.spawn((
@@ -371,8 +374,9 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                     },
                 ));
                 
-                // Resolution dropdown
+                // Resolution selector (simplified for now)
                 section.spawn((
+                    Button,
                     Node {
                         width: Val::Percent(100.0),
                         flex_direction: FlexDirection::Row,
@@ -382,6 +386,8 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                         ..default()
                     },
                     BackgroundColor(Color::srgb(0.9, 0.9, 0.9)),
+                    BorderRadius::all(Val::Px(6.0)),
+                    ResolutionDropdown,
                 )).with_children(|item| {
                     item.spawn((
                         Text::new("Resolution"),
@@ -389,14 +395,15 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                         TextColor(Color::srgb(0.3, 0.2, 0.1)),
                     ));
                     item.spawn((
-                        Text::new(format!("{}x{}", settings.window_resolution.0, settings.window_resolution.1)),
+                        Text::new(format!("{}x{} ▼", settings.window_resolution.0, settings.window_resolution.1)),
                         TextFont { font_size: 16.0, ..default() },
                         TextColor(Color::srgb(0.5, 0.3, 0.2)),
                     ));
                 });
                 
-                // Graphics Quality dropdown
+                // Graphics Quality selector (simplified for now)
                 section.spawn((
+                    Button,
                     Node {
                         width: Val::Percent(100.0),
                         flex_direction: FlexDirection::Row,
@@ -406,6 +413,8 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                         ..default()
                     },
                     BackgroundColor(Color::srgb(0.9, 0.9, 0.9)),
+                    BorderRadius::all(Val::Px(6.0)),
+                    GraphicsQualityDropdown,
                 )).with_children(|item| {
                     item.spawn((
                         Text::new("Graphics Quality"),
@@ -413,7 +422,7 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                         TextColor(Color::srgb(0.3, 0.2, 0.1)),
                     ));
                     item.spawn((
-                        Text::new(format!("{:?}", settings.graphics_quality)),
+                        Text::new(format!("{} ▼", settings.graphics_quality.to_string())),
                         TextFont { font_size: 16.0, ..default() },
                         TextColor(Color::srgb(0.5, 0.3, 0.2)),
                     ));
@@ -431,7 +440,8 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                         ..default()
                     },
                     BackgroundColor(Color::srgb(0.9, 0.9, 0.9)),
-                    GraphicsToggle { setting_type: GraphicsSettingType::VSync },
+                    BorderRadius::all(Val::Px(6.0)),
+                    ToggleButton::new("VSync", settings.vsync_enabled),
                 )).with_children(|item| {
                     item.spawn((
                         Text::new("VSync"),
@@ -461,7 +471,8 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                         ..default()
                     },
                     BackgroundColor(Color::srgb(0.9, 0.9, 0.9)),
-                    GraphicsToggle { setting_type: GraphicsSettingType::Fullscreen },
+                    BorderRadius::all(Val::Px(6.0)),
+                    ToggleButton::new("Fullscreen", settings.fullscreen),
                 )).with_children(|item| {
                     item.spawn((
                         Text::new("Fullscreen"),
@@ -569,6 +580,7 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                             ..default()
                         },
                         BackgroundColor(Color::srgb(0.6, 0.5, 0.4)),
+                        BorderRadius::all(Val::Px(6.0)),
                         SettingsButton { action },
                     )).with_children(|button| {
                         button.spawn((
@@ -824,6 +836,7 @@ pub fn setup_controls_menu(
                             ..default()
                         },
                         BackgroundColor(Color::srgb(0.6, 0.5, 0.4)),
+                        BorderRadius::all(Val::Px(6.0)),
                         SettingsButton { action },
                     )).with_children(|button| {
                         button.spawn((
@@ -921,6 +934,7 @@ pub fn setup_load_game_menu(
                         },
                         BackgroundColor(bg_color),
                         BorderColor(Color::srgb(0.5, 0.5, 0.5)),
+                        BorderRadius::all(Val::Px(6.0)),
                         SaveSlotCard { slot },
                     ));
                     
@@ -995,6 +1009,7 @@ pub fn setup_load_game_menu(
                         ..default()
                     },
                     BackgroundColor(Color::srgb(0.6, 0.5, 0.4)),
+                    BorderRadius::all(Val::Px(6.0)),
                     SettingsButton { action: SettingsAction::BackToMain },
                 )).with_children(|button| {
                     button.spawn((
@@ -1146,6 +1161,12 @@ pub fn graphics_toggle_system(
                         }
                     }
                 }
+                GraphicsSettingType::Resolution => {
+                    // These are handled by the new dropdown systems
+                }
+                GraphicsSettingType::GraphicsQuality => {
+                    // These are handled by the new dropdown systems
+                }
             }
         }
     }
@@ -1280,6 +1301,112 @@ pub fn volume_slider_update_system(
             
             // Auto-save settings when changed
             if let Err(e) = game_settings.save_to_file() {
+                eprintln!("Failed to save settings: {}", e);
+            }
+        }
+    }
+}
+
+// Simplified dropdown systems (cycle through options on click)
+pub fn resolution_dropdown_system(
+    mut interaction_query: Query<(&Interaction, &Children), (Changed<Interaction>, With<ResolutionDropdown>)>,
+    mut text_query: Query<&mut Text>,
+    mut settings: ResMut<GameSettings>,
+) {
+    for (interaction, children) in interaction_query.iter() {
+        if *interaction == Interaction::Pressed {
+            let resolutions = GameSettings::get_common_resolutions();
+            let current_index = settings.find_resolution_index();
+            let next_index = (current_index + 1) % resolutions.len();
+            
+            if let Some(&new_resolution) = resolutions.get(next_index) {
+                settings.window_resolution = new_resolution;
+                info!("Resolution changed to: {}x{}", new_resolution.0, new_resolution.1);
+                
+                // Update display text
+                for child in children.iter() {
+                    if let Ok(mut text) = text_query.get_mut(child) {
+                        if text.contains("x") && text.contains("▼") {
+                            **text = format!("{}x{} ▼", new_resolution.0, new_resolution.1);
+                        }
+                    }
+                }
+                
+                // Auto-save settings when changed
+                if let Err(e) = settings.save_to_file() {
+                    eprintln!("Failed to save settings: {}", e);
+                }
+            }
+        }
+    }
+}
+
+pub fn graphics_quality_dropdown_system(
+    mut interaction_query: Query<(&Interaction, &Children), (Changed<Interaction>, With<GraphicsQualityDropdown>)>,
+    mut text_query: Query<&mut Text>,
+    mut settings: ResMut<GameSettings>,
+) {
+    for (interaction, children) in interaction_query.iter() {
+        if *interaction == Interaction::Pressed {
+            let qualities = GraphicsQuality::all_qualities();
+            let current_index = settings.graphics_quality.index();
+            let next_index = (current_index + 1) % qualities.len();
+            
+            if let Some(&new_quality) = qualities.get(next_index) {
+                settings.graphics_quality = new_quality;
+                info!("Graphics quality changed to: {}", new_quality.to_string());
+                
+                // Update display text
+                for child in children.iter() {
+                    if let Ok(mut text) = text_query.get_mut(child) {
+                        if text.contains("▼") && !text.contains("Graphics Quality") {
+                            **text = format!("{} ▼", new_quality.to_string());
+                        }
+                    }
+                }
+                
+                // Auto-save settings when changed
+                if let Err(e) = settings.save_to_file() {
+                    eprintln!("Failed to save settings: {}", e);
+                }
+            }
+        }
+    }
+}
+
+pub fn settings_toggle_system(
+    mut interaction_query: Query<(Entity, &Interaction, &mut ToggleButton, &Children), (Changed<Interaction>, With<Button>)>,
+    mut text_query: Query<&mut Text>,
+    mut settings: ResMut<GameSettings>,
+) {
+    for (entity, interaction, mut toggle, children) in interaction_query.iter_mut() {
+        if *interaction == Interaction::Pressed {
+            toggle.toggle();
+            
+            // Determine which setting was toggled based on label
+            match toggle.label.as_str() {
+                "VSync" => {
+                    settings.vsync_enabled = toggle.is_on;
+                    info!("VSync toggled: {}", toggle.is_on);
+                }
+                "Fullscreen" => {
+                    settings.fullscreen = toggle.is_on;
+                    info!("Fullscreen toggled: {}", toggle.is_on);
+                }
+                _ => continue,
+            }
+            
+            // Update button text display
+            for child in children.iter() {
+                if let Ok(mut text) = text_query.get_mut(child) {
+                    if text.contains("ON") || text.contains("OFF") {
+                        **text = if toggle.is_on { "ON" } else { "OFF" }.to_string();
+                    }
+                }
+            }
+            
+            // Auto-save settings when changed
+            if let Err(e) = settings.save_to_file() {
                 eprintln!("Failed to save settings: {}", e);
             }
         }

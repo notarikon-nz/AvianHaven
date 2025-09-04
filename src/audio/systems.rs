@@ -78,10 +78,10 @@ pub fn audio_event_system(
                     ));
                 }
                 AudioCommand::PlayAt(position) => {
-                    let (gain, panning) = calculate_positional_audio(*position, audio_manager.listener_position, 300.0);
+                    let (_gain, _panning) = calculate_positional_audio(*position, audio_manager.listener_position, 300.0);
                     commands.entity(sink_entity).insert((
                         AudioPlayer::new(audio_handle),
-                        PlaybackSettings::ONCE.with_spatial(true)
+                        PlaybackSettings::ONCE.with_spatial(true) // Volume control disabled for Bevy 0.16.1 compatibility
                     ));
                 }
                 AudioCommand::PlayFromEntity(_) => {
@@ -128,17 +128,17 @@ pub fn update_positional_audio_system(
                             300.0
                         );
                         
-                        // Update volume based on distance
-                        if let Ok(mut playback_settings) = audio_query.get_mut(sink_entity) {
-                            // Volume control disabled for compatibility with Bevy 0.16.1
+                        // Update volume based on distance - disabled for Bevy 0.16.1 compatibility
+                        if let Ok(_playback_settings) = audio_query.get_mut(sink_entity) {
+                            // Volume control will be re-enabled in future Bevy versions
                         }
                     }
                 }
                 AudioCommand::PlayAt(position) => {
                     let (gain, _panning) = calculate_positional_audio(*position, audio_manager.listener_position, 300.0);
                     
-                    if let Ok(mut playback_settings) = audio_query.get_mut(sink_entity) {
-                        // Volume control disabled for compatibility with Bevy 0.16.1
+                    if let Ok(_playback_settings) = audio_query.get_mut(sink_entity) {
+                        // Volume control disabled for Bevy 0.16.1 compatibility
                     }
                 }
                 AudioCommand::PlayGlobal => {
@@ -222,8 +222,9 @@ pub fn bird_vocalization_system(
             let max_range = get_species_audio_range(animated_bird.species);
             let (gain, _panning) = calculate_positional_audio(bird_pos, camera_pos, max_range);
             
-            // Species-specific volume adjustment
-            let volume_modifier = get_species_volume(animated_bird.species);
+            // Species-specific volume adjustment (calculated but not applied due to Bevy 0.16.1 limitations)
+            let _volume_modifier = get_species_volume(animated_bird.species);
+            let _final_volume = gain * _volume_modifier;
             
             commands.spawn((
                 AudioPlayer::new(audio_handle),

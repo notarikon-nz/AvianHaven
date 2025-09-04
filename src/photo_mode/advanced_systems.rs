@@ -302,6 +302,10 @@ fn analyze_lighting_conditions(time_state: &TimeState, bird_transform: &Transfor
         lighting_score += 30; // Golden hour lighting
     }
     
+    // Bird height affects lighting quality (higher = better lit)
+    let height_bonus = ((bird_transform.translation.y + 200.0) / 400.0).clamp(0.0, 1.0);
+    lighting_score += (height_bonus * 20.0) as u32;
+    
     // Blue hour bonus (5-6 AM, 8-9 PM)
     if (time_state.hour >= 5.0 && time_state.hour < 6.0) || 
        (time_state.hour > 20.0 && time_state.hour <= 21.0) {
@@ -373,6 +377,13 @@ fn analyze_camera_settings(
     time_state: &TimeState,
 ) -> u32 {
     let mut tech_score = 0;
+    
+    // Distance-based focus accuracy
+    let camera_distance = bird_transform.translation.distance(Vec3::ZERO); // Simplified camera at origin
+    let optimal_distance_range = 100.0..300.0;
+    if optimal_distance_range.contains(&camera_distance) {
+        tech_score += 15; // Good distance for bird photography
+    }
     
     // Optimal aperture for bird photography (f/5.6 to f/8.0 is ideal)
     let aperture_optimality = if camera_controls.aperture >= 5.6 && camera_controls.aperture <= 8.0 {

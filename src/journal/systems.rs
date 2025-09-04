@@ -456,7 +456,7 @@ pub fn setup_journal_menu_system(
                         },
                     )).with_children(|research_content| {
                         research_content.spawn((
-                            Text::new("🔬 Active Research Missions"),
+                            Text::new("Active Research Missions"),
                             TextFont {
                                 font_size: 20.0,
                                 ..default()
@@ -479,7 +479,7 @@ pub fn setup_journal_menu_system(
                         
                         // Placeholder for research missions list
                         research_content.spawn((
-                            Text::new("📋 Dawn Chorus Study (Citizen Level)\n   Progress: 0/10 observations\n   Partner: eBird/Cornell Lab\n\n📋 Feeder Interaction Study (Student Level)\n   Progress: 0/20 interactions documented\n   Partner: Project FeederWatch\n\n📋 Climate Impact Assessment (Researcher Level)\n   Progress: 0/100 data points\n   Partner: Audubon Climate Watch"),
+                            Text::new("Dawn Chorus Study (Citizen Level)\n   Progress: 0/10 observations\n   Partner: eBird/Cornell Lab\n\n📋 Feeder Interaction Study (Student Level)\n   Progress: 0/20 interactions documented\n   Partner: Project FeederWatch\n\n📋 Climate Impact Assessment (Researcher Level)\n   Progress: 0/100 data points\n   Partner: Audubon Climate Watch"),
                             TextFont {
                                 font_size: 12.0,
                                 ..default()

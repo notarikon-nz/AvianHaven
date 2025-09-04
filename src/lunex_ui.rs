@@ -1570,7 +1570,6 @@ pub fn handle_lunex_main_menu_clicks(
     } else if keyboard.just_pressed(KeyCode::KeyQ) || keyboard.just_pressed(KeyCode::Escape) {
         info!("Main menu: Quit (keyboard)");
         std::process::exit(0);
-        return;
     }
     
     // Track cursor position

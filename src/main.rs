@@ -40,6 +40,7 @@ mod sanctuary_management; // Phase 4: Advanced sanctuary management
 mod hanabi_effects; // Phase 4: GPU-accelerated particle effects
 mod predator_prey; // Phase 4: Predator-prey dynamics
 mod ui_diagnostic; // UI diagnostic and testing tools
+mod bird_selection; // Bird selection system with info cards
 
 use user_interface::UserInterfacePlugin;
 use bird::BirdPlugin;
@@ -74,6 +75,7 @@ use social_features::SocialFeaturesPlugin;
 use sanctuary_management::SanctuaryManagementPlugin;
 use hanabi_effects::HanabiEffectsPlugin;
 use predator_prey::PredatorPreyPlugin;
+use bird_selection::BirdSelectionPlugin;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, Default, States)]
 pub enum AppState {
@@ -132,6 +134,7 @@ fn main() {
         .add_plugins(SanctuaryManagementPlugin)
         .add_plugins(HanabiEffectsPlugin)
         .add_plugins(ui_diagnostic::UiDiagnosticPlugin)
+        .add_plugins(BirdSelectionPlugin)
         .add_systems(Startup, setup)
         .add_systems(PostUpdate, robust_despawn_system)
         .run();

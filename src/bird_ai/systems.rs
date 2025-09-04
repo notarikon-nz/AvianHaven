@@ -657,8 +657,9 @@ pub fn courting_system(
                 if let Ok(target_transform) = target_query.get(target_entity) {
                     execute_courting(&mut transform, target_transform, &time);
                     
-                    // Courting satisfies social need and can be energizing
-                    blackboard.internal.social_need -= 0.4 * time.delta().as_secs_f32();
+                    // Courting satisfies social need based on social tolerance
+                    let social_satisfaction = 0.4 * social_traits.social_tolerance;
+                    blackboard.internal.social_need -= social_satisfaction * time.delta().as_secs_f32();
                     blackboard.internal.social_need = blackboard.internal.social_need.max(0.0);
                     
                     // Courting uses some energy
@@ -693,8 +694,9 @@ pub fn territorial_system(
                 if let Ok(target_transform) = target_query.get(target_entity) {
                     execute_territorial(&mut transform, target_transform, &time);
                     
-                    // Territorial defense reduces territorial stress over time
-                    blackboard.internal.territorial_stress -= 0.3 * time.delta().as_secs_f32();
+                    // Territorial defense reduces stress based on territorial aggression
+                    let stress_reduction = 0.3 * social_traits.territorial_aggression;
+                    blackboard.internal.territorial_stress -= stress_reduction * time.delta().as_secs_f32();
                     blackboard.internal.territorial_stress = blackboard.internal.territorial_stress.max(0.0);
                     
                     // But uses significant energy
@@ -729,11 +731,13 @@ pub fn flocking_system(
                 if let Ok(target_transform) = target_query.get(target_entity) {
                     execute_flocking(&mut transform, target_transform, &time);
                     
-                    // Flocking satisfies social need and provides safety (reduces fear)
-                    blackboard.internal.social_need -= 0.3 * time.delta().as_secs_f32();
+                    // Flocking satisfies social need and reduces fear based on flock tendency  
+                    let social_satisfaction = 0.3 * social_traits.flock_tendency;
+                    let safety_boost = 0.2 * social_traits.flock_tendency;
+                    blackboard.internal.social_need -= social_satisfaction * time.delta().as_secs_f32();
                     blackboard.internal.social_need = blackboard.internal.social_need.max(0.0);
                     
-                    blackboard.internal.fear -= 0.2 * time.delta().as_secs_f32();
+                    blackboard.internal.fear -= safety_boost * time.delta().as_secs_f32();
                     blackboard.internal.fear = blackboard.internal.fear.max(0.0);
                     
                     // Continue flocking while social need exists
@@ -764,8 +768,9 @@ pub fn following_system(
                 if let Ok(target_transform) = target_query.get(target_entity) {
                     execute_following(&mut transform, target_transform, &time);
                     
-                    // Following satisfies social need
-                    blackboard.internal.social_need -= 0.2 * time.delta().as_secs_f32();
+                    // Following satisfies social need based on social tolerance
+                    let social_satisfaction = 0.2 * social_traits.social_tolerance;
+                    blackboard.internal.social_need -= social_satisfaction * time.delta().as_secs_f32();
                     blackboard.internal.social_need = blackboard.internal.social_need.max(0.0);
                     
                     // Light energy cost
@@ -877,13 +882,15 @@ pub fn caching_system(
         if *state == BirdState::Caching {
             execute_caching(&mut transform, &time);
             
-            // Caching uses some energy but provides future security
-            blackboard.internal.energy -= 0.1 * time.delta().as_secs_f32();
+            // Caching energy cost modified by cache tendency (higher tendency = more efficient)
+            let energy_cost = 0.1 / (1.0 + foraging_traits.cache_tendency);
+            blackboard.internal.energy -= energy_cost * time.delta().as_secs_f32();
             blackboard.internal.energy = blackboard.internal.energy.max(0.0);
             
             // Create cache after some time
             let mut rng = rand::rng();
-            if rng.random_range(0.0..1.0) < 0.3 * time.delta().as_secs_f32() && cache_data.current_cache_count < cache_data.max_cache_capacity {
+            let cache_success_rate = 0.3 * foraging_traits.cache_tendency;
+            if rng.random_range(0.0..1.0) < cache_success_rate * time.delta().as_secs_f32() && cache_data.current_cache_count < cache_data.max_cache_capacity {
                 let cache_location = transform.translation.truncate() + Vec2::new(
                     rng.random_range(-50.0..50.0),
                     rng.random_range(-50.0..50.0)
@@ -919,13 +926,15 @@ pub fn retrieving_system(
             if let Some(target_entity) = blackboard.current_target {
                 execute_retrieving(&mut transform, &time);
                 
-                // Light energy cost for retrieval
-                blackboard.internal.energy -= 0.05 * time.delta().as_secs_f32();
+                // Energy cost for retrieval modified by cache tendency 
+                let energy_cost = 0.05 / (1.0 + foraging_traits.cache_tendency);
+                blackboard.internal.energy -= energy_cost * time.delta().as_secs_f32();
                 blackboard.internal.energy = blackboard.internal.energy.max(0.0);
                 
                 // Attempt to retrieve cached food
                 let mut rng = rand::rng();
-                if rng.random_range(0.0..1.0) < 0.4 * time.delta().as_secs_f32() {
+                let retrieval_success_rate = 0.4 * foraging_traits.cache_tendency;
+                if rng.random_range(0.0..1.0) < retrieval_success_rate * time.delta().as_secs_f32() {
                     // Find cache at current location (simplified)
                     let current_pos = transform.translation.truncate();
                     let cache_index = cache_data.cached_locations.iter().position(|cache| 
@@ -963,12 +972,14 @@ pub fn hover_feeding_system(
             if let Some(target_entity) = blackboard.current_target {
                 execute_hover_feeding(&mut transform, &time);
                 
-                // Hover feeding has high energy cost but efficient feeding
-                blackboard.internal.energy -= 0.4 * time.delta().as_secs_f32();
+                // Hover feeding energy cost modified by hover ability (higher ability = more efficient)
+                let energy_cost = 0.4 / (1.0 + foraging_traits.hover_ability);
+                blackboard.internal.energy -= energy_cost * time.delta().as_secs_f32();
                 blackboard.internal.energy = blackboard.internal.energy.max(0.0);
                 
-                // Very efficient hunger reduction
-                blackboard.internal.hunger -= 0.6 * time.delta().as_secs_f32();
+                // Feeding efficiency based on hover ability
+                let feeding_efficiency = 0.6 * foraging_traits.hover_ability;
+                blackboard.internal.hunger -= feeding_efficiency * time.delta().as_secs_f32();
                 blackboard.internal.hunger = blackboard.internal.hunger.max(0.0);
                 
                 // Stop hover feeding when satisfied or energy depleted
