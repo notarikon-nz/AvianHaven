@@ -1,11 +1,10 @@
 // Advanced Foraging Ecology System
 use bevy::prelude::*;
 use crate::bird::{BirdSpecies, Bird};
-use crate::bird_ai::components::{BirdAI, BirdState, Blackboard, ForagingTraits};
-use crate::environment::resources::{TimeState, WeatherState, SeasonalState};
+use crate::bird_ai::components::{BirdAI, BirdState, Blackboard};
+use crate::environment::resources::{TimeState, WeatherState};
 use crate::environment::components::{Weather, Season};
 use std::collections::HashMap;
-use rand::Rng;
 
 pub struct ForagingEcologyPlugin;
 

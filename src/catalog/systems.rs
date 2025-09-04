@@ -61,6 +61,7 @@ pub fn setup_catalog_items(
             },
             BackgroundColor(Color::srgb(0.95, 0.92, 0.88)),
             BorderColor(Color::srgb(0.6, 0.4, 0.2)),
+            BorderRadius::all(Val::Px(6.0)),
             CatalogContainer,
         )).with_children(|catalog| {
             // Title bar

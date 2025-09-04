@@ -3,7 +3,7 @@ use bevy::prelude::*;
 pub mod components;
 pub mod systems;
 
-use components::*;
+// use components::*;
 use systems::*;
 
 pub struct FlockingPlugin;

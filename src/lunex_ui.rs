@@ -576,7 +576,7 @@ pub fn cleanup_lunex_journal(
     mut commands: Commands,
     lunex_journal_query: Query<Entity, With<LunexJournalUI>>,
     bevy_journal_query: Query<Entity, With<BevyJournalUI>>,
-    root_query: Query<Entity, (With<UiLayoutRoot>, Without<LunexJournalUI>)>,
+    // root_query: Query<Entity, (With<UiLayoutRoot>, Without<LunexJournalUI>)>,
 ) {
     info!("🔴 JOURNAL: cleanup_lunex_journal called");
     

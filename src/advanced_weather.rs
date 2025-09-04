@@ -1,12 +1,10 @@
 // Advanced Weather Effects System
 use bevy::prelude::*;
 use crate::bird::{BirdSpecies, Bird};
-use crate::bird_ai::components::{BirdAI, BirdState, Blackboard, InternalState};
+use crate::bird_ai::components::{BirdAI, BirdState, Blackboard};
 use crate::environment::resources::{WeatherState, TimeState};
-use crate::environment::components::{Weather, Season};
-use crate::flocking::components::Flock;
-use rand::Rng;
-
+use crate::environment::components::{Weather};
+// use crate::flocking::components::Flock;
 
 pub struct AdvancedWeatherPlugin;
 

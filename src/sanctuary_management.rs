@@ -1,9 +1,8 @@
 // Advanced Sanctuary Management - Phase 4
 use bevy::prelude::*;
-use serde::{Serialize, Deserialize};
-use crate::bird::{BirdSpecies, Bird};
-use crate::bird_ai::components::{SmartObject, ProvidesUtility, BirdState};
-use crate::environment::components::{Season, Weather};
+use crate::bird::{BirdSpecies};
+use crate::bird_ai::components::{SmartObject, ProvidesUtility};
+use crate::environment::components::{Season};
 use crate::advanced_weather::{WeatherShelter, ShelterType};
 
 // Additional sanctuary management extensions to ShelterType

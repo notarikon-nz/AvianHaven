@@ -772,7 +772,7 @@ pub fn environmental_bird_spawning_system(
     time_state: Res<TimeState>,
     weather_state: Res<WeatherState>,
     seasonal_state: Res<SeasonalState>,
-    time: Res<Time>,
+    // time: Res<Time>,
     bird_registry: Res<crate::bird_data::BirdDataRegistry>,
     education_data: Res<BirdEducationData>,
 ) {

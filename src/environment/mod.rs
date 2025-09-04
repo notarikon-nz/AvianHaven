@@ -5,7 +5,6 @@ pub mod resources;
 pub mod systems;
 pub mod lighting;
 
-use components::*;
 use resources::*;
 use systems::*;
 use lighting::*;

@@ -306,6 +306,7 @@ fn spawn_tutorial_ui(commands: &mut Commands) {
         },
         BackgroundColor(Color::srgba(0.1, 0.1, 0.15, 0.9)),
         BorderColor(Color::srgb(0.8, 0.6, 0.4)),
+        BorderRadius::all(Val::Px(6.0)),
         TutorialUI,
     )).with_children(|tutorial| {
         // Tutorial text area

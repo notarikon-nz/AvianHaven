@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use std::collections::{HashMap, HashSet};
+// use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -7,8 +7,8 @@ use crate::save_load::resources::*;
 use crate::catalog::resources::{PlayerInventory, PlacedObjects};
 use crate::journal::resources::DiscoveredSpecies;
 use crate::environment::resources::{TimeState, WeatherState};
-use crate::achievements::{AchievementProgress, Achievement};
-use crate::catalog::components::{PlaceableObject, PlaceableItemType};
+use crate::achievements::{AchievementProgress};
+use crate::catalog::components::{PlaceableObject};
 use crate::save_load::components::PersistentObject;
 use crate::despawn::SafeDespawn;
 

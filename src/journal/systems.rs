@@ -68,6 +68,7 @@ pub fn setup_journal_menu_system(
             },
             BackgroundColor(Color::srgb(0.9, 0.87, 0.82)),
             BorderColor(Color::srgb(0.7, 0.6, 0.5)),
+            BorderRadius::all(Val::Px(6.0)),
         )).with_children(|header| {
             header.spawn((
                 Text::new("Field Journal"),

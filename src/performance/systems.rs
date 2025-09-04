@@ -77,20 +77,74 @@ pub fn performance_monitoring_system(
 
 pub fn memory_optimization_system(
     mut images: ResMut<Assets<Image>>,
+    mut meshes: ResMut<Assets<Mesh>>,
     time: Res<Time>,
+    audio_assets: Res<Assets<AudioSource>>,
 ) {
     // Periodic cleanup of unused assets
     static mut CLEANUP_TIMER: f32 = 0.0;
+    static mut LAST_IMAGE_COUNT: usize = 0;
+    static mut LAST_MESH_COUNT: usize = 0;
     
     unsafe {
         CLEANUP_TIMER += time.delta().as_secs_f32();
         if CLEANUP_TIMER > 60.0 { // Cleanup every minute
-            // In a real implementation, this would remove unused image assets
-            // For now, just log that cleanup would occur
-            let image_count = images.len();
-            if image_count > 100 {
-                info!("Memory optimization: {} images in memory", image_count);
+            let initial_image_count = images.len();
+            let initial_mesh_count = meshes.len();
+            let audio_count = audio_assets.len();
+            
+            // Remove unused images (those with no strong references)
+            let all_image_ids: Vec<_> = images.ids().collect();
+            let unused_images: Vec<_> = all_image_ids.iter().filter(|&&id| {
+                if let Some(handle) = images.get_strong_handle(id) {
+                    handle.is_weak() // Only remove if no strong references exist
+                } else {
+                    true
+                }
+            }).copied().collect();
+            
+            for id in unused_images {
+                images.remove(id);
             }
+            
+            // Remove unused meshes
+            let all_mesh_ids: Vec<_> = meshes.ids().collect();
+            let unused_meshes: Vec<_> = all_mesh_ids.iter().filter(|&&id| {
+                if let Some(handle) = meshes.get_strong_handle(id) {
+                    handle.is_weak()
+                } else {
+                    true
+                }
+            }).copied().collect();
+            
+            for id in unused_meshes {
+                meshes.remove(id);
+            }
+            
+            let final_image_count = images.len();
+            let final_mesh_count = meshes.len();
+            
+            let images_cleaned = initial_image_count - final_image_count;
+            let meshes_cleaned = initial_mesh_count - final_mesh_count;
+            
+            if images_cleaned > 0 || meshes_cleaned > 0 {
+                info!("Memory optimization: Cleaned {} images, {} meshes. Current: {} images, {} meshes, {} audio", 
+                      images_cleaned, meshes_cleaned, final_image_count, final_mesh_count, audio_count);
+            }
+            
+            // Warn if asset counts are growing too large
+            if final_image_count > 200 {
+                warn!("High image count: {} loaded images", final_image_count);
+            }
+            if final_mesh_count > 100 {
+                warn!("High mesh count: {} loaded meshes", final_mesh_count);
+            }
+            if audio_count > 50 {
+                warn!("High audio count: {} loaded audio files", audio_count);
+            }
+            
+            LAST_IMAGE_COUNT = final_image_count;
+            LAST_MESH_COUNT = final_mesh_count;
             CLEANUP_TIMER = 0.0;
         }
     }

@@ -249,7 +249,7 @@ pub fn cleanup_selection_ui(
 ) {
     // Clean up info cards
     for entity in &card_query {
-        commands.entity(entity).despawn_recursive();
+        commands.entity(entity).despawn();
     }
     
     // Clean up highlights

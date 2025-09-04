@@ -5,7 +5,7 @@ pub mod resources;
 pub mod systems;
 pub mod profiling;
 
-use components::*;
+// use components::*;
 use resources::*;
 use systems::*;
 use profiling::*;

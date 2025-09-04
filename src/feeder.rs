@@ -255,7 +255,7 @@ pub struct FeederUpgradeEvent {
 }
 
 fn handle_feeder_upgrade_system(
-    mut commands: Commands,
+    commands: Commands,
     mut upgrade_events: EventReader<FeederUpgradeEvent>,
     mut feeder_query: Query<&mut Feeder>,
     mut currency: ResMut<crate::photo_mode::resources::CurrencyResource>,

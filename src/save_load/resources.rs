@@ -2,11 +2,11 @@ use bevy::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::collections::{HashMap, HashSet};
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::{PathBuf};
 
 use crate::bird::BirdSpecies;
 use crate::catalog::components::PlaceableItemType;
-use crate::environment::components::{Weather, Season};
+use crate::environment::components::{Weather};
 use crate::achievements::Achievement;
 
 #[derive(Resource)]

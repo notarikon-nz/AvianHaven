@@ -2,6 +2,7 @@ use bevy::prelude::*;
 use super::{components::*, resources::*};
 use crate::achievements::{AchievementUnlockedEvent, Achievement};
 use crate::photo_mode::components::PhotoTakenEvent;
+use std::process::Command;
 
 pub fn initialize_steam_systems(
     mut steam_state: ResMut<SteamState>,
@@ -31,10 +32,255 @@ pub fn initialize_steam_systems(
     info!("Steam systems initialized");
 }
 
-fn check_steam_connection() -> bool {
-    // In real implementation: check if Steam client is running
-    // For now, assume Steam is available
-    std::env::var("STEAM_OFFLINE").is_err()
+pub fn check_steam_connection() -> bool {
+    // use std::process::Command;
+    
+    // First check if we're in offline mode via environment variable
+    if std::env::var("STEAM_OFFLINE").is_ok() {
+        info!("Steam offline mode enabled via environment variable");
+        return false;
+    }
+    
+    // Check for Steam client processes on different platforms
+    let steam_running = check_steam_process();
+    
+    if steam_running {
+        // Additional check: try to access Steam API if available
+        if check_steam_api_availability() {
+            info!("Steam client detected and API available");
+            true
+        } else {
+            warn!("Steam client detected but API not available");
+            false
+        }
+    } else {
+        info!("Steam client not detected - running in offline mode");
+        false
+    }
+}
+
+fn check_steam_process() -> bool {
+    #[cfg(target_os = "windows")]
+    {
+        // On Windows, check for Steam.exe process
+        match Command::new("tasklist")
+            .args(["/FI", "IMAGENAME eq Steam.exe", "/NH"])
+            .output()
+        {
+            Ok(output) => {
+                let output_str = String::from_utf8_lossy(&output.stdout);
+                let steam_found = output_str.contains("Steam.exe");
+                if steam_found {
+                    info!("Steam.exe process found on Windows");
+                } else {
+                    info!("Steam.exe process not found on Windows");
+                }
+                steam_found
+            }
+            Err(e) => {
+                warn!("Failed to check for Steam process on Windows: {}", e);
+                false
+            }
+        }
+    }
+    
+    #[cfg(target_os = "macos")]
+    {
+        // On macOS, check for Steam process
+        match Command::new("pgrep")
+            .args(["-f", "Steam"])
+            .output()
+        {
+            Ok(output) => {
+                let steam_found = !output.stdout.is_empty();
+                if steam_found {
+                    info!("Steam process found on macOS");
+                } else {
+                    info!("Steam process not found on macOS");
+                }
+                steam_found
+            }
+            Err(e) => {
+                warn!("Failed to check for Steam process on macOS: {}", e);
+                false
+            }
+        }
+    }
+    
+    #[cfg(target_os = "linux")]
+    {
+        // On Linux, check for steam process
+        match Command::new("pgrep")
+            .args(["-x", "steam"])
+            .output()
+        {
+            Ok(output) => {
+                let steam_found = !output.stdout.is_empty();
+                if steam_found {
+                    info!("Steam process found on Linux");
+                    steam_found
+                } else {
+                    info!("Steam process not found on Linux - checking for alternative names");
+                    // Try alternative process names
+                    check_alternative_steam_processes()
+                }
+            }
+            Err(e) => {
+                warn!("Failed to check for Steam process on Linux: {}", e);
+                // Fallback: check for Steam directory
+                check_steam_directory_linux()
+            }
+        }
+    }
+    
+    #[cfg(not(any(target_os = "windows", target_os = "macos", target_os = "linux")))]
+    {
+        warn!("Steam process checking not implemented for this platform");
+        false
+    }
+}
+
+#[cfg(target_os = "linux")]
+fn check_alternative_steam_processes() -> bool {
+    let alt_names = ["steamwebhelper", "steam-runtime"];
+    
+    for name in &alt_names {
+        match Command::new("pgrep")
+            .args(["-f", name])
+            .output()
+        {
+            Ok(output) => {
+                if !output.stdout.is_empty() {
+                    info!("Steam-related process '{}' found on Linux", name);
+                    return true;
+                }
+            }
+            Err(_) => continue,
+        }
+    }
+    
+    false
+}
+
+#[cfg(target_os = "linux")]
+fn check_steam_directory_linux() -> bool {
+    use std::path::Path;
+    
+    let steam_dirs = [
+        "/home/*/snap/steam/common/.steam",
+        "/home/*/.steam",
+        "/home/*/.local/share/Steam",
+        "/var/lib/flatpak/app/com.valvesoftware.Steam",
+    ];
+    
+    for dir_pattern in &steam_dirs {
+        if dir_pattern.contains('*') {
+            // Use glob-like expansion for home directories
+            match std::env::var("HOME") {
+                Ok(home) => {
+                    let expanded_path = dir_pattern.replace("/home/*", &home);
+                    if Path::new(&expanded_path).exists() {
+                        info!("Steam installation directory found: {}", expanded_path);
+                        return true;
+                    }
+                }
+                Err(_) => continue,
+            }
+        } else if Path::new(dir_pattern).exists() {
+            info!("Steam installation directory found: {}", dir_pattern);
+            return true;
+        }
+    }
+    
+    info!("No Steam installation directories found on Linux");
+    false
+}
+
+fn check_steam_api_availability() -> bool {
+    // In a production environment, this would attempt to initialize the Steam API
+    // For now, we'll do a simple check for Steam-related environment variables or registry entries
+    
+    #[cfg(target_os = "windows")]
+    {
+        // On Windows, check for Steam installation in registry (simplified)
+        check_steam_registry_windows()
+    }
+    
+    #[cfg(not(target_os = "windows"))]
+    {
+        // On non-Windows, check for Steam environment variables
+        std::env::var("STEAM_COMPAT_DATA_PATH").is_ok() ||
+        std::env::var("STEAMAPPS").is_ok() ||
+        std::env::var("STEAM_RUNTIME").is_ok() ||
+        check_steam_config_files()
+    }
+}
+
+#[cfg(target_os = "windows")]
+fn check_steam_registry_windows() -> bool {
+    // In a real implementation, this would query the Windows registry
+    // For now, we'll check for common Steam environment variables that might be set
+    std::env::var("STEAM_COMPAT_DATA_PATH").is_ok() ||
+    std::env::var("SteamPath").is_ok() ||
+    std::env::var("SteamExe").is_ok()
+}
+
+#[cfg(not(target_os = "windows"))]
+fn check_steam_config_files() -> bool {
+    use std::path::Path;
+    
+    let config_files = [
+        "~/.steam/steam.cfg",
+        "~/.local/share/Steam/config/config.vdf",
+        "~/snap/steam/common/.steam/steam.cfg",
+    ];
+    
+    for config_path in &config_files {
+        let expanded_path = if config_path.starts_with("~/") {
+            match std::env::var("HOME") {
+                Ok(home) => config_path.replace("~", &home),
+                Err(_) => continue,
+            }
+        } else {
+            config_path.to_string()
+        };
+        
+        if Path::new(&expanded_path).exists() {
+            info!("Steam config file found: {}", expanded_path);
+            return true;
+        }
+    }
+    
+    false
+}
+
+// Updated initialization system to use the new connection check
+pub fn initialize_steam_systems_with_check(
+    mut steam_state: ResMut<SteamState>,
+    mut steam_achievements: ResMut<SteamAchievements>,
+) {
+    info!("Initializing Steam integration with connection check...");
+    
+    if check_steam_connection() {
+        // Steam is available - attempt full initialization
+        info!("Steam client detected - initializing full Steam integration");
+        steam_state.is_initialized = true;
+        steam_state.is_connected = true;
+        steam_state.user_id = Some(123456789); // In production, get from Steam API
+        
+        // Register achievement mappings
+        steam_achievements.register_achievement_mapping();
+        
+        info!("Steam integration fully initialized");
+    } else {
+        // Steam not available - run in offline mode
+        warn!("Steam client not detected - running in offline mode");
+        steam_state.is_initialized = false;
+        steam_state.is_connected = false;
+        steam_state.user_id = None;
+        
+        info!("Steam integration disabled - all features will work offline");
+    }
 }
 
 pub fn steam_achievement_sync_system(

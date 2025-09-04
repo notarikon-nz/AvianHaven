@@ -1,6 +1,12 @@
 use crate::bird_ai::components::*;
 use crate::environment::resources::{TimeState, WeatherState};
 
+pub struct Rule {
+    pub priority: u32,
+    pub check: fn(&Blackboard, &TimeState, &WeatherState) -> bool,
+    pub result: BirdState,
+}
+
 pub fn evaluate_behavior_tree(blackboard: &Blackboard, time_state: &TimeState, weather_state: &WeatherState) -> BirdState {
     let internal = &blackboard.internal;
     let world = &blackboard.world_knowledge;
