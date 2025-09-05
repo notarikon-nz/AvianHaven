@@ -75,48 +75,132 @@ impl SliderWidget {
 
 
 
-// Simplified system to handle slider interactions via button clicks
+// Working drag slider system with proper coordinate conversion
 pub fn slider_interaction_system(
-    mut interaction_query: Query<(Entity, &Interaction), (Changed<Interaction>, With<SliderTrack>)>,
+    mut track_query: Query<(Entity, &Interaction, &GlobalTransform, &Node), (With<SliderTrack>, Without<SliderHandle>)>,
     mut slider_query: Query<&mut SliderWidget>,
-    mut handle_query: Query<&mut Node, With<SliderHandle>>,
+    mut handle_query: Query<&mut Node, (With<SliderHandle>, Without<SliderTrack>)>, 
     mut text_query: Query<&mut Text, With<SliderValueText>>,
     mut slider_events: EventWriter<SliderValueChanged>,
-    children_query: Query<&Children>,
+    keys: Res<ButtonInput<KeyCode>>,
+    mouse_button: Res<ButtonInput<MouseButton>>,
+    mut cursor_moved: EventReader<CursorMoved>,
+    windows: Query<&Window>,
 ) {
-    for (track_entity, interaction) in &interaction_query {
-        if matches!(interaction, Interaction::Pressed) {
-            // Find all sliders and match by track association
-            for mut slider in &mut slider_query {
-                // Simple click implementation: increment by 10%
-                let old_value = slider.current_value;
-                let old_percentage = slider.get_percentage();
-                let new_percentage = if old_percentage >= 100 { 0 } else { (old_percentage + 10).min(100) };
+    let cursor_position = cursor_moved.read().last().map(|e| e.position);
+    
+    // Mouse drag handling
+    if mouse_button.pressed(MouseButton::Left) {
+        if let Some(cursor_pos) = cursor_position {
+            for (track_entity, interaction, track_transform, track_node) in &track_query {
+                if matches!(interaction, Interaction::Pressed | Interaction::Hovered) {
+                    // Get window for coordinate conversion
+                    let Ok(window) = windows.single() else { continue };
+                    
+                    // Convert UI coordinates properly
+                    let track_world_pos = track_transform.translation().truncate();
+                    let track_size = Vec2::new(200.0, 24.0); // Simplified - use fixed size for now
+                    
+                    // Convert cursor position from screen to UI coordinates
+                    let window_size = Vec2::new(window.width(), window.height());
+                    let ui_cursor = Vec2::new(
+                        cursor_pos.x - window_size.x / 2.0,
+                        window_size.y / 2.0 - cursor_pos.y
+                    );
+                    
+                    // Calculate relative position on track
+                    let track_left = track_world_pos.x - track_size.x / 2.0;
+                    let relative_x = (ui_cursor.x - track_left) / track_size.x;
+                    let clamped_x = relative_x.clamp(0.0, 1.0);
+                    
+                    // Update slider value
+                    for mut slider in &mut slider_query {
+                        let old_value = slider.current_value;
+                        let new_value = slider.min_value + clamped_x * (slider.max_value - slider.min_value);
+                        
+                        if (new_value - old_value).abs() > 0.001 {
+                            slider.current_value = new_value;
+                            
+                            // Update handle position
+                            for mut handle_node in &mut handle_query {
+                                handle_node.left = Val::Percent(clamped_x * 100.0);
+                            }
+                            
+                            // Update text
+                            for mut text in &mut text_query {
+                                **text = format!("{}%", slider.get_percentage());
+                            }
+                            
+                            // Send event
+                            slider_events.write(SliderValueChanged {
+                                slider_entity: track_entity,
+                                old_value,
+                                new_value: slider.current_value,
+                                percentage: slider.get_percentage(),
+                            });
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    
+    // Keyboard controls
+    if keys.just_pressed(KeyCode::ArrowLeft) || keys.just_pressed(KeyCode::ArrowRight) || 
+       keys.just_pressed(KeyCode::ArrowUp) || keys.just_pressed(KeyCode::ArrowDown) {
+        
+        let increment = if keys.pressed(KeyCode::ShiftLeft) || keys.pressed(KeyCode::ShiftRight) {
+            0.01 // 1% with Shift
+        } else {
+            0.05 // 5% normal
+        };
+        
+        let direction = if keys.just_pressed(KeyCode::ArrowRight) || keys.just_pressed(KeyCode::ArrowUp) {
+            1.0
+        } else {
+            -1.0
+        };
+        
+        for mut slider in &mut slider_query {
+            let old_value = slider.current_value;
+            let value_range = slider.max_value - slider.min_value;
+            let new_value = (slider.current_value + direction * increment * value_range)
+                .clamp(slider.min_value, slider.max_value);
+            
+            if (new_value - old_value).abs() > 0.001 {
+                slider.current_value = new_value;
                 
-                slider.set_from_percentage(new_percentage);
-                
-                // Update all handle positions
+                let handle_percentage = (slider.current_value - slider.min_value) / (slider.max_value - slider.min_value);
                 for mut handle_node in &mut handle_query {
-                    let handle_percentage = (slider.current_value - slider.min_value) / (slider.max_value - slider.min_value);
                     handle_node.left = Val::Percent(handle_percentage * 100.0);
                 }
                 
-                // Update all value texts
                 for mut text in &mut text_query {
                     **text = format!("{}%", slider.get_percentage());
                 }
                 
-                // Send event for first slider (simplified)
                 slider_events.write(SliderValueChanged {
-                    slider_entity: track_entity, // Using track entity as identifier
-                    old_value: old_value,
+                    slider_entity: Entity::PLACEHOLDER,
+                    old_value,
                     new_value: slider.current_value,
                     percentage: slider.get_percentage(),
                 });
-                
-                break; // Only handle one slider per click
             }
         }
+    }
+}
+
+// Cursor position resource for drag support
+#[derive(Resource, Default)]
+pub struct CursorPosition(pub Option<Vec2>);
+
+pub fn update_cursor_position(
+    mut cursor_position: ResMut<CursorPosition>,
+    mut cursor_moved_events: EventReader<CursorMoved>,
+) {
+    for event in cursor_moved_events.read() {
+        cursor_position.0 = Some(event.position);
     }
 }
 

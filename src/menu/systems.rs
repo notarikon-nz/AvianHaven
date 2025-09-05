@@ -2,7 +2,9 @@ use bevy::prelude::*;
 use crate::menu::{components::*, resources::*};
 use crate::save_load::resources::{SaveGameEvent, LoadGameEvent, SaveManager};
 use crate::despawn::SafeDespawn;
-use crate::ui_widgets::{SliderWidget, SliderValueChanged, SliderValueText, SliderTrack, SliderHandle, ToggleButton};
+use crate::ui_widgets::ToggleButton;
+use crate::user_interface::slider::{SliderBuilder, SliderValueChangedEvent};
+use crate::user_interface::dropdown::{DropdownBuilder, DropdownChangedEvent, DropdownChangeKind, DropdownConfig};
 use crate::audio::resources::AudioSettings;
 
 // Setup Systems
@@ -142,7 +144,7 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                 BackgroundColor(Color::srgb(0.93, 0.90, 0.86)),
             )).with_children(|scrollable_content| {
             
-            // Audio settings section with sliders
+            // Audio settings section with sliders - placeholder for now
             scrollable_content.spawn((
                 Node {
                     width: Val::Percent(100.0),
@@ -151,6 +153,7 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                     margin: UiRect::vertical(Val::Px(20.0)),
                     ..default()
                 },
+                AudioSection, // Add a marker component
             )).with_children(|section| {
                 section.spawn((
                     Text::new("Audio"),
@@ -165,190 +168,11 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                     },
                 ));
                 
-                // Master Volume Slider
                 section.spawn((
-                    Node {
-                        width: Val::Percent(100.0),
-                        flex_direction: FlexDirection::Column,
-                        row_gap: Val::Px(8.0),
-                        ..default()
-                    },
-                    SliderWidget::new(0.0, 1.0, settings.master_volume),
-                    VolumeSlider { setting_type: SettingType::MasterVolume },
-                )).with_children(|slider_container| {
-                    // Label and value row
-                    slider_container.spawn((
-                        Node {
-                            width: Val::Percent(100.0),
-                            flex_direction: FlexDirection::Row,
-                            justify_content: JustifyContent::SpaceBetween,
-                            align_items: AlignItems::Center,
-                            ..default()
-                        },
-                    )).with_children(|label_row| {
-                        label_row.spawn((
-                            Text::new("Master Volume"),
-                            TextFont { font_size: 16.0, ..default() },
-                            TextColor(Color::srgb(0.3, 0.2, 0.1)),
-                        ));
-                        label_row.spawn((
-                            Text::new(format!("{}%", ((settings.master_volume * 100.0) as u32))),
-                            TextFont { font_size: 16.0, ..default() },
-                            TextColor(Color::srgb(0.4, 0.3, 0.2)),
-                            SliderValueText,
-                        ));
-                    });
-                    
-                    // Slider track
-                    slider_container.spawn((
-                        Button,
-                        Node {
-                            width: Val::Percent(100.0),
-                            height: Val::Px(20.0),
-                            justify_content: JustifyContent::Start,
-                            align_items: AlignItems::Center,
-                            ..default()
-                        },
-                        BackgroundColor(Color::srgb(0.8, 0.8, 0.8)),
-                        BorderRadius::all(Val::Px(10.0)),
-                        SliderTrack,
-                    )).with_children(|track| {
-                        track.spawn((
-                            Node {
-                                width: Val::Px(16.0),
-                                height: Val::Px(16.0),
-                                position_type: PositionType::Absolute,
-                                left: Val::Percent(settings.master_volume * 100.0),
-                                ..default()
-                            },
-                            BackgroundColor(Color::srgb(0.2, 0.4, 0.8)),
-                            BorderRadius::all(Val::Px(8.0)),
-                            SliderHandle,
-                        ));
-                    });
-                });
-                
-                // Music Volume Slider
-                section.spawn((
-                    Node {
-                        width: Val::Percent(100.0),
-                        flex_direction: FlexDirection::Column,
-                        row_gap: Val::Px(8.0),
-                        ..default()
-                    },
-                    SliderWidget::new(0.0, 1.0, settings.music_volume),
-                    VolumeSlider { setting_type: SettingType::MusicVolume },
-                )).with_children(|slider_container| {
-                    slider_container.spawn((
-                        Node {
-                            width: Val::Percent(100.0),
-                            flex_direction: FlexDirection::Row,
-                            justify_content: JustifyContent::SpaceBetween,
-                            align_items: AlignItems::Center,
-                            ..default()
-                        },
-                    )).with_children(|label_row| {
-                        label_row.spawn((
-                            Text::new("Music Volume"),
-                            TextFont { font_size: 16.0, ..default() },
-                            TextColor(Color::srgb(0.3, 0.2, 0.1)),
-                        ));
-                        label_row.spawn((
-                            Text::new(format!("{}%", ((settings.music_volume * 100.0) as u32))),
-                            TextFont { font_size: 16.0, ..default() },
-                            TextColor(Color::srgb(0.4, 0.3, 0.2)),
-                            SliderValueText,
-                        ));
-                    });
-                    
-                    slider_container.spawn((
-                        Button,
-                        Node {
-                            width: Val::Percent(100.0),
-                            height: Val::Px(20.0),
-                            justify_content: JustifyContent::Start,
-                            align_items: AlignItems::Center,
-                            ..default()
-                        },
-                        BackgroundColor(Color::srgb(0.8, 0.8, 0.8)),
-                        BorderRadius::all(Val::Px(10.0)),
-                        SliderTrack,
-                    )).with_children(|track| {
-                        track.spawn((
-                            Node {
-                                width: Val::Px(16.0),
-                                height: Val::Px(16.0),
-                                position_type: PositionType::Absolute,
-                                left: Val::Percent(settings.music_volume * 100.0),
-                                ..default()
-                            },
-                            BackgroundColor(Color::srgb(0.2, 0.4, 0.8)),
-                            BorderRadius::all(Val::Px(8.0)),
-                            SliderHandle,
-                        ));
-                    });
-                });
-                
-                // SFX Volume Slider
-                section.spawn((
-                    Node {
-                        width: Val::Percent(100.0),
-                        flex_direction: FlexDirection::Column,
-                        row_gap: Val::Px(8.0),
-                        ..default()
-                    },
-                    SliderWidget::new(0.0, 1.0, settings.sfx_volume),
-                    VolumeSlider { setting_type: SettingType::SfxVolume },
-                )).with_children(|slider_container| {
-                    slider_container.spawn((
-                        Node {
-                            width: Val::Percent(100.0),
-                            flex_direction: FlexDirection::Row,
-                            justify_content: JustifyContent::SpaceBetween,
-                            align_items: AlignItems::Center,
-                            ..default()
-                        },
-                    )).with_children(|label_row| {
-                        label_row.spawn((
-                            Text::new("SFX Volume"),
-                            TextFont { font_size: 16.0, ..default() },
-                            TextColor(Color::srgb(0.3, 0.2, 0.1)),
-                        ));
-                        label_row.spawn((
-                            Text::new(format!("{}%", ((settings.sfx_volume * 100.0) as u32))),
-                            TextFont { font_size: 16.0, ..default() },
-                            TextColor(Color::srgb(0.4, 0.3, 0.2)),
-                            SliderValueText,
-                        ));
-                    });
-                    
-                    slider_container.spawn((
-                        Button,
-                        Node {
-                            width: Val::Percent(100.0),
-                            height: Val::Px(20.0),
-                            justify_content: JustifyContent::Start,
-                            align_items: AlignItems::Center,
-                            ..default()
-                        },
-                        BackgroundColor(Color::srgb(0.8, 0.8, 0.8)),
-                        BorderRadius::all(Val::Px(10.0)),
-                        SliderTrack,
-                    )).with_children(|track| {
-                        track.spawn((
-                            Node {
-                                width: Val::Px(16.0),
-                                height: Val::Px(16.0),
-                                position_type: PositionType::Absolute,
-                                left: Val::Percent(settings.sfx_volume * 100.0),
-                                ..default()
-                            },
-                            BackgroundColor(Color::srgb(0.2, 0.4, 0.8)),
-                            BorderRadius::all(Val::Px(8.0)),
-                            SliderHandle,
-                        ));
-                    });
-                });
+                    Text::new("Volume sliders will be added here..."),
+                    TextFont { font_size: 14.0, ..default() },
+                    TextColor(Color::srgb(0.5, 0.5, 0.5)),
+                ));
             });
             
             // Graphics settings section
@@ -360,6 +184,7 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                     margin: UiRect::vertical(Val::Px(20.0)),
                     ..default()
                 },
+                GraphicsSection, // Add marker component
             )).with_children(|section| {
                 section.spawn((
                     Text::new("Graphics"),
@@ -374,7 +199,7 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                     },
                 ));
                 
-                // Resolution selector (simplified for now)
+                // Graphics Quality selector (simplified for now)
                 section.spawn((
                     Button,
                     Node {
@@ -387,18 +212,21 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                     },
                     BackgroundColor(Color::srgb(0.9, 0.9, 0.9)),
                     BorderRadius::all(Val::Px(6.0)),
-                    ResolutionDropdown,
+                    GraphicsQualityDropdown,
                 )).with_children(|item| {
+
+                    // Resolution selector - placeholder for new dropdown
                     item.spawn((
                         Text::new("Resolution"),
                         TextFont { font_size: 16.0, ..default() },
                         TextColor(Color::srgb(0.3, 0.2, 0.1)),
+                        Node {
+                            margin: UiRect::bottom(Val::Px(10.0)),
+                            ..default()
+                        },
+                        ResolutionDropdownLabel, // Marker component
                     ));
-                    item.spawn((
-                        Text::new(format!("{}x{} ▼", settings.window_resolution.0, settings.window_resolution.1)),
-                        TextFont { font_size: 16.0, ..default() },
-                        TextColor(Color::srgb(0.5, 0.3, 0.2)),
-                    ));
+
                 });
                 
                 // Graphics Quality selector (simplified for now)
@@ -1276,15 +1104,143 @@ pub fn cleanup_menu_ui(
     }
 }
 
+// System to add resolution dropdown after UI setup
+pub fn setup_resolution_dropdown_system(
+    mut commands: Commands,
+    settings: Res<GameSettings>,
+    mut option_registry: ResMut<crate::user_interface::dropdown::DropdownOptionRegistry>,
+    graphics_section_query: Query<Entity, With<GraphicsSection>>,
+    label_query: Query<Entity, With<ResolutionDropdownLabel>>,
+) {
+    // Find the graphics section and add the dropdown after the resolution label
+    if let Some(label_entity) = label_query.iter().next() {
+        let resolutions = GameSettings::get_common_resolutions();
+        let current_index = settings.find_resolution_index();
+        
+        // Build dropdown with resolution options
+        let mut dropdown_builder = DropdownBuilder::new();
+        for (width, height) in &resolutions {
+            dropdown_builder = dropdown_builder.with_option(format!("{}x{}", width, height), None);
+        }
+        
+        let dropdown_spawn_cmd = dropdown_builder
+            .with_placeholder(format!("{}x{}", settings.window_resolution.0, settings.window_resolution.1))
+            .build();
+            
+        let dropdown_entity = dropdown_spawn_cmd.spawn(&mut commands, &mut option_registry);
+        
+        // Add marker component to identify this as the resolution dropdown
+        commands.entity(dropdown_entity).insert(ResolutionDropdown);
+        
+        // Add it as a child of the same parent as the label
+        // Since we can't query Parent directly in Commands, we'll add it to the graphics section
+        for graphics_entity in graphics_section_query.iter() {
+            commands.entity(graphics_entity).add_children(&[dropdown_entity]);
+            break;
+        }
+    }
+}
+
+// System to add volume sliders to the audio section after UI setup
+pub fn setup_audio_sliders_system(
+    mut commands: Commands,
+    settings: Res<GameSettings>,
+    audio_section_query: Query<Entity, With<AudioSection>>,
+    children_query: Query<&Children>,
+    text_query: Query<&Text>,
+) {
+    // Add sliders to the audio section
+    for section_entity in audio_section_query.iter() {
+        // Clear placeholder text by finding and despawning text entities
+        if let Ok(children) = children_query.get(section_entity) {
+            for child in children.iter() {
+                if let Ok(text) = text_query.get(child) {
+                    if text.contains("Volume sliders will be added here") {
+                        commands.entity(child).despawn();
+                    }
+                }
+            }
+        }
+        
+        // Add the volume sliders
+        
+        // Master Volume Slider
+        let volume_label = commands.spawn((
+            Text::new("Master Volume"),
+            TextFont { font_size: 16.0, ..default() },
+            TextColor(Color::srgb(0.3, 0.2, 0.1)),
+            Node {
+                margin: UiRect::bottom(Val::Px(10.0)),
+                ..default()
+            },
+        )).id();
+        commands.entity(section_entity).add_children(&[volume_label]);
+        
+        let volume_slider = SliderBuilder::new(&mut commands)
+            .with_range(0.0, 1.0)
+            .with_value(settings.master_volume)
+            .with_value_formatter(|value| format!("{}%", (value * 100.0) as u32))
+            .spawn_with_parent(section_entity);
+            
+        commands.entity(volume_slider).insert(VolumeSlider { 
+            setting_type: SettingType::MasterVolume 
+        });
+        
+        // Music Volume Slider
+        let music_label = commands.spawn((
+            Text::new("Music Volume"),
+            TextFont { font_size: 16.0, ..default() },
+            TextColor(Color::srgb(0.3, 0.2, 0.1)),
+            Node {
+                margin: UiRect::bottom(Val::Px(10.0)),
+                ..default()
+            },
+        )).id();
+        commands.entity(section_entity).add_children(&[music_label]);
+        
+        let music_slider = SliderBuilder::new(&mut commands)
+            .with_range(0.0, 1.0)
+            .with_value(settings.music_volume)
+            .with_value_formatter(|value| format!("{}%", (value * 100.0) as u32))
+            .spawn_with_parent(section_entity);
+            
+        commands.entity(music_slider).insert(VolumeSlider { 
+            setting_type: SettingType::MusicVolume 
+        });
+        
+        // SFX Volume Slider
+        let sfx_label = commands.spawn((
+            Text::new("SFX Volume"),
+            TextFont { font_size: 16.0, ..default() },
+            TextColor(Color::srgb(0.3, 0.2, 0.1)),
+            Node {
+                margin: UiRect::bottom(Val::Px(10.0)),
+                ..default()
+            },
+        )).id();
+        commands.entity(section_entity).add_children(&[sfx_label]);
+        
+        let sfx_slider = SliderBuilder::new(&mut commands)
+            .with_range(0.0, 1.0)
+            .with_value(settings.sfx_volume)
+            .with_value_formatter(|value| format!("{}%", (value * 100.0) as u32))
+            .spawn_with_parent(section_entity);
+            
+        commands.entity(sfx_slider).insert(VolumeSlider { 
+            setting_type: SettingType::SfxVolume 
+        });
+    }
+}
+
 // System to handle volume slider changes
 pub fn volume_slider_update_system(
-    mut slider_events: EventReader<SliderValueChanged>,
+    mut slider_events: EventReader<SliderValueChangedEvent>,
     volume_slider_query: Query<&VolumeSlider>,
     mut game_settings: ResMut<GameSettings>,
     mut audio_settings: ResMut<AudioSettings>,
 ) {
     for event in slider_events.read() {
-        if let Ok(volume_slider) = volume_slider_query.get(event.slider_entity) {
+        if let Ok(volume_slider) = volume_slider_query.get(event.entity) {
             match volume_slider.setting_type {
                 SettingType::MasterVolume => {
                     game_settings.master_volume = event.new_value;
@@ -1309,32 +1265,27 @@ pub fn volume_slider_update_system(
 
 // Simplified dropdown systems (cycle through options on click)
 pub fn resolution_dropdown_system(
-    mut interaction_query: Query<(&Interaction, &Children), (Changed<Interaction>, With<ResolutionDropdown>)>,
-    mut text_query: Query<&mut Text>,
+    mut dropdown_events: EventReader<DropdownChangedEvent>,
+    dropdown_query: Query<&crate::user_interface::dropdown::Dropdown, With<ResolutionDropdown>>,
     mut settings: ResMut<GameSettings>,
 ) {
-    for (interaction, children) in interaction_query.iter() {
-        if *interaction == Interaction::Pressed {
-            let resolutions = GameSettings::get_common_resolutions();
-            let current_index = settings.find_resolution_index();
-            let next_index = (current_index + 1) % resolutions.len();
+    for event in dropdown_events.read() {
+        // Check if this event is from our resolution dropdown
+        if dropdown_query.get(event.dropdown_entity).is_ok() && 
+           event.kind == DropdownChangeKind::SelectionChanged {
             
-            if let Some(&new_resolution) = resolutions.get(next_index) {
-                settings.window_resolution = new_resolution;
-                info!("Resolution changed to: {}x{}", new_resolution.0, new_resolution.1);
-                
-                // Update display text
-                for child in children.iter() {
-                    if let Ok(mut text) = text_query.get_mut(child) {
-                        if text.contains("x") && text.contains("▼") {
-                            **text = format!("{}x{} ▼", new_resolution.0, new_resolution.1);
+            if let Some(new_label) = &event.new_label {
+                // Parse resolution from label like "1920x1080"
+                if let Some((width_str, height_str)) = new_label.split_once('x') {
+                    if let (Ok(width), Ok(height)) = (width_str.parse::<u32>(), height_str.parse::<u32>()) {
+                        settings.window_resolution = (width, height);
+                        info!("Resolution changed to: {}x{}", width, height);
+                        
+                        // Auto-save settings when changed
+                        if let Err(e) = settings.save_to_file() {
+                            eprintln!("Failed to save settings: {}", e);
                         }
                     }
-                }
-                
-                // Auto-save settings when changed
-                if let Err(e) = settings.save_to_file() {
-                    eprintln!("Failed to save settings: {}", e);
                 }
             }
         }

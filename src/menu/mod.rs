@@ -16,10 +16,12 @@ impl Plugin for MenuPlugin {
         app
             .init_resource::<MenuState>()
             .init_resource::<GameSettings>()
+            .init_resource::<crate::ui_widgets::CursorPosition>()
             .add_event::<MenuNavigationEvent>()
-            .add_event::<crate::ui_widgets::SliderValueChanged>()
+            .add_event::<crate::user_interface::slider::SliderValueChangedEvent>()
+            .add_event::<crate::user_interface::dropdown::DropdownChangedEvent>()
             .add_systems(OnEnter(AppState::MainMenu), setup_main_menu) // Re-enabled as fallback
-            .add_systems(OnEnter(AppState::Settings), setup_settings_menu)
+            .add_systems(OnEnter(AppState::Settings), (setup_settings_menu, setup_audio_sliders_system, setup_resolution_dropdown_system).chain())
             .add_systems(OnEnter(AppState::LoadGame), setup_load_game_menu)
             .add_systems(OnExit(AppState::MainMenu), cleanup_menu_ui)
             .add_systems(OnExit(AppState::Settings), cleanup_menu_ui)
@@ -30,7 +32,6 @@ impl Plugin for MenuPlugin {
             ).run_if(in_state(AppState::MainMenu))) // Re-enabled as fallback
             .add_systems(Update, (
                 settings_button_system,
-                crate::ui_widgets::slider_interaction_system,
                 volume_slider_update_system,
                 graphics_toggle_system,
                 handle_controls_menu,

@@ -98,3 +98,12 @@ pub struct ResolutionDropdown;
 
 #[derive(Component)]
 pub struct GraphicsQualityDropdown;
+
+#[derive(Component)]
+pub struct AudioSection;
+
+#[derive(Component)]
+pub struct ResolutionDropdownLabel;
+
+#[derive(Component)]
+pub struct GraphicsSection;
