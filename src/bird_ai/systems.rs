@@ -1,5 +1,5 @@
 use bevy::prelude::*;
-use crate::bird_ai::{components::*, resources::*, bt::*, states::*};
+use crate::bird_ai::{components::*, resources::*, bt::*, states::*, config::*};
 use rand::Rng;
 use crate::bird::Bird;
 use crate::feeder::Feeder;
@@ -265,12 +265,26 @@ pub fn behavior_tree_system(
     time: Res<Time>,
     time_state: Res<TimeState>,
     weather_state: Res<WeatherState>,
+    config_assets: Res<Assets<BehaviorTreeConfig>>,
+    asset_server: Res<AssetServer>,
 ) {
     timer.0.tick(time.delta());
     if !timer.0.finished() { return; }
     
+    // Try to load the behavior tree config, fall back to legacy if not available
+    let config_handle: Handle<BehaviorTreeConfig> = asset_server.load("data/behavior_tree.ron");
+    let use_configurable = config_assets.get(&config_handle).is_some();
+    
     for (mut state, mut blackboard) in bird_query.iter_mut() {
-        let new_state = evaluate_behavior_tree(&blackboard, &time_state, &weather_state);
+        let new_state = if use_configurable {
+            if let Some(config) = config_assets.get(&config_handle) {
+                evaluate_behavior_tree_configurable(&blackboard, &time_state, &weather_state, config)
+            } else {
+                evaluate_behavior_tree(&blackboard, &time_state, &weather_state)
+            }
+        } else {
+            evaluate_behavior_tree(&blackboard, &time_state, &weather_state)
+        };
         
         if new_state == BirdState::MovingToTarget {
             // Set target based on highest priority need

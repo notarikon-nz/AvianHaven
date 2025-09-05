@@ -1,12 +1,40 @@
 use crate::bird_ai::components::*;
+use crate::bird_ai::config::*;
 use crate::environment::resources::{TimeState, WeatherState};
 
+// Legacy rule struct - kept for compatibility
 pub struct Rule {
     pub priority: u32,
     pub check: fn(&Blackboard, &TimeState, &WeatherState) -> bool,
     pub result: BirdState,
 }
 
+// New configurable behavior tree evaluator
+pub fn evaluate_behavior_tree_configurable(
+    blackboard: &Blackboard,
+    time_state: &TimeState,
+    weather_state: &WeatherState,
+    config: &BehaviorTreeConfig,
+) -> BirdState {
+    let internal = &blackboard.internal;
+    let world = &blackboard.world_knowledge;
+    
+    // Sort rules by priority (higher first)
+    let mut sorted_rules = config.rules.clone();
+    sorted_rules.sort_by(|a, b| b.priority.cmp(&a.priority));
+    
+    // Evaluate rules in priority order
+    for rule in &sorted_rules {
+        if evaluate_rule_conditions(&rule.conditions, blackboard, time_state, weather_state, config) {
+            return config.get_bird_state_from_string(&rule.result);
+        }
+    }
+    
+    // Return default behavior if no rules match
+    config.get_bird_state_from_string(&config.default_behavior)
+}
+
+// Legacy behavior tree evaluator - kept for backward compatibility
 pub fn evaluate_behavior_tree(blackboard: &Blackboard, time_state: &TimeState, weather_state: &WeatherState) -> BirdState {
     let internal = &blackboard.internal;
     let world = &blackboard.world_knowledge;
@@ -142,4 +170,74 @@ pub fn evaluate_behavior_tree(blackboard: &Blackboard, time_state: &TimeState, w
     
     // Default behavior - wander and look for opportunities
     BirdState::Wandering
+}
+
+// Rule condition evaluation
+fn evaluate_rule_conditions(
+    conditions: &[BehaviorCondition],
+    blackboard: &Blackboard,
+    time_state: &TimeState,
+    weather_state: &WeatherState,
+    config: &BehaviorTreeConfig,
+) -> bool {
+    let internal = &blackboard.internal;
+    let world = &blackboard.world_knowledge;
+    
+    for condition in conditions {
+        let condition_met = match condition {
+            BehaviorCondition::WeatherFear { threshold } => {
+                let weather_fear = weather_state.current_weather.weather_fear_factor();
+                internal.fear + weather_fear > *threshold
+            }
+            BehaviorCondition::WeatherShelterUrgency { threshold } => {
+                let shelter_urgency = weather_state.current_weather.shelter_urgency();
+                shelter_urgency > *threshold
+            }
+            BehaviorCondition::InternalStateAbove { state, threshold } => {
+                match state.as_str() {
+                    "hunger" => internal.hunger > *threshold,
+                    "thirst" => internal.thirst > *threshold,
+                    "energy" => internal.energy > *threshold,
+                    "fear" => internal.fear > *threshold,
+                    "social_need" => internal.social_need > *threshold,
+                    "territorial_stress" => internal.territorial_stress > *threshold,
+                    _ => false,
+                }
+            }
+            BehaviorCondition::InternalStateBelow { state, threshold } => {
+                match state.as_str() {
+                    "hunger" => internal.hunger < *threshold,
+                    "thirst" => internal.thirst < *threshold,
+                    "energy" => internal.energy < *threshold,
+                    "fear" => internal.fear < *threshold,
+                    "social_need" => internal.social_need < *threshold,
+                    "territorial_stress" => internal.territorial_stress < *threshold,
+                    _ => false,
+                }
+            }
+            BehaviorCondition::TimeRange { start, end } => {
+                time_state.hour >= *start && time_state.hour <= *end
+            }
+            BehaviorCondition::ActionAvailable(action_str) => {
+                if let Some(action) = config.get_bird_action_from_string(action_str) {
+                    world.available_actions.contains_key(&action)
+                } else {
+                    false
+                }
+            }
+            BehaviorCondition::ActionNotAvailable(action_str) => {
+                if let Some(action) = config.get_bird_action_from_string(action_str) {
+                    !world.available_actions.contains_key(&action)
+                } else {
+                    true
+                }
+            }
+        };
+        
+        if !condition_met {
+            return false;
+        }
+    }
+    
+    true
 }

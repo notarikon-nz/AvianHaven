@@ -5,9 +5,11 @@ pub mod resources;
 pub mod systems;
 pub mod bt;
 pub mod states;
+pub mod config;
 
 use resources::*;
 use systems::*;
+use config::*;
 use crate::{AppState};
 
 pub struct BirdAiPlugin;
@@ -15,6 +17,7 @@ pub struct BirdAiPlugin;
 impl Plugin for BirdAiPlugin {
     fn build(&self, app: &mut App) {
         app
+            .init_asset::<BehaviorTreeConfig>()
             .init_resource::<UtilityTimer>()
             .init_resource::<BehaviorTreeTimer>()
             .add_systems(Startup, setup_test_world)

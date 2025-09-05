@@ -1,0 +1,39 @@
+// Flocking Behavior Configuration
+// Controls bird flocking AI parameters
+
+(
+    search_radius: 100.0,           // How far birds look for neighbors
+    separation: (
+        weight: 2.0,                // Strength of separation force
+        min_distance: 20.0,         // Minimum preferred distance between birds
+        max_force: 150.0,           // Maximum separation force applied
+    ),
+    
+    alignment: (
+        weight: 1.0,                // Strength of alignment force
+        influence_radius: 80.0,     // Radius within which birds influence alignment
+        max_force: 100.0,           // Maximum alignment force applied
+    ),
+    
+    cohesion: (
+        weight: 1.0,                // Strength of cohesion force
+        influence_radius: 60.0,     // Radius within which birds are attracted together
+        max_force: 80.0,            // Maximum cohesion force applied
+    ),
+    
+    predator_avoidance: (
+        detection_radius: 200.0,    // How far birds can detect predators
+        avoidance_force: 300.0,     // Strength of predator avoidance
+        panic_duration: 3.0,        // Time (seconds) birds remain in panic mode
+    ),
+    
+    leader_following: (
+        follow_distance: 40.0,      // Preferred distance from flock leader
+        leader_influence: 1.5,      // Multiplier for leader's influence on flock
+    ),
+    
+    performance: (
+        max_neighbors_checked: 20,  // Limit neighbor checks for performance
+        update_frequency: 0.1,      // Time between flocking calculations (seconds)
+    ),
+)

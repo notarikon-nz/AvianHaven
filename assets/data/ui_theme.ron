@@ -1,0 +1,64 @@
+// UI Theme Configuration
+// Controls colors, fonts, and visual styling
+
+(
+    colors: (
+        background: (r: 0.9, g: 0.9, b: 0.9, a: 1.0),
+        background_hover: (r: 0.8, g: 0.8, b: 0.8, a: 1.0),
+        background_pressed: (r: 0.7, g: 0.7, b: 0.7, a: 1.0),
+        background_selected: (r: 0.6, g: 0.8, b: 0.6, a: 1.0),
+        
+        text_primary: (r: 0.3, g: 0.2, b: 0.1, a: 1.0),
+        text_secondary: (r: 0.5, g: 0.3, b: 0.2, a: 1.0),
+        text_disabled: (r: 0.6, g: 0.6, b: 0.6, a: 1.0),
+        text_highlight: (r: 1.0, g: 1.0, b: 1.0, a: 1.0),
+        
+        accent_positive: (r: 0.2, g: 0.6, b: 0.2, a: 1.0),  // Success/on states
+        accent_negative: (r: 0.6, g: 0.2, b: 0.2, a: 1.0),  // Error/off states
+        accent_warning: (r: 0.8, g: 0.6, b: 0.0, a: 1.0),   // Warning states
+        accent_info: (r: 0.2, g: 0.4, b: 0.8, a: 1.0),      // Information
+        
+        border_default: (r: 0.4, g: 0.4, b: 0.4, a: 1.0),
+        border_active: (r: 0.2, g: 0.4, b: 0.8, a: 1.0),
+        border_error: (r: 0.8, g: 0.2, b: 0.2, a: 1.0),
+        
+        panel_background: (r: 0.95, g: 0.95, b: 0.95, a: 0.9),
+        panel_border: (r: 0.7, g: 0.7, b: 0.7, a: 1.0),
+        overlay_background: (r: 0.0, g: 0.0, b: 0.0, a: 0.5),
+    ),
+    
+    spacing: (
+        small: 4.0,
+        medium: 8.0,
+        large: 16.0,
+        extra_large: 24.0,
+    ),
+    
+    border_radius: (
+        small: 2.0,
+        medium: 4.0,
+        large: 8.0,
+        rounded: 12.0,
+    ),
+    
+    font_sizes: (
+        small: 12.0,
+        medium: 14.0,
+        large: 16.0,
+        title: 20.0,
+        header: 24.0,
+    ),
+    
+    button_sizes: (
+        small: (width: 60.0, height: 24.0),
+        medium: (width: 100.0, height: 32.0),
+        large: (width: 140.0, height: 40.0),
+    ),
+    
+    animation: (
+        hover_duration: 0.2,        // Seconds for hover animations
+        click_duration: 0.1,        // Seconds for click animations
+        fade_duration: 0.3,         // Seconds for fade in/out
+        slide_duration: 0.4,        // Seconds for slide animations
+    ),
+)

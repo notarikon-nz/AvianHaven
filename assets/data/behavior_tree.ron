@@ -1,0 +1,292 @@
+// Behavior Tree Configuration
+// Defines rules and priorities for bird AI decision making
+// Higher priority values are evaluated first
+
+(
+    rules: [
+        // Weather-induced behaviors (Highest priority)
+        (
+            name: "weather_fear_fleeing",
+            priority: 1000,
+            conditions: [
+                WeatherFear(threshold: 0.7),
+            ],
+            result: "Fleeing",
+        ),
+        (
+            name: "critical_weather_shelter",
+            priority: 950,
+            conditions: [
+                WeatherShelterUrgency(threshold: 0.6),
+                ActionAvailable("Shelter"),
+            ],
+            result: "MovingToTarget",
+        ),
+        (
+            name: "moderate_weather_shelter",
+            priority: 900,
+            conditions: [
+                WeatherShelterUrgency(threshold: 0.3),
+                InternalStateBelow(state: "energy", threshold: 0.7),
+                ActionAvailable("Shelter"),
+            ],
+            result: "MovingToTarget",
+        ),
+        
+        // Roosting behavior (Evening hours)
+        (
+            name: "evening_roost",
+            priority: 850,
+            conditions: [
+                TimeRange(start: 18.0, end: 20.0),
+                ActionAvailable("Roost"),
+            ],
+            result: "MovingToTarget",
+        ),
+        (
+            name: "evening_perch_fallback",
+            priority: 840,
+            conditions: [
+                TimeRange(start: 18.0, end: 20.0),
+                ActionAvailable("Perch"),
+            ],
+            result: "MovingToTarget",
+        ),
+        
+        // Critical survival needs
+        (
+            name: "critical_hunger",
+            priority: 800,
+            conditions: [
+                InternalStateAbove(state: "hunger", threshold: 0.8),
+                ActionAvailable("Eat"),
+            ],
+            result: "MovingToTarget",
+        ),
+        (
+            name: "critical_thirst",
+            priority: 790,
+            conditions: [
+                InternalStateAbove(state: "thirst", threshold: 0.8),
+                ActionAvailable("Drink"),
+            ],
+            result: "MovingToTarget",
+        ),
+        
+        // Low energy - rest priority
+        (
+            name: "low_energy_nest",
+            priority: 750,
+            conditions: [
+                InternalStateBelow(state: "energy", threshold: 0.3),
+                ActionAvailable("Nest"),
+            ],
+            result: "MovingToTarget",
+        ),
+        (
+            name: "low_energy_perch",
+            priority: 740,
+            conditions: [
+                InternalStateBelow(state: "energy", threshold: 0.3),
+                ActionAvailable("Perch"),
+            ],
+            result: "MovingToTarget",
+        ),
+        (
+            name: "low_energy_rest",
+            priority: 730,
+            conditions: [
+                InternalStateBelow(state: "energy", threshold: 0.3),
+            ],
+            result: "Resting",
+        ),
+        
+        // Moderate needs
+        (
+            name: "moderate_hunger_hover",
+            priority: 600,
+            conditions: [
+                InternalStateAbove(state: "hunger", threshold: 0.6),
+                ActionAvailable("HoverFeed"),
+            ],
+            result: "MovingToTarget",
+        ),
+        (
+            name: "moderate_hunger_eat",
+            priority: 590,
+            conditions: [
+                InternalStateAbove(state: "hunger", threshold: 0.5),
+                ActionAvailable("Eat"),
+            ],
+            result: "MovingToTarget",
+        ),
+        (
+            name: "ground_foraging",
+            priority: 580,
+            conditions: [
+                InternalStateAbove(state: "hunger", threshold: 0.4),
+                ActionNotAvailable("Eat"),
+            ],
+            result: "Foraging",
+        ),
+        
+        // Caching behaviors
+        (
+            name: "cache_food",
+            priority: 500,
+            conditions: [
+                InternalStateBelow(state: "hunger", threshold: 0.3),
+                InternalStateAbove(state: "energy", threshold: 0.6),
+                ActionAvailable("Cache"),
+            ],
+            result: "MovingToTarget",
+        ),
+        (
+            name: "retrieve_cache",
+            priority: 490,
+            conditions: [
+                InternalStateAbove(state: "hunger", threshold: 0.6),
+                ActionNotAvailable("Eat"),
+                ActionAvailable("Retrieve"),
+            ],
+            result: "MovingToTarget",
+        ),
+        
+        // Thirst
+        (
+            name: "moderate_thirst",
+            priority: 450,
+            conditions: [
+                InternalStateAbove(state: "thirst", threshold: 0.5),
+                ActionAvailable("Drink"),
+            ],
+            result: "MovingToTarget",
+        ),
+        
+        // Bathing behavior
+        (
+            name: "bathing",
+            priority: 400,
+            conditions: [
+                ActionAvailable("Bathe"),
+            ],
+            result: "MovingToTarget",
+        ),
+        
+        // Social behaviors
+        (
+            name: "territorial_challenge",
+            priority: 350,
+            conditions: [
+                InternalStateAbove(state: "territorial_stress", threshold: 0.6),
+                ActionAvailable("Challenge"),
+            ],
+            result: "MovingToTarget",
+        ),
+        (
+            name: "courtship",
+            priority: 340,
+            conditions: [
+                InternalStateAbove(state: "social_need", threshold: 0.5),
+                ActionAvailable("Court"),
+            ],
+            result: "MovingToTarget",
+        ),
+        (
+            name: "flocking",
+            priority: 330,
+            conditions: [
+                InternalStateAbove(state: "social_need", threshold: 0.4),
+                ActionAvailable("Flock"),
+            ],
+            result: "MovingToTarget",
+        ),
+        (
+            name: "following",
+            priority: 320,
+            conditions: [
+                InternalStateAbove(state: "social_need", threshold: 0.3),
+                InternalStateBelow(state: "fear", threshold: 0.4),
+                ActionAvailable("Follow"),
+            ],
+            result: "MovingToTarget",
+        ),
+        
+        // Enrichment behaviors (High energy)
+        (
+            name: "nesting_high_energy",
+            priority: 250,
+            conditions: [
+                InternalStateAbove(state: "energy", threshold: 0.8),
+                ActionAvailable("Nest"),
+            ],
+            result: "MovingToTarget",
+        ),
+        (
+            name: "play_behavior",
+            priority: 240,
+            conditions: [
+                InternalStateAbove(state: "energy", threshold: 0.7),
+                ActionAvailable("Play"),
+            ],
+            result: "MovingToTarget",
+        ),
+        (
+            name: "exploration",
+            priority: 230,
+            conditions: [
+                InternalStateAbove(state: "energy", threshold: 0.6),
+                InternalStateBelow(state: "fear", threshold: 0.3),
+                ActionAvailable("Explore"),
+            ],
+            result: "MovingToTarget",
+        ),
+        (
+            name: "perching_observation",
+            priority: 220,
+            conditions: [
+                InternalStateAbove(state: "energy", threshold: 0.6),
+                ActionAvailable("Perch"),
+            ],
+            result: "MovingToTarget",
+        ),
+    ],
+    
+    // Default behavior when no rules match
+    default_behavior: "Wandering",
+    
+    // General thresholds and modifiers
+    thresholds: (
+        weather_fear_base: 0.7,
+        critical_hunger: 0.8,
+        critical_thirst: 0.8,
+        low_energy: 0.3,
+        moderate_hunger_hover: 0.6,
+        moderate_hunger_eat: 0.5,
+        foraging_hunger: 0.4,
+        cache_low_hunger: 0.3,
+        cache_high_energy: 0.6,
+        moderate_thirst: 0.5,
+        territorial_stress: 0.6,
+        social_need_court: 0.5,
+        social_need_flock: 0.4,
+        social_need_follow: 0.3,
+        fear_limit_follow: 0.4,
+        high_energy_nest: 0.8,
+        high_energy_play: 0.7,
+        exploration_energy: 0.6,
+        exploration_fear_limit: 0.3,
+    ),
+    
+    // Time periods
+    time_periods: (
+        roosting_start: 18.0,
+        roosting_end: 20.0,
+        dawn_chorus_start: 6.0,
+        dawn_chorus_end: 8.0,
+        prime_morning_start: 6.0,
+        prime_morning_end: 10.0,
+        prime_evening_start: 16.0,
+        prime_evening_end: 19.0,
+    ),
+)

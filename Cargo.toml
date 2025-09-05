@@ -18,6 +18,7 @@ ron = "0.8.1"
 dirs = "5.0"
 steamworks = "0.11.0"
 bevy_lunex = "0.4.2"
+bevy_scriptum = "0.6.0"
 
 # Performance optimizations
 [profile.release]

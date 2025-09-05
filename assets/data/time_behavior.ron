@@ -1,0 +1,44 @@
+// Time-based Behavior Configuration
+// Controls when birds are active and their daily patterns
+
+(
+    feeding_times: (
+        prime_morning_start: 6.0,
+        prime_morning_end: 10.0,
+        prime_evening_start: 16.0,
+        prime_evening_end: 19.0,
+        activity_multiplier_peak: 1.0,     // Full activity during prime times
+        activity_multiplier_normal: 0.6,   // Reduced activity other daylight hours
+        activity_multiplier_dawn_dusk: 0.6, // Dawn/dusk activity level
+        activity_multiplier_night: 0.1,    // Minimal night activity
+    ),
+    
+    daylight_schedule: (
+        dawn_start: 6.0,
+        dawn_end: 8.0,
+        dusk_start: 18.0,
+        dusk_end: 20.0,
+        full_daylight_start: 8.0,
+        full_daylight_end: 18.0,
+    ),
+    
+    roosting: (
+        roosting_start: 18.0,
+        roosting_end: 20.0,
+        preferred_roost_height: 3.0,       // Preferred roosting height multiplier
+        social_roosting_bonus: 1.2,        // Bonus for roosting near other birds
+    ),
+    
+    dawn_chorus: (
+        chorus_start: 6.0,
+        chorus_end: 8.0,
+        song_probability_multiplier: 3.0,  // Increased singing during dawn chorus
+        territorial_activity_bonus: 1.5,   // Increased territorial behavior
+    ),
+    
+    seasonal_adjustments: (
+        summer_day_length_bonus: 2.0,      // Extra daylight hours in summer
+        winter_day_length_penalty: -2.0,   // Reduced daylight in winter
+        migration_activity_bonus: 1.3,     // Increased activity during migration periods
+    ),
+)
