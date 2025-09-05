@@ -34,14 +34,22 @@ impl Plugin for SocialFeaturesPlugin {
 }
 
 // Setup community hub UI
-pub fn setup_community_hub(mut commands: Commands) {
+pub fn setup_community_hub(
+    mut commands: Commands,
+    hub_query: Query<Entity, With<CommunityHubUI>>,
+) {
+    // Only create the community hub if it doesn't already exist
+    if !hub_query.is_empty() {
+        return;
+    }
+    
     // Community hub overlay (initially hidden)
     commands.spawn((
         Node {
             width: Val::Percent(100.0),
             height: Val::Percent(100.0),
             position_type: PositionType::Absolute,
-            display: Display::Flex,
+            display: Display::None,
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
             ..default()

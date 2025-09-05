@@ -64,3 +64,13 @@ pub struct MissionProgressBar;
 
 #[derive(Component)]
 pub struct ResearchDataVisualization;
+
+#[derive(Component)]
+pub struct PhotoCard {
+    pub timestamp: f64,
+}
+
+#[derive(Component)]
+pub struct AchievementCard {
+    pub achievement: crate::achievements::Achievement,
+}

@@ -25,12 +25,13 @@ impl Plugin for LunexUiPlugin {
                 handle_lunex_tutorial_buttons,
                 update_lunex_tutorial_content,
             ).run_if(in_state(crate::AppState::Playing)))
-            .add_systems(OnEnter(crate::AppState::Journal), setup_lunex_journal_simple)
-            .add_systems(OnExit(crate::AppState::Journal), cleanup_lunex_journal)
-            .add_systems(Update, (
-                handle_lunex_journal_navigation_simple,
-                update_bevy_journal_content,
-            ).run_if(in_state(crate::AppState::Journal)))
+            // Disabled - using new journal implementation instead
+            // .add_systems(OnEnter(crate::AppState::Journal), setup_lunex_journal_simple)
+            // .add_systems(OnExit(crate::AppState::Journal), cleanup_lunex_journal)
+            // .add_systems(Update, (
+            //     handle_lunex_journal_navigation_simple,
+            //     update_bevy_journal_content,
+            // ).run_if(in_state(crate::AppState::Journal)))
             // Debug system disabled - use F1 key diagnostic instead
             // .add_systems(Update, debug_journal_entities.run_if(in_state(crate::AppState::Journal)))
             .add_systems(OnEnter(crate::AppState::Catalog), setup_lunex_catalog)
