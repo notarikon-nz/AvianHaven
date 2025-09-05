@@ -21,6 +21,7 @@ pub struct SliderWidget {
     pub current_value: f32,
     pub step: f32,
     pub show_percentage: bool,
+    pub is_dragging: bool, 
 }
 
 #[derive(Component)]
@@ -35,6 +36,7 @@ pub struct SliderValueText;
 #[derive(Event)]
 pub struct SliderValueChanged {
     pub slider_entity: Entity,
+    pub old_value: f32,
     pub new_value: f32,
     pub percentage: u32,
 }
@@ -47,6 +49,7 @@ impl SliderWidget {
             current_value: initial.clamp(min, max),
             step: 0.01,
             show_percentage: true,
+            is_dragging: false,
         }
     }
     
@@ -70,6 +73,8 @@ impl SliderWidget {
     }
 }
 
+
+
 // Simplified system to handle slider interactions via button clicks
 pub fn slider_interaction_system(
     mut interaction_query: Query<(Entity, &Interaction), (Changed<Interaction>, With<SliderTrack>)>,
@@ -84,6 +89,7 @@ pub fn slider_interaction_system(
             // Find all sliders and match by track association
             for mut slider in &mut slider_query {
                 // Simple click implementation: increment by 10%
+                let old_value = slider.current_value;
                 let old_percentage = slider.get_percentage();
                 let new_percentage = if old_percentage >= 100 { 0 } else { (old_percentage + 10).min(100) };
                 
@@ -103,6 +109,7 @@ pub fn slider_interaction_system(
                 // Send event for first slider (simplified)
                 slider_events.write(SliderValueChanged {
                     slider_entity: track_entity, // Using track entity as identifier
+                    old_value: old_value,
                     new_value: slider.current_value,
                     percentage: slider.get_percentage(),
                 });

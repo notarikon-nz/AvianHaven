@@ -72,7 +72,7 @@ ImageNode {
 }
 ```
 
-## Integration with AvianHaven UI
+## Integration with Perch UI
 
 ### Enhanced Button Component
 
@@ -439,4 +439,4 @@ pub fn debug_nine_slice_system(
 }
 ```
 
-This guide provides a comprehensive foundation for implementing nine-slice patch sprites in AvianHaven's UI system, enhancing visual consistency and scalability while maintaining performance.
+This guide provides a comprehensive foundation for implementing nine-slice patch sprites in Perch's UI system, enhancing visual consistency and scalability while maintaining performance.

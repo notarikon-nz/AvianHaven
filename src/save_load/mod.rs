@@ -15,6 +15,7 @@ impl Plugin for SaveLoadPlugin {
     fn build(&self, app: &mut App) {
         app
             .init_resource::<SaveManager>()
+            .init_resource::<PlaytimeTracker>()
             .add_event::<SaveGameEvent>()
             .add_event::<LoadGameEvent>()
             .add_event::<SaveCompleteEvent>()
@@ -23,6 +24,7 @@ impl Plugin for SaveLoadPlugin {
                 save_game_system,
                 load_game_system,
                 auto_save_system,
+                track_playtime_system,
             ));
     }
 }

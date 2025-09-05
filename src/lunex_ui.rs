@@ -1491,7 +1491,7 @@ pub fn setup_lunex_main_menu(mut commands: Commands) {
         )).with_children(|menu| {
             // Title
             menu.spawn((
-                Text::new("Avian Haven"),
+                Text::new("Perch"),
                 TextFont {
                     font_size: 36.0,
                     ..default()

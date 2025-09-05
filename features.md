@@ -1,6 +1,6 @@
 # Phase 4: Advanced Ecological Systems & Interactions
 
-This document outlines the planned features for Phase 4 development of AvianHaven. These features build upon the solid foundation established in Phases 1-3 and represent the next evolution of the bird simulation system.
+This document outlines the planned features for Phase 4 development of Perch. These features build upon the solid foundation established in Phases 1-3 and represent the next evolution of the bird simulation system.
 
 ## Core Objectives
 

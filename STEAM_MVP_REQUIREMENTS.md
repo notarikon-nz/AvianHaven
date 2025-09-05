@@ -1,8 +1,8 @@
-# AvianHaven - Steam MVP Requirements
+# Perch - Steam MVP Requirements
 
 ## Overview
 
-This document outlines the Minimum Viable Product (MVP) requirements for AvianHaven's Steam release. The goal is to deliver a polished, engaging bird simulation experience that meets Steam's quality standards and provides sufficient content to justify purchase.
+This document outlines the Minimum Viable Product (MVP) requirements for Perch's Steam release. The goal is to deliver a polished, engaging bird simulation experience that meets Steam's quality standards and provides sufficient content to justify purchase.
 
 ## Core MVP Features (Must Have)
 
@@ -222,6 +222,6 @@ This document outlines the Minimum Viable Product (MVP) requirements for AvianHa
 
 ## Conclusion
 
-AvianHaven's MVP is feature-complete and ready for Steam release. The game offers a unique combination of AI-driven bird simulation, strategic photography gameplay, and educational content that differentiates it in the simulation genre. With proper Steam integration and quality assurance, the game is positioned for success in the premium indie market.
+Perch's MVP is feature-complete and ready for Steam release. The game offers a unique combination of AI-driven bird simulation, strategic photography gameplay, and educational content that differentiates it in the simulation genre. With proper Steam integration and quality assurance, the game is positioned for success in the premium indie market.
 
 The foundation is solid for post-launch content expansion, community features, and potential platform expansion. The modular architecture allows for easy addition of new species, behaviors, and interactive elements while maintaining system stability and performance.

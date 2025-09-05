@@ -6,6 +6,8 @@ use crate::bird::BirdSpecies;
 use crate::sanctuary_management::{NestingBox, NestingStatus, PredatorDeterrent, DeterrentType};
 use crate::tooltip::Hoverable;
 
+// This is the legacy smart objects system
+
 pub struct SmartObjectsPlugin;
 
 impl Plugin for SmartObjectsPlugin {

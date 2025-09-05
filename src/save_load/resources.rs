@@ -139,6 +139,22 @@ pub struct SaveGameEvent {
     pub save_name: Option<String>,
 }
 
+#[derive(Resource, Default, Clone, Debug)]
+pub struct PlaytimeTracker {
+    pub total_seconds: f64,
+    last_update: Option<f64>,
+}
+
+impl PlaytimeTracker {
+    pub fn update(&mut self, time: &Time) {
+        self.total_seconds += time.delta_secs_f64();
+    }
+    
+    pub fn get_total_seconds(&self) -> f64 {
+        self.total_seconds
+    }
+}
+
 #[derive(Event)]
 pub struct LoadGameEvent {
     pub slot: u32,

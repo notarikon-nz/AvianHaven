@@ -42,7 +42,7 @@ pub enum TutorialStep {
 impl TutorialStep {
     pub fn title(&self) -> &'static str {
         match self {
-            TutorialStep::Welcome => "Welcome to Avian Haven!",
+            TutorialStep::Welcome => "Welcome to Perch!",
             TutorialStep::CameraMovement => "Camera Controls",
             TutorialStep::BirdObservation => "Observe Birds",
             TutorialStep::PhotoMode => "Photo Mode",

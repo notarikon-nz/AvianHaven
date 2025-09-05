@@ -22,6 +22,7 @@ mod performance;
 mod flocking;
 mod weather_effects;
 mod bird_data;
+mod legacy_smart_objects;
 mod smart_objects;
 mod aesthetic_objects;
 mod catalog;
@@ -62,7 +63,7 @@ use performance::PerformancePlugin;
 use flocking::FlockingPlugin;
 use weather_effects::WeatherEffectsPlugin;
 use bird_data::BirdDataPlugin;
-use smart_objects::SmartObjectsPlugin;
+use legacy_smart_objects::SmartObjectsPlugin;
 use aesthetic_objects::AestheticObjectsPlugin;
 use catalog::CatalogPlugin;
 use save_load::SaveLoadPlugin;
@@ -78,6 +79,7 @@ use predator_prey::PredatorPreyPlugin;
 use bird_selection::BirdSelectionPlugin;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, Default, States)]
+#[states(scoped_entities)]
 pub enum AppState {
     #[default]
     MainMenu,
@@ -118,6 +120,7 @@ fn main() {
         .add_plugins(WeatherEffectsPlugin)
         .add_plugins(BirdDataPlugin)
         .add_plugins(SmartObjectsPlugin)
+        .add_plugins(smart_objects::ConfigurableSmartObjectsPlugin)
         .add_plugins(AestheticObjectsPlugin)
         .add_plugins(CatalogPlugin)
         .add_plugins(SaveLoadPlugin)

@@ -45,6 +45,8 @@ commands.spawn((
 
 ## Notifications
 ```rust
+  // Requires header: use crate::notifications::{resources::ShowNotificationEvent, components::NotificationType};
+  // Requires parameter: mut notification_events: EventWriter<ShowNotificationEvent>,
   // Send notification
   notification_events.write(ShowNotificationEvent {
       notification: NotificationType::Achievement {

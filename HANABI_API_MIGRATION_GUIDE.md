@@ -1,7 +1,7 @@
 # Hanabi 0.16 API Migration Guide
 
 ## Overview
-This guide documents the specific API changes and migration requirements for implementing Hanabi 0.16 GPU particle effects in AvianHaven.
+This guide documents the specific API changes and migration requirements for implementing Hanabi 0.16 GPU particle effects in Perch.
 
 ## Current Status
 - ✅ **Framework Complete**: Full plugin architecture and event system implemented

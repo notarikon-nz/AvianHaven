@@ -24,6 +24,7 @@ pub fn save_game_system(
     time_state: Res<TimeState>,
     weather_state: Res<WeatherState>,
     placed_objects: Res<PlacedObjects>,
+    playtime_tracker: Res<PlaytimeTracker>,
     
     // Queries for world objects
     placed_object_query: Query<(&Transform, &PlaceableObject, Option<&PersistentObject>)>,
@@ -38,6 +39,7 @@ pub fn save_game_system(
             &time_state,
             &weather_state,
             &placed_objects,
+            &playtime_tracker,
             &placed_object_query,
         );
         
@@ -141,6 +143,7 @@ fn perform_save(
     time_state: &TimeState,
     weather_state: &WeatherState,
     placed_objects: &PlacedObjects,
+    playtime_tracker: &PlaytimeTracker,
     placed_object_query: &Query<(&Transform, &PlaceableObject, Option<&PersistentObject>)>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     save_manager.ensure_save_directory()?;
@@ -200,7 +203,7 @@ fn perform_save(
         placed_objects: placed_objects_data,
         
         total_photos_taken: achievement_progress.photos_taken,
-        total_playtime_seconds: 0.0, // TODO: Track playtime
+        total_playtime_seconds: playtime_tracker.get_total_seconds(),
         birds_observed: discovered_species.0.len() as u32,
     };
     
@@ -328,4 +331,11 @@ fn perform_load(
     
     info!("Loaded {} placed objects", placed_objects_len);
     Ok(())
+}
+
+pub fn track_playtime_system(
+    mut playtime_tracker: ResMut<PlaytimeTracker>,
+    time: Res<Time>,
+) {
+    playtime_tracker.update(&time);
 }

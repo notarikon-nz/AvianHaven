@@ -2,7 +2,7 @@
 
 ## Overview
 
-Smart Objects in AvianHaven are interactive entities that birds can discover and use through their AI system. They provide utility to birds and create interesting emergent behaviors through the three-tier AI architecture:
+Smart Objects in Perch are interactive entities that birds can discover and use through their AI system. They provide utility to birds and create interesting emergent behaviors through the three-tier AI architecture:
 
 1. **UtilityQuery** (1s timer) - Discovers objects and calculates utility scores
 2. **BehaviorTree** (2s timer) - Decides which objects to target based on bird needs
@@ -403,4 +403,4 @@ for action in [BirdAction::Drink, BirdAction::Bathe] {
 3. **State Inspection**: Monitor bird state changes in development
 4. **Utility Scores**: Log utility calculations to ensure they're reasonable
 
-This guide provides the foundation for creating rich, interactive smart objects that integrate seamlessly with AvianHaven's bird AI system.
+This guide provides the foundation for creating rich, interactive smart objects that integrate seamlessly with Perch's bird AI system.

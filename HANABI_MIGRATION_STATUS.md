@@ -95,4 +95,4 @@
 3. **Solid Foundation**: Framework complete, ready for GPU implementation
 4. **Clear Path**: Well-documented migration steps identified
 
-The Hanabi particle system represents a significant enhancement opportunity that will provide professional-grade visual effects and substantial performance improvements, positioning AvianHaven for future particle-heavy features and larger bird populations.
+The Hanabi particle system represents a significant enhancement opportunity that will provide professional-grade visual effects and substantial performance improvements, positioning Perch for future particle-heavy features and larger bird populations.
