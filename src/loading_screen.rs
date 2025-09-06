@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use crate::user_interface::progress_bar::*;
 
 // Style constants for easy adjustment
 const BACKGROUND_COLOR: Color = Color::srgb(0.1, 0.1, 0.1);
@@ -17,7 +18,7 @@ impl Plugin for LoadingScreenPlugin {
             .add_systems(OnExit(crate::AppState::LoadingScreen), cleanup_loading_screen)
             .add_systems(
                 Update,
-                (update_loading_progress, update_progress_bar).run_if(in_state(crate::AppState::LoadingScreen))
+                (update_loading_progress, update_custom_progress_bar).run_if(in_state(crate::AppState::LoadingScreen))
             );
     }
 }
@@ -42,7 +43,7 @@ struct ProgressBarFill;
 
 fn setup_loading_screen(mut commands: Commands) {
     // Root container
-    commands
+    let root_entity = commands
         .spawn((
             Node {
                 width: Val::Percent(100.0),
@@ -54,49 +55,44 @@ fn setup_loading_screen(mut commands: Commands) {
             },
             BackgroundColor(BACKGROUND_COLOR),
             LoadingScreenRoot,
-        ))
-        .with_children(|parent| {
-            // Loading text
-            parent.spawn((
-                Text::new("Loading..."),
-                TextFont {
-                    font_size: TEXT_FONT_SIZE,
-                    ..default()
-                },
-                TextColor(TEXT_COLOR),
-                Node {
-                    margin: UiRect::bottom(Val::Px(30.0)),
-                    ..default()
-                },
-                LoadingText,
-            ));
+        )).id();
 
-            // Progress bar container
-            parent
-                .spawn((
-                    Node {
-                        width: Val::Px(300.0),
-                        height: Val::Px(20.0),
-                        border: UiRect::all(Val::Px(2.0)),
-                        ..default()
-                    },
-                    BackgroundColor(PROGRESS_BAR_BACKGROUND),
-                    BorderColor(TEXT_COLOR),
-                    ProgressBar,
-                ))
-                .with_children(|parent| {
-                    // Progress bar fill
-                    parent.spawn((
-                        Node {
-                            width: Val::Percent(0.0), // Will be updated
-                            height: Val::Percent(100.0),
-                            ..default()
-                        },
-                        BackgroundColor(PROGRESS_BAR_FILL),
-                        ProgressBarFill,
-                    ));
-                });
-        });
+    // Loading text
+    let text_entity = commands.spawn((
+        Text::new("Loading..."),
+        TextFont {
+            font_size: TEXT_FONT_SIZE,
+            ..default()
+        },
+        TextColor(TEXT_COLOR),
+        Node {
+            margin: UiRect::bottom(Val::Px(30.0)),
+            ..default()
+        },
+        LoadingText,
+    )).id();
+
+    // Custom Progress Bar using the new ProgressBarBuilder
+    let progress_bar_visuals = ProgressBarVisuals {
+        track_color: PROGRESS_BAR_BACKGROUND,
+        fill_color: PROGRESS_BAR_FILL,
+        border_color: TEXT_COLOR,
+        text_color: TEXT_COLOR,
+        show_text: false,
+        animation_duration: 0.2, // Smooth animation over 0.2 seconds
+        easing: EasingFunction::EaseOut,
+        ..default()
+    };
+    
+    let progress_bar_entity = ProgressBarBuilder::new(&mut commands)
+        .with_value(0.0, 1.0) // Use 0.0-1.0 range for simpler fraction handling
+        .with_size(Val::Px(300.0), Val::Px(20.0))
+        .with_visuals(progress_bar_visuals)
+        .with_animation(true)
+        .spawn();
+    
+    // Add children to root
+    commands.entity(root_entity).add_children(&[text_entity, progress_bar_entity]);
 }
 
 fn update_loading_progress(
@@ -118,6 +114,18 @@ fn update_loading_progress(
     }
 }
 
+fn update_custom_progress_bar(
+    loading_progress: Res<LoadingProgress>,
+    mut progress_bar_query: Query<&mut crate::user_interface::progress_bar::ProgressBar, With<ProgressBarRoot>>,
+) {
+    if let Ok(mut progress_bar) = progress_bar_query.single_mut() {
+        // loading_progress.progress is already 0.0-1.0 from timer.fraction()
+        progress_bar.set_value(loading_progress.progress);
+    }
+}
+
+// OLD PROGRESS BAR UPDATE (commented out - replaced by custom progress bar)
+/*
 fn update_progress_bar(
     loading_progress: Res<LoadingProgress>,
     mut progress_bar_query: Query<&mut Node, With<ProgressBarFill>>,
@@ -126,6 +134,7 @@ fn update_progress_bar(
         style.width = Val::Percent(loading_progress.progress * 100.0);
     }
 }
+*/
 
 fn cleanup_loading_screen(
     mut commands: Commands,
