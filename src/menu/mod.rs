@@ -33,6 +33,7 @@ impl Plugin for MenuPlugin {
             ).run_if(in_state(AppState::MainMenu))) // Re-enabled as fallback
             .add_systems(Update, (
                 settings_button_system,
+                menu_navigation_system,
                 volume_slider_update_system,
                 graphics_toggle_system,
                 handle_controls_menu,

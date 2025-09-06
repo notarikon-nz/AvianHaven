@@ -98,7 +98,8 @@ pub fn setup_journal_menu_system(
                 CloseButton,
             )).with_children(|button| {
                 button.spawn((
-                    Text::new("×"),
+                    // TODO: NEEDS TO BE A SPRITE HERE NOT A TEXT OBJECT
+                    Text::new("x"),
                     TextFont {
                         font_size: 20.0,
                         ..default()

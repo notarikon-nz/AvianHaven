@@ -429,7 +429,7 @@ pub fn eating_system(
             if blackboard.internal.hunger < 0.1 {
                 *state = BirdState::Wandering;
                 blackboard.current_target = None;
-                info!("Bird finished eating and is now wandering");
+                // info!("Bird finished eating and is now wandering");
             }
         }
     }
@@ -460,7 +460,7 @@ pub fn drinking_system(
             if blackboard.internal.thirst < 0.1 {
                 *state = BirdState::Wandering;
                 blackboard.current_target = None;
-                info!("Bird finished drinking and is now wandering");
+                // info!("Bird finished drinking and is now wandering");
             }
         }
     }
@@ -618,7 +618,7 @@ pub fn roosting_system(
             if blackboard.internal.energy > 0.9 && blackboard.internal.fear < 0.1 {
                 *state = BirdState::Wandering;
                 blackboard.current_target = None;
-                info!("Bird finished roosting and is now wandering");
+                // info!("Bird finished roosting and is now wandering");
             }
         }
     }
@@ -649,7 +649,7 @@ pub fn sheltering_system(
             if shelter_urgency < 0.2 && blackboard.internal.fear + weather_fear < 0.4 {
                 *state = BirdState::Wandering;
                 blackboard.current_target = None;
-                info!("Weather cleared, bird finished sheltering and is now wandering");
+                // info!("Weather cleared, bird finished sheltering and is now wandering");
             }
         }
     }
@@ -679,7 +679,7 @@ pub fn courting_system(
                     if blackboard.internal.social_need < 0.2 || blackboard.internal.energy < 0.3 {
                         *state = BirdState::Wandering;
                         blackboard.current_target = None;
-                        info!("Bird finished courting and is now wandering");
+                        // info!("Bird finished courting and is now wandering");
                     }
                 } else {
                     *state = BirdState::Wandering;
@@ -716,7 +716,7 @@ pub fn territorial_system(
                     if blackboard.internal.territorial_stress < 0.3 || blackboard.internal.energy < 0.2 {
                         *state = BirdState::Wandering;
                         blackboard.current_target = None;
-                        info!("Bird finished territorial display and is now wandering");
+                        // info!("Bird finished territorial display and is now wandering");
                     }
                 } else {
                     *state = BirdState::Wandering;
@@ -753,7 +753,7 @@ pub fn flocking_system(
                     if blackboard.internal.social_need < 0.1 {
                         *state = BirdState::Wandering;
                         blackboard.current_target = None;
-                        info!("Bird left flock and is now wandering");
+                        // info!("Bird left flock and is now wandering");
                     }
                 } else {
                     *state = BirdState::Wandering;
@@ -790,7 +790,7 @@ pub fn following_system(
                     if blackboard.internal.social_need < 0.2 || blackboard.internal.energy < 0.3 {
                         *state = BirdState::Wandering;
                         blackboard.current_target = None;
-                        info!("Bird stopped following and is now wandering");
+                        // info!("Bird stopped following and is now wandering");
                     }
                 } else {
                     *state = BirdState::Wandering;

@@ -6,6 +6,7 @@ use crate::ui_widgets::ToggleButton;
 use crate::user_interface::slider::{SliderBuilder, SliderValueChangedEvent};
 use crate::user_interface::dropdown::{DropdownBuilder, DropdownChangedEvent, DropdownChangeKind, DropdownConfig};
 use crate::user_interface::toggle::{ToggleBuilder, ToggleChangedEvent};
+use crate::user_interface::scrollable::ScrollableBuilder;
 use crate::audio::resources::AudioSettings;
 
 // Setup Systems
@@ -107,7 +108,9 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
     // Tag the toggle for identification in event handling
     commands.entity(fullscreen_toggle_entity).insert(FullscreenToggle);
 
-    commands.spawn((
+    // SCREEN POSITIONING
+    // FULL SCREEN, CENTRE ALIGNED
+    let menu_entity = commands.spawn((
         Node {
             width: Val::Percent(100.0),
             height: Val::Percent(100.0),
@@ -118,50 +121,54 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
         },
         BackgroundColor(Color::srgb(0.1, 0.1, 0.15)),
         MenuUI,
-    )).with_children(|parent| {
-        // Settings container
-        parent.spawn((
-            Node {
-                width: Val::Px(600.0),
-                height: Val::Px(700.0),
-                flex_direction: FlexDirection::Column,
-                justify_content: JustifyContent::Start,
-                align_items: AlignItems::Center,
-                padding: UiRect::all(Val::Px(40.0)),
-                ..default()
-            },
-            BackgroundColor(Color::srgb(0.95, 0.92, 0.88)),
-            BorderColor(Color::srgb(0.6, 0.4, 0.2)),
-            BorderRadius::all(Val::Px(6.0)),
-        )).with_children(|settings_container| {
-            // Title (fixed at top)
-            settings_container.spawn((
-                Text::new("Settings"),
-                TextFont {
-                    font_size: 28.0,
-                    ..default()
-                },
-                TextColor(Color::srgb(0.3, 0.2, 0.1)),
-                Node {
-                    margin: UiRect::bottom(Val::Px(30.0)),
-                    ..default()
-                },
-            ));
+    )).id();
+    
+    // Create settings container (window)
+    let settings_container_entity = commands.spawn((
+        Node {
+            width: Val::Px(600.0),
+            height: Val::Px(700.0),
+            flex_direction: FlexDirection::Column,
+            justify_content: JustifyContent::Start,
+            align_items: AlignItems::Center,
+            padding: UiRect::all(Val::Px(40.0)),
+            ..default()
+        },
+        BackgroundColor(Color::srgb(0.95, 0.92, 0.88)),
+        BorderColor(Color::srgb(0.6, 0.4, 0.2)),
+        BorderRadius::all(Val::Px(6.0)),
+    )).id();
+    
+    // Add title to settings container
+    let title_entity = commands.spawn((
+        Text::new("Settings"),
+        TextFont {
+            font_size: 28.0,
+            ..default()
+        },
+        TextColor(Color::srgb(0.3, 0.2, 0.1)),
+        Node {
+            margin: UiRect::bottom(Val::Px(30.0)),
+            ..default()
+        },
+    )).id();
+    
+
+
+    // Create scrollable container
+    let (scrollable_container, scrollable_content_entity) = ScrollableBuilder::new(&mut commands)
+        .with_size(Vec2::new(520.0, 500.0)) // Container size
+        .with_content_height(800.0) // Content will be taller than container
+        .spawn();
+    
+    // Set up hierarchy: menu -> settings_container -> [title, scrollable_container]
+    commands.entity(menu_entity).add_children(&[settings_container_entity]);
+    commands.entity(settings_container_entity).add_children(&[title_entity, scrollable_container]);
+
+    // Populate scrollable content
+    commands.entity(scrollable_content_entity).with_children(|scrollable_content| {
             
-            // Scrollable content area
-            settings_container.spawn((
-                Node {
-                    width: Val::Percent(100.0),
-                    height: Val::Percent(80.0), // Leave room for title and buttons
-                    flex_direction: FlexDirection::Column,
-                    row_gap: Val::Px(20.0),
-                    overflow: Overflow::clip_y(),
-                    ..default()
-                },
-                BackgroundColor(Color::srgb(0.93, 0.90, 0.86)),
-            )).with_children(|scrollable_content| {
-            
-            // Audio settings section with sliders - placeholder for now
+            // Audio settings section with side-by-side sliders
             scrollable_content.spawn((
                 Node {
                     width: Val::Percent(100.0),
@@ -185,11 +192,11 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                     },
                 ));
                 
-                section.spawn((
-                    Text::new("Volume sliders will be added here..."),
-                    TextFont { font_size: 14.0, ..default() },
-                    TextColor(Color::srgb(0.5, 0.5, 0.5)),
-                ));
+                // Master Volume slider will be added by setup_audio_sliders_system
+                
+                // Music Volume slider will be added by setup_audio_sliders_system
+                
+                // SFX Volume slider will be added by setup_audio_sliders_system
             });
             
             // Graphics settings section
@@ -215,29 +222,30 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                     },
                 ));
                 
-                // Resolution section container
+                // Resolution section container (side-by-side layout)
                 let resolution_container = section.spawn((
                     Node {
-                        flex_direction: FlexDirection::Column,
-                        row_gap: Val::Px(5.0),
+                        width: Val::Percent(100.0),
+                        flex_direction: FlexDirection::Row,
+                        justify_content: JustifyContent::SpaceBetween,
+                        align_items: AlignItems::Center,
                         margin: UiRect::bottom(Val::Px(15.0)),
+                        padding: UiRect::all(Val::Px(10.0)),
                         ..default()
                     },
+                    BackgroundColor(Color::srgb(0.9, 0.9, 0.9)),
+                    BorderRadius::all(Val::Px(6.0)),
                     GraphicsSection, // Mark this as the graphics section for dropdown setup
                 )).with_children(|container| {
-                    // Resolution label
+                    // Resolution label (left side)
                     container.spawn((
                         Text::new("Resolution"),
                         TextFont { font_size: 16.0, ..default() },
                         TextColor(Color::srgb(0.3, 0.2, 0.1)),
-                        Node {
-                            margin: UiRect::bottom(Val::Px(5.0)),
-                            ..default()
-                        },
                         ResolutionDropdownLabel, // Marker component
                     ));
                     
-                    // Dropdown will be added here by setup_resolution_dropdown_system
+                    // Dropdown container (right side) - dropdown will be added here by setup_resolution_dropdown_system
                 }).id();
                 
                 // Graphics Quality selector (simplified for now)
@@ -320,7 +328,159 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                 }).add_child(fullscreen_toggle_entity);
             });
             
-            // Gameplay settings section
+            // Gameplay settings section (more content to demonstrate scrolling)
+            scrollable_content.spawn((
+                Node {
+                    width: Val::Percent(100.0),
+                    flex_direction: FlexDirection::Column,
+                    row_gap: Val::Px(15.0),
+                    margin: UiRect::vertical(Val::Px(20.0)),
+                    ..default()
+                },
+            )).with_children(|section| {
+                section.spawn((
+                    Text::new("Gameplay"),
+                    TextFont {
+                        font_size: 20.0,
+                        ..default()
+                    },
+                    TextColor(Color::srgb(0.2, 0.2, 0.3)),
+                    Node {
+                        margin: UiRect::bottom(Val::Px(15.0)),
+                        ..default()
+                    },
+                ));
+                
+                // Auto-save toggle
+                section.spawn((
+                    Node {
+                        width: Val::Percent(100.0),
+                        flex_direction: FlexDirection::Row,
+                        justify_content: JustifyContent::SpaceBetween,
+                        align_items: AlignItems::Center,
+                        padding: UiRect::all(Val::Px(10.0)),
+                        ..default()
+                    },
+                    BackgroundColor(Color::srgb(0.9, 0.9, 0.9)),
+                    BorderRadius::all(Val::Px(6.0)),
+                )).with_children(|container| {
+                    container.spawn((
+                        Text::new("Auto-Save"),
+                        TextFont { font_size: 16.0, ..default() },
+                        TextColor(Color::srgb(0.3, 0.2, 0.1)),
+                    ));
+                    container.spawn((
+                        Text::new(if settings.auto_save_enabled { "ON" } else { "OFF" }),
+                        TextFont { font_size: 16.0, ..default() },
+                        TextColor(if settings.auto_save_enabled { 
+                            Color::srgb(0.2, 0.6, 0.2) 
+                        } else { 
+                            Color::srgb(0.6, 0.2, 0.2) 
+                        }),
+                    ));
+                });
+                
+                // Difficulty setting
+                section.spawn((
+                    Node {
+                        width: Val::Percent(100.0),
+                        flex_direction: FlexDirection::Row,
+                        justify_content: JustifyContent::SpaceBetween,
+                        align_items: AlignItems::Center,
+                        padding: UiRect::all(Val::Px(10.0)),
+                        ..default()
+                    },
+                    BackgroundColor(Color::srgb(0.9, 0.9, 0.9)),
+                    BorderRadius::all(Val::Px(6.0)),
+                )).with_children(|container| {
+                    container.spawn((
+                        Text::new("Difficulty"),
+                        TextFont { font_size: 16.0, ..default() },
+                        TextColor(Color::srgb(0.3, 0.2, 0.1)),
+                    ));
+                    container.spawn((
+                        Text::new("Normal"),
+                        TextFont { font_size: 16.0, ..default() },
+                        TextColor(Color::srgb(0.5, 0.3, 0.2)),
+                    ));
+                });
+            });
+            
+            // Controls settings section
+            scrollable_content.spawn((
+                Node {
+                    width: Val::Percent(100.0),
+                    flex_direction: FlexDirection::Column,
+                    row_gap: Val::Px(15.0),
+                    margin: UiRect::vertical(Val::Px(20.0)),
+                    ..default()
+                },
+            )).with_children(|section| {
+                section.spawn((
+                    Text::new("Controls"),
+                    TextFont {
+                        font_size: 20.0,
+                        ..default()
+                    },
+                    TextColor(Color::srgb(0.2, 0.2, 0.3)),
+                    Node {
+                        margin: UiRect::bottom(Val::Px(15.0)),
+                        ..default()
+                    },
+                ));
+                
+                // Mouse sensitivity slider - placeholder for now
+                section.spawn((
+                    Node {
+                        width: Val::Percent(100.0),
+                        flex_direction: FlexDirection::Row,
+                        justify_content: JustifyContent::SpaceBetween,
+                        align_items: AlignItems::Center,
+                        padding: UiRect::all(Val::Px(10.0)),
+                        ..default()
+                    },
+                    BackgroundColor(Color::srgb(0.9, 0.9, 0.9)),
+                    BorderRadius::all(Val::Px(6.0)),
+                )).with_children(|container| {
+                    container.spawn((
+                        Text::new("Mouse Sensitivity"),
+                        TextFont { font_size: 16.0, ..default() },
+                        TextColor(Color::srgb(0.3, 0.2, 0.1)),
+                    ));
+                    container.spawn((
+                        Text::new("1.0"),
+                        TextFont { font_size: 14.0, ..default() },
+                        TextColor(Color::srgb(0.5, 0.5, 0.5)),
+                    ));
+                });
+                
+                // Key bindings button
+                section.spawn((
+                    Button,
+                    Node {
+                        width: Val::Percent(100.0),
+                        flex_direction: FlexDirection::Row,
+                        justify_content: JustifyContent::SpaceBetween,
+                        align_items: AlignItems::Center,
+                        padding: UiRect::all(Val::Px(10.0)),
+                        ..default()
+                    },
+                    BackgroundColor(Color::srgb(0.8, 0.8, 0.9)),
+                    BorderRadius::all(Val::Px(6.0)),
+                )).with_children(|container| {
+                    container.spawn((
+                        Text::new("Configure Key Bindings"),
+                        TextFont { font_size: 16.0, ..default() },
+                        TextColor(Color::srgb(0.3, 0.2, 0.1)),
+                    ));
+                    container.spawn((
+                        Text::new("→"),
+                        TextFont { font_size: 18.0, ..default() },
+                        TextColor(Color::srgb(0.5, 0.3, 0.2)),
+                    ));
+                });
+            });
+            
             let gameplay_settings = [
                 ("Auto Save", SettingType::AutoSave, if settings.auto_save_enabled { 1.0 } else { 0.0 }),
             ];
@@ -379,9 +539,11 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                     });
                 }
             });
-            }); // End scrollable_content
-            
-            // Bottom buttons (outside scrollable area)
+    }); // End scrollable_content
+    
+    // FOOTER
+    // Bottom buttons (outside scrollable area) - add directly to settings container
+    commands.entity(settings_container_entity).with_children(|settings_container| {
             settings_container.spawn((
                 Node {
                     width: Val::Percent(100.0),
@@ -423,8 +585,9 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                     });
                 }
             });
-        });
     });
+
+
 }
 
 pub fn setup_controls_menu(
@@ -910,14 +1073,18 @@ pub fn main_menu_button_system(
 
 pub fn settings_button_system(
     mut interaction_query: Query<
-        (&Interaction, &SettingsButton),
+        (&Interaction, &SettingsButton, &mut BackgroundColor),
         (Changed<Interaction>, With<Button>),
     >,
     mut menu_nav_events: EventWriter<MenuNavigationEvent>,
     mut settings: ResMut<GameSettings>,
 ) {
-    for (interaction, settings_button) in interaction_query.iter() {
-        if *interaction == Interaction::Pressed {
+    for (interaction, settings_button, mut bg_color) in interaction_query.iter_mut() {
+        match *interaction {
+            Interaction::Pressed => {
+                *bg_color = Color::srgb(0.5, 0.7, 0.5).into();
+
+            info!("Settings button pressed: {:?}", settings_button.action);
             match settings_button.action {
                 SettingsAction::BackToMain => {
                     menu_nav_events.write(MenuNavigationEvent {
@@ -949,6 +1116,13 @@ pub fn settings_button_system(
                     });
                 }
             }
+            }
+            Interaction::Hovered => {
+                *bg_color = Color::srgb(0.7, 0.6, 0.5).into();
+            }
+            Interaction::None => {
+                *bg_color = Color::srgb(0.6, 0.5, 0.4).into();
+            }            
         }
     }
 }
@@ -1031,6 +1205,7 @@ pub fn menu_navigation_system(
     mut app_state: ResMut<NextState<crate::AppState>>,
 ) {
     for nav_event in menu_nav_events.read() {
+        info!("Processing menu navigation event: {:?} -> {:?}", nav_event.target_menu, nav_event.target_app_state);
         menu_state.previous_menu = Some(menu_state.current_menu);
         menu_state.current_menu = nav_event.target_menu;
         
@@ -1112,7 +1287,13 @@ pub fn setup_resolution_dropdown_system(
     mut option_registry: ResMut<crate::user_interface::dropdown::DropdownOptionRegistry>,
     graphics_section_query: Query<Entity, With<GraphicsSection>>,
     label_query: Query<Entity, With<ResolutionDropdownLabel>>,
+    dropdown_query: Query<Entity, With<ResolutionDropdown>>,
 ) {
+    // Only run if no resolution dropdown exists yet to prevent infinite spawning
+    if !dropdown_query.is_empty() {
+        return;
+    }
+    
     info!("Setting up resolution dropdown system");
     
     // Find the graphics section and add the dropdown after the resolution label
@@ -1157,89 +1338,116 @@ pub fn setup_audio_sliders_system(
     mut commands: Commands,
     settings: Res<GameSettings>,
     audio_section_query: Query<Entity, With<AudioSection>>,
-    children_query: Query<&Children>,
-    text_query: Query<&Text>,
+    volume_slider_query: Query<Entity, With<VolumeSlider>>,
 ) {
-    // Add sliders to the audio section
+    // Only run if no volume sliders exist yet to prevent infinite spawning
+    if !volume_slider_query.is_empty() {
+        return;
+    }
+    
+    // Add sliders to the audio section with side-by-side layout
     for section_entity in audio_section_query.iter() {
-        // Clear placeholder text by finding and despawning text entities
-        if let Ok(children) = children_query.get(section_entity) {
-            for child in children.iter() {
-                if let Ok(text) = text_query.get(child) {
-                    if text.contains("Volume sliders will be added here") {
-                        commands.entity(child).despawn();
-                    }
-                }
-            }
-        }
+        // Master Volume Slider (side-by-side layout)
+        let master_container = commands.spawn((
+            Node {
+                width: Val::Percent(100.0),
+                flex_direction: FlexDirection::Row,
+                justify_content: JustifyContent::SpaceBetween,
+                align_items: AlignItems::Center,
+                margin: UiRect::bottom(Val::Px(10.0)),
+                padding: UiRect::all(Val::Px(10.0)),
+                ..default()
+            },
+            BackgroundColor(Color::srgb(0.9, 0.9, 0.9)),
+            BorderRadius::all(Val::Px(6.0)),
+        )).id();
         
-        // Add the volume sliders
-        
-        // Master Volume Slider
-        let volume_label = commands.spawn((
+        let master_label = commands.spawn((
             Text::new("Master Volume"),
             TextFont { font_size: 16.0, ..default() },
             TextColor(Color::srgb(0.3, 0.2, 0.1)),
-            Node {
-                margin: UiRect::bottom(Val::Px(10.0)),
-                ..default()
-            },
         )).id();
-        commands.entity(section_entity).add_children(&[volume_label]);
         
-        let volume_slider = SliderBuilder::new(&mut commands)
+        let master_slider = SliderBuilder::new(&mut commands)
             .with_range(0.0, 1.0)
             .with_value(settings.master_volume)
             .with_value_formatter(|value| format!("{}%", (value * 100.0) as u32))
-            .spawn_with_parent(section_entity);
+            .spawn();
             
-        commands.entity(volume_slider).insert(VolumeSlider { 
+        commands.entity(master_slider).insert(VolumeSlider { 
             setting_type: SettingType::MasterVolume 
         });
         
-        // Music Volume Slider
+        commands.entity(master_container).add_children(&[master_label, master_slider]);
+        commands.entity(section_entity).add_children(&[master_container]);
+        
+        // Music Volume Slider (side-by-side layout)
+        let music_container = commands.spawn((
+            Node {
+                width: Val::Percent(100.0),
+                flex_direction: FlexDirection::Row,
+                justify_content: JustifyContent::SpaceBetween,
+                align_items: AlignItems::Center,
+                margin: UiRect::bottom(Val::Px(10.0)),
+                padding: UiRect::all(Val::Px(10.0)),
+                ..default()
+            },
+            BackgroundColor(Color::srgb(0.9, 0.9, 0.9)),
+            BorderRadius::all(Val::Px(6.0)),
+        )).id();
+        
         let music_label = commands.spawn((
             Text::new("Music Volume"),
             TextFont { font_size: 16.0, ..default() },
             TextColor(Color::srgb(0.3, 0.2, 0.1)),
-            Node {
-                margin: UiRect::bottom(Val::Px(10.0)),
-                ..default()
-            },
         )).id();
-        commands.entity(section_entity).add_children(&[music_label]);
         
         let music_slider = SliderBuilder::new(&mut commands)
             .with_range(0.0, 1.0)
             .with_value(settings.music_volume)
             .with_value_formatter(|value| format!("{}%", (value * 100.0) as u32))
-            .spawn_with_parent(section_entity);
+            .spawn();
             
         commands.entity(music_slider).insert(VolumeSlider { 
             setting_type: SettingType::MusicVolume 
         });
         
-        // SFX Volume Slider
+        commands.entity(music_container).add_children(&[music_label, music_slider]);
+        commands.entity(section_entity).add_children(&[music_container]);
+        
+        // SFX Volume Slider (side-by-side layout)
+        let sfx_container = commands.spawn((
+            Node {
+                width: Val::Percent(100.0),
+                flex_direction: FlexDirection::Row,
+                justify_content: JustifyContent::SpaceBetween,
+                align_items: AlignItems::Center,
+                margin: UiRect::bottom(Val::Px(10.0)),
+                padding: UiRect::all(Val::Px(10.0)),
+                ..default()
+            },
+            BackgroundColor(Color::srgb(0.9, 0.9, 0.9)),
+            BorderRadius::all(Val::Px(6.0)),
+        )).id();
+        
         let sfx_label = commands.spawn((
             Text::new("SFX Volume"),
             TextFont { font_size: 16.0, ..default() },
             TextColor(Color::srgb(0.3, 0.2, 0.1)),
-            Node {
-                margin: UiRect::bottom(Val::Px(10.0)),
-                ..default()
-            },
         )).id();
-        commands.entity(section_entity).add_children(&[sfx_label]);
         
         let sfx_slider = SliderBuilder::new(&mut commands)
             .with_range(0.0, 1.0)
             .with_value(settings.sfx_volume)
             .with_value_formatter(|value| format!("{}%", (value * 100.0) as u32))
-            .spawn_with_parent(section_entity);
+            .spawn();
             
         commands.entity(sfx_slider).insert(VolumeSlider { 
             setting_type: SettingType::SfxVolume 
         });
+        
+        commands.entity(sfx_container).add_children(&[sfx_label, sfx_slider]);
+        commands.entity(section_entity).add_children(&[sfx_container]);
     }
 }
 
