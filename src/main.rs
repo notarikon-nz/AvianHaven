@@ -33,6 +33,7 @@ mod ui_widgets;
 mod tooltip;
 mod keybindings;
 mod lunex_ui;
+mod loading_screen;
 mod nocturnal_behaviors;
 mod advanced_weather; // Advanced weather effects and storm behaviors
 mod foraging_ecology; // Advanced foraging patterns and mixed flocks
@@ -77,11 +78,13 @@ use sanctuary_management::SanctuaryManagementPlugin;
 use hanabi_effects::HanabiEffectsPlugin;
 use predator_prey::PredatorPreyPlugin;
 use bird_selection::BirdSelectionPlugin;
+use loading_screen::LoadingScreenPlugin;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, Default, States)]
 #[states(scoped_entities)]
 pub enum AppState {
     #[default]
+    LoadingScreen,
     MainMenu,
     Playing,
     Journal,
@@ -138,6 +141,7 @@ fn main() {
         .add_plugins(HanabiEffectsPlugin)
         .add_plugins(ui_diagnostic::UiDiagnosticPlugin)
         .add_plugins(BirdSelectionPlugin)
+        .add_plugins(LoadingScreenPlugin)
         .add_systems(Startup, setup)
         .add_systems(PostUpdate, robust_despawn_system)
         .run();

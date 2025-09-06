@@ -196,12 +196,15 @@ pub fn slider_update_visuals_system(
     mut q_handles: Query<&mut Node, (With<SliderHandle>, Without<SliderFill>)>,
     mut q_fills: Query<&mut Node, (With<SliderFill>, Without<SliderHandle>)>,
     mut q_text: Query<&mut Text, With<SliderValueText>>,
+    q_children: Query<&Children>,
 ) {
     for (slider_entity, slider, options, children) in &mut q_sliders {
         let normalized_value = (slider.value - slider.min) / (slider.max - slider.min);
         info!("Visual update for slider {:?}: value={}, normalized={}", slider_entity, slider.value, normalized_value);
         
+        // Look through direct children and their children for handles
         for child in children.iter() {
+            // Try direct child first
             if let Ok(mut handle_style) = q_handles.get_mut(child) {
                 match slider.orientation {
                     SliderOrientation::Horizontal => {
@@ -213,6 +216,25 @@ pub fn slider_update_visuals_system(
                         let new_bottom = normalized_value * 100.0;
                         info!("Updating handle position: bottom={}%", new_bottom);
                         handle_style.bottom = Val::Percent(new_bottom);
+                    }
+                }
+            }
+            // If not found, check grandchildren (track -> handle)
+            else if let Ok(grandchildren) = q_children.get(child) {
+                for grandchild in grandchildren.iter() {
+                    if let Ok(mut handle_style) = q_handles.get_mut(grandchild) {
+                        match slider.orientation {
+                            SliderOrientation::Horizontal => {
+                                let new_left = normalized_value * 100.0;
+                                info!("Updating handle position (grandchild): left={}%", new_left);
+                                handle_style.left = Val::Percent(new_left);
+                            }
+                            SliderOrientation::Vertical => {
+                                let new_bottom = normalized_value * 100.0;
+                                info!("Updating handle position (grandchild): bottom={}%", new_bottom);
+                                handle_style.bottom = Val::Percent(new_bottom);
+                            }
+                        }
                     }
                 }
             }

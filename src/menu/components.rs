@@ -19,6 +19,9 @@ pub struct LoadGameButton {
 }
 
 #[derive(Component)]
+pub struct TabTestWindow;
+
+#[derive(Component)]
 pub struct MenuTitle;
 
 #[derive(Component)]

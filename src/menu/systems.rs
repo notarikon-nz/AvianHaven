@@ -7,6 +7,7 @@ use crate::user_interface::slider::{SliderBuilder, SliderValueChangedEvent};
 use crate::user_interface::dropdown::{DropdownBuilder, DropdownChangedEvent, DropdownChangeKind, DropdownConfig};
 use crate::user_interface::toggle::{ToggleBuilder, ToggleChangedEvent};
 use crate::user_interface::scrollable::ScrollableBuilder;
+use crate::user_interface::tab_group::*;
 use crate::audio::resources::AudioSettings;
 
 // Setup Systems
@@ -1237,6 +1238,172 @@ pub fn handle_controls_menu(
         
         // Setup controls menu
         setup_controls_menu(commands, keybindings);
+    }
+}
+
+pub fn tab_test_system(
+    mut commands: Commands,
+    keyboard: Res<ButtonInput<KeyCode>>,
+    existing_tab_query: Query<Entity, With<TabGroup>>,
+) {
+    if keyboard.just_pressed(KeyCode::KeyT) {
+        info!("T key pressed - spawning tab group test");
+        
+        // Remove existing tab group if present
+        for entity in existing_tab_query.iter() {
+            commands.entity(entity).despawn();
+        }
+        
+        // Create tab group test
+        let tab_group_entity = commands.spawn((
+            TabTestWindow,
+            Node {
+                width: Val::Px(800.0),
+                height: Val::Px(600.0),
+                position_type: PositionType::Absolute,
+                left: Val::Px(50.0),
+                top: Val::Px(50.0),
+                flex_direction: FlexDirection::Column,
+                ..default()
+            },
+            BackgroundColor(Color::srgb(0.9, 0.9, 0.9)),
+            BorderRadius::all(Val::Px(8.0)),
+            TabGroup { selected_tab: 0 },
+            TabGroupConfig::default(),
+        )).id();
+        
+        // Create individual entities first, then set up the hierarchy
+        
+        // Create tab buttons first
+        let tab1_button = commands.spawn((
+            Button,
+            Node {
+                width: Val::Px(150.0),
+                height: Val::Percent(100.0),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            BackgroundColor(Color::srgb(0.9, 0.9, 0.9)), // Active color
+            TabButton { tab_index: 0, group_entity: tab_group_entity },
+            TabActive, // Tab 1 starts active
+        )).id();
+        
+        commands.entity(tab1_button).with_children(|button| {
+            button.spawn((
+                Text::new("Tab 1"),
+                TextFont { font_size: 16.0, ..default() },
+                TextColor(Color::BLACK),
+            ));
+        });
+        
+        let tab2_button = commands.spawn((
+            Button,
+            Node {
+                width: Val::Px(150.0),
+                height: Val::Percent(100.0),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            BackgroundColor(Color::srgb(0.65, 0.65, 0.65)), // Inactive color
+            TabButton { tab_index: 1, group_entity: tab_group_entity },
+            TabInactive, // Tab 2 starts inactive
+        )).id();
+        
+        commands.entity(tab2_button).with_children(|button| {
+            button.spawn((
+                Text::new("Tab 2"),
+                TextFont { font_size: 16.0, ..default() },
+                TextColor(Color::BLACK),
+            ));
+        });
+        
+        // Create content entities
+        let content1 = commands.spawn((
+            Node {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            BackgroundColor(Color::srgb(0.95, 0.95, 0.95)),
+            TabContent { tab_index: 0, group_entity: tab_group_entity },
+            Visibility::Visible,
+        )).id();
+        
+        commands.entity(content1).with_children(|content| {
+            content.spawn((
+                Text::new("This is Tab 1 Content"),
+                TextFont { font_size: 24.0, ..default() },
+                TextColor(Color::BLACK),
+            ));
+        });
+        
+        let content2 = commands.spawn((
+            Node {
+                width: Val::Percent(100.0),
+                height: Val::Percent(100.0),
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                ..default()
+            },
+            BackgroundColor(Color::srgb(0.95, 0.95, 1.0)),
+            TabContent { tab_index: 1, group_entity: tab_group_entity },
+            Visibility::Hidden,
+        )).id();
+        
+        commands.entity(content2).with_children(|content| {
+            content.spawn((
+                Text::new("This is Tab 2 Content"),
+                TextFont { font_size: 24.0, ..default() },
+                TextColor(Color::BLACK),
+            ));
+        });
+        
+        // Create the UI hierarchy
+        let tab_bar = commands.spawn((
+            Node {
+                width: Val::Percent(100.0),
+                height: Val::Px(50.0),
+                flex_direction: FlexDirection::Row,
+                ..default()
+            },
+            BackgroundColor(Color::srgb(0.8, 0.8, 0.8)),
+        )).id();
+        
+        // Set up the hierarchy
+        commands.entity(tab_group_entity)
+            .add_child(tab_bar)
+            .add_child(content1)
+            .add_child(content2);
+            
+        commands.entity(tab_bar)
+            .add_child(tab1_button)
+            .add_child(tab2_button);
+        
+        // Add TabGroupMeta with all the collected entities
+        commands.entity(tab_group_entity).insert(TabGroupMeta {
+            tab_names: vec!["Tab 1".to_string(), "Tab 2".to_string()],
+            button_entities: vec![tab1_button, tab2_button],
+            content_entities: vec![content1, content2],
+        });
+    }
+}
+
+pub fn tab_test_escape_system(
+    mut commands: Commands,
+    keyboard: Res<ButtonInput<KeyCode>>,
+    tab_test_query: Query<Entity, With<TabTestWindow>>,
+) {
+    if keyboard.just_pressed(KeyCode::Escape) {
+        for entity in tab_test_query.iter() {
+            #[cfg(debug_assertions)]
+            info!("Escape pressed - closing tab test window {:?}", entity);
+            
+            commands.entity(entity).despawn();
+        }
     }
 }
 

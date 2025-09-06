@@ -44,6 +44,7 @@ impl Plugin for MenuPlugin {
                 // StateScoped toggle widget system
                 fullscreen_toggle_system,
             ).run_if(in_state(AppState::Settings)))
+            .add_systems(Update, (tab_test_system, tab_test_escape_system).run_if(in_state(AppState::MainMenu)))
             .add_systems(Update, load_game_button_system.run_if(in_state(AppState::LoadGame)))
             .add_systems(Update, escape_key_system.run_if(
                 in_state(AppState::MainMenu)
