@@ -20,16 +20,31 @@ pub fn setup_smart_object_registry(
 pub fn load_catalog_from_config(
     mut registry: ResMut<SmartObjectRegistry>,
     asset_server: Res<AssetServer>,
+) {
+    info!("Loading Smart Object Catalog at startup from data/smart_objects/catalog_items.ron");
+    let catalog_handle: Handle<SmartObjectCatalog> = asset_server.load("data/smart_objects/catalog_items.ron");
+    registry.catalog_handle = Some(catalog_handle);
+}
+
+pub fn check_catalog_loading(
+    mut registry: ResMut<SmartObjectRegistry>,
     catalog_assets: Res<Assets<SmartObjectCatalog>>,
 ) {
-    // Try to load the catalog configuration
-    let catalog_handle: Handle<SmartObjectCatalog> = asset_server.load("data/smart_objects/catalog_items.ron");
+    if registry.catalog_loaded {
+        return; // Already loaded
+    }
     
-    if let Some(catalog) = catalog_assets.get(&catalog_handle) {
-        info!("Loading Smart Object Catalog with {} items", catalog.items.len());
-        registry.catalog = Some(catalog.clone());
-    } else {
-        warn!("Smart Object Catalog not yet loaded, will retry next frame");
+    if let Some(handle) = &registry.catalog_handle {
+        if let Some(catalog) = catalog_assets.get(handle) {
+            info!("Successfully loaded Smart Object Catalog with {} items", catalog.items.len());
+            #[cfg(debug_assertions)]
+            info!("Debug: First item ID: {}, category: {}", 
+                catalog.items.first().map(|item| &item.id).unwrap_or(&"none".to_string()),
+                catalog.items.first().map(|item| &item.metadata.category).unwrap_or(&"none".to_string()));
+            
+            registry.catalog = Some(catalog.clone());
+            registry.catalog_loaded = true;
+        }
     }
 }
 

@@ -27,8 +27,8 @@ pub enum BehaviorCondition {
     InternalStateAbove { state: String, threshold: f32 },
     InternalStateBelow { state: String, threshold: f32 },
     TimeRange { start: f32, end: f32 },
-    ActionAvailable(String),
-    ActionNotAvailable(String),
+    ActionAvailable { action: String },
+    ActionNotAvailable { action: String },
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]

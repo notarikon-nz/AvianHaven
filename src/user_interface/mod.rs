@@ -6,10 +6,12 @@ pub mod styles;
 pub mod resources;
 pub mod slider;
 pub mod dropdown;
+pub mod toggle;
 
 use styles::*;
 use slider::SliderPlugin;
 use dropdown::DropdownPlugin;
+use toggle::TogglePlugin;
 
 pub struct UserInterfacePlugin;
 
@@ -18,6 +20,6 @@ impl Plugin for UserInterfacePlugin {
         app
             .init_resource::<ButtonStyle>()
             .init_resource::<PanelStyle>()
-            .add_plugins((SliderPlugin, DropdownPlugin));
+            .add_plugins((SliderPlugin, DropdownPlugin, TogglePlugin));
     }
 }

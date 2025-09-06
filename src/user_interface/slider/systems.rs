@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 use super::{components::*, events::*, resources::SliderInputState};
 use std::time::Duration;
-use std::sync::Arc;
 
 fn format_value(value: f32, format: &ValueFormat) -> String {
     match format {

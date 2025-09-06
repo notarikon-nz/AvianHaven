@@ -218,15 +218,15 @@ fn evaluate_rule_conditions(
             BehaviorCondition::TimeRange { start, end } => {
                 time_state.hour >= *start && time_state.hour <= *end
             }
-            BehaviorCondition::ActionAvailable(action_str) => {
-                if let Some(action) = config.get_bird_action_from_string(action_str) {
+            BehaviorCondition::ActionAvailable { action } => {
+                if let Some(action) = config.get_bird_action_from_string(action) {
                     world.available_actions.contains_key(&action)
                 } else {
                     false
                 }
             }
-            BehaviorCondition::ActionNotAvailable(action_str) => {
-                if let Some(action) = config.get_bird_action_from_string(action_str) {
+            BehaviorCondition::ActionNotAvailable { action } => {
+                if let Some(action) = config.get_bird_action_from_string(action) {
                     !world.available_actions.contains_key(&action)
                 } else {
                     true

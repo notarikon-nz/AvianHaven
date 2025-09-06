@@ -243,7 +243,7 @@ fn setup_ui(mut commands: Commands, currency: Res<CurrencyResource>) {
             parent.spawn((
                 Text::new("Birds: 0"),
                 TextFont {
-                    font_size: 24.0,
+                    font_size: 16.0,
                     ..default()
                 },
                 TextColor(Color::WHITE),
@@ -265,7 +265,7 @@ fn setup_ui(mut commands: Commands, currency: Res<CurrencyResource>) {
             parent.spawn((
                 Text::new(format!("Currency: {}", currency.0)),
                 TextFont {
-                    font_size: 20.0,
+                    font_size: 16.0,
                     ..default()
                 },
                 TextColor(Color::srgb(0.8, 0.6, 0.2)),
@@ -277,8 +277,8 @@ fn setup_ui(mut commands: Commands, currency: Res<CurrencyResource>) {
                 Button,
                 SpawnButton,
                 Node {
-                    width: Val::Px(150.0),
-                    height: Val::Px(50.0),
+                    width: Val::Px(120.0),
+                    height: Val::Px(30.0),
                     justify_content: JustifyContent::Center,
                     align_items: AlignItems::Center,
                     border: UiRect::all(Val::Px(2.0)),
@@ -290,7 +290,7 @@ fn setup_ui(mut commands: Commands, currency: Res<CurrencyResource>) {
                 parent.spawn((
                     Text::new("Spawn Bird"),
                     TextFont {
-                        font_size: 20.0,
+                        font_size: 16.0,
                         ..default()
                     },
                     TextColor(Color::WHITE),

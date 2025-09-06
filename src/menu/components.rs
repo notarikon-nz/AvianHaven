@@ -107,3 +107,9 @@ pub struct ResolutionDropdownLabel;
 
 #[derive(Component)]
 pub struct GraphicsSection;
+
+#[derive(Component)]
+pub struct FullscreenToggle;
+
+#[derive(Component)]
+pub struct FullscreenToggleContainer;

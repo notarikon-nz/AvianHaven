@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::asset::{io::Reader, AssetLoader, LoadContext};
 
 pub mod config;
 pub mod systems;
@@ -10,12 +11,56 @@ use systems::*;
 use creation_kit::*;
 use workshop::*;
 
+#[derive(Default)]
+pub struct SmartObjectCatalogAssetLoader;
+
+impl AssetLoader for SmartObjectCatalogAssetLoader {
+    type Asset = SmartObjectCatalog;
+    type Settings = ();
+    type Error = Box<dyn std::error::Error + Send + Sync>;
+    
+    async fn load(
+        &self,
+        reader: &mut dyn Reader,
+        _settings: &(),
+        load_context: &mut LoadContext<'_>,
+    ) -> Result<Self::Asset, Self::Error> {
+        info!("SmartObjectCatalogAssetLoader: Loading catalog from path: {:?}", load_context.path());
+        let mut bytes = Vec::new();
+        reader.read_to_end(&mut bytes).await?;
+        
+        #[cfg(debug_assertions)]
+        info!("Debug: Read {} bytes from smart object catalog file", bytes.len());
+        
+        match ron::de::from_bytes::<SmartObjectCatalog>(&bytes) {
+            Ok(catalog) => {
+                info!("SmartObjectCatalogAssetLoader: Successfully loaded catalog with {} items", catalog.items.len());
+                #[cfg(debug_assertions)]
+                info!("Debug: First item ID: {}", 
+                    catalog.items.first().map(|item| &item.id).unwrap_or(&"none".to_string()));
+                Ok(catalog)
+            }
+            Err(e) => {
+                error!("SmartObjectCatalogAssetLoader: Failed to parse RON file: {}", e);
+                #[cfg(debug_assertions)]
+                error!("Debug: RON parse error details: {:#?}", e);
+                Err(Box::new(e))
+            }
+        }
+    }
+
+    fn extensions(&self) -> &[&str] {
+        &["ron"]
+    }
+}
+
 pub struct ConfigurableSmartObjectsPlugin;
 
 impl Plugin for ConfigurableSmartObjectsPlugin {
     fn build(&self, app: &mut App) {
         app
             .init_asset::<SmartObjectCatalog>()
+            .register_asset_loader(SmartObjectCatalogAssetLoader)
             .init_resource::<SmartObjectRegistry>()
             .init_resource::<CreationKitState>()
             .init_resource::<CreationKitTemplates>()
@@ -38,6 +83,7 @@ impl Plugin for ConfigurableSmartObjectsPlugin {
                 initialize_steam_workshop,
             ))
             .add_systems(Update, (
+                check_catalog_loading,
                 handle_spawn_smart_object_events,
                 handle_remove_smart_object_events,
                 handle_modify_smart_object_events,
@@ -88,6 +134,8 @@ pub struct WorkshopDownloadEvent {
 #[derive(Resource, Default)]
 pub struct SmartObjectRegistry {
     pub catalog: Option<SmartObjectCatalog>,
+    pub catalog_handle: Option<Handle<SmartObjectCatalog>>,
+    pub catalog_loaded: bool,
     pub workshop_items: std::collections::HashMap<String, WorkshopSmartObject>,
     pub active_objects: std::collections::HashMap<Entity, ConfigurableSmartObject>,
 }

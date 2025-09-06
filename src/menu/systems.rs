@@ -5,6 +5,7 @@ use crate::despawn::SafeDespawn;
 use crate::ui_widgets::ToggleButton;
 use crate::user_interface::slider::{SliderBuilder, SliderValueChangedEvent};
 use crate::user_interface::dropdown::{DropdownBuilder, DropdownChangedEvent, DropdownChangeKind, DropdownConfig};
+use crate::user_interface::toggle::{ToggleBuilder, ToggleChangedEvent};
 use crate::audio::resources::AudioSettings;
 
 // Setup Systems
@@ -90,6 +91,22 @@ pub fn setup_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {
 }
 
 pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) {
+    // Create the fullscreen toggle widget first, before any UI hierarchy
+    let toggle_config = crate::user_interface::toggle::ToggleConfig {
+        size: Vec2::new(50.0, 25.0),
+        on_color: Color::srgb(0.2, 0.8, 0.2),
+        off_color: Color::srgb(0.5, 0.5, 0.5),
+        ..default()
+    };
+    
+    let fullscreen_toggle_entity = ToggleBuilder::new(&mut commands)
+        .with_initial_state(settings.fullscreen)
+        .with_config(toggle_config)
+        .spawn_state_scoped(crate::AppState::Settings);
+        
+    // Tag the toggle for identification in event handling
+    commands.entity(fullscreen_toggle_entity).insert(FullscreenToggle);
+
     commands.spawn((
         Node {
             width: Val::Percent(100.0),
@@ -184,7 +201,6 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                     margin: UiRect::vertical(Val::Px(20.0)),
                     ..default()
                 },
-                GraphicsSection, // Add marker component
             )).with_children(|section| {
                 section.spawn((
                     Text::new("Graphics"),
@@ -199,35 +215,30 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                     },
                 ));
                 
-                // Graphics Quality selector (simplified for now)
-                section.spawn((
-                    Button,
+                // Resolution section container
+                let resolution_container = section.spawn((
                     Node {
-                        width: Val::Percent(100.0),
-                        flex_direction: FlexDirection::Row,
-                        justify_content: JustifyContent::SpaceBetween,
-                        align_items: AlignItems::Center,
-                        padding: UiRect::all(Val::Px(10.0)),
+                        flex_direction: FlexDirection::Column,
+                        row_gap: Val::Px(5.0),
+                        margin: UiRect::bottom(Val::Px(15.0)),
                         ..default()
                     },
-                    BackgroundColor(Color::srgb(0.9, 0.9, 0.9)),
-                    BorderRadius::all(Val::Px(6.0)),
-                    GraphicsQualityDropdown,
-                )).with_children(|item| {
-
-                    // Resolution selector - placeholder for new dropdown
-                    item.spawn((
+                    GraphicsSection, // Mark this as the graphics section for dropdown setup
+                )).with_children(|container| {
+                    // Resolution label
+                    container.spawn((
                         Text::new("Resolution"),
                         TextFont { font_size: 16.0, ..default() },
                         TextColor(Color::srgb(0.3, 0.2, 0.1)),
                         Node {
-                            margin: UiRect::bottom(Val::Px(10.0)),
+                            margin: UiRect::bottom(Val::Px(5.0)),
                             ..default()
                         },
                         ResolutionDropdownLabel, // Marker component
                     ));
-
-                });
+                    
+                    // Dropdown will be added here by setup_resolution_dropdown_system
+                }).id();
                 
                 // Graphics Quality selector (simplified for now)
                 section.spawn((
@@ -287,9 +298,8 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                     ));
                 });
                 
-                // Fullscreen toggle
+                // Fullscreen toggle container - using pre-created StateScoped toggle widget
                 section.spawn((
-                    Button,
                     Node {
                         width: Val::Percent(100.0),
                         flex_direction: FlexDirection::Row,
@@ -300,23 +310,14 @@ pub fn setup_settings_menu(mut commands: Commands, settings: Res<GameSettings>) 
                     },
                     BackgroundColor(Color::srgb(0.9, 0.9, 0.9)),
                     BorderRadius::all(Val::Px(6.0)),
-                    ToggleButton::new("Fullscreen", settings.fullscreen),
-                )).with_children(|item| {
-                    item.spawn((
+                    FullscreenToggleContainer,
+                )).with_children(|container| {
+                    container.spawn((
                         Text::new("Fullscreen"),
                         TextFont { font_size: 16.0, ..default() },
                         TextColor(Color::srgb(0.3, 0.2, 0.1)),
                     ));
-                    item.spawn((
-                        Text::new(if settings.fullscreen { "ON" } else { "OFF" }),
-                        TextFont { font_size: 16.0, ..default() },
-                        TextColor(if settings.fullscreen { 
-                            Color::srgb(0.2, 0.6, 0.2) 
-                        } else { 
-                            Color::srgb(0.6, 0.2, 0.2) 
-                        }),
-                    ));
-                });
+                }).add_child(fullscreen_toggle_entity);
             });
             
             // Gameplay settings section
@@ -863,7 +864,7 @@ pub fn main_menu_button_system(
     >,
     mut menu_nav_events: EventWriter<MenuNavigationEvent>,
     mut app_exit_events: EventWriter<AppExit>,
-    mut save_events: EventWriter<SaveGameEvent>,
+    mut _save_events: EventWriter<SaveGameEvent>,
     mut save_manager: ResMut<SaveManager>,
 ) {
     for (interaction, menu_button, mut bg_color) in interaction_query.iter_mut() {
@@ -1112,10 +1113,12 @@ pub fn setup_resolution_dropdown_system(
     graphics_section_query: Query<Entity, With<GraphicsSection>>,
     label_query: Query<Entity, With<ResolutionDropdownLabel>>,
 ) {
+    info!("Setting up resolution dropdown system");
+    
     // Find the graphics section and add the dropdown after the resolution label
     if let Some(label_entity) = label_query.iter().next() {
+        info!("Found resolution label entity: {:?}", label_entity);
         let resolutions = GameSettings::get_common_resolutions();
-        let current_index = settings.find_resolution_index();
         
         // Build dropdown with resolution options
         let mut dropdown_builder = DropdownBuilder::new();
@@ -1123,21 +1126,29 @@ pub fn setup_resolution_dropdown_system(
             dropdown_builder = dropdown_builder.with_option(format!("{}x{}", width, height), None);
         }
         
+        let config = DropdownConfig {
+            placeholder: format!("{}x{}", settings.window_resolution.0, settings.window_resolution.1),
+            ..Default::default()
+        };
+        
         let dropdown_spawn_cmd = dropdown_builder
-            .with_placeholder(format!("{}x{}", settings.window_resolution.0, settings.window_resolution.1))
+            .with_config(config)
             .build();
             
         let dropdown_entity = dropdown_spawn_cmd.spawn(&mut commands, &mut option_registry);
+        info!("Created dropdown entity: {:?}", dropdown_entity);
         
         // Add marker component to identify this as the resolution dropdown
         commands.entity(dropdown_entity).insert(ResolutionDropdown);
         
-        // Add it as a child of the same parent as the label
-        // Since we can't query Parent directly in Commands, we'll add it to the graphics section
+        // Add it as a child of the graphics section (same parent as the label)
         for graphics_entity in graphics_section_query.iter() {
+            info!("Adding dropdown to graphics section: {:?}", graphics_entity);
             commands.entity(graphics_entity).add_children(&[dropdown_entity]);
             break;
         }
+    } else {
+        info!("Resolution label not found!");
     }
 }
 
@@ -1359,6 +1370,29 @@ pub fn settings_toggle_system(
             // Auto-save settings when changed
             if let Err(e) = settings.save_to_file() {
                 eprintln!("Failed to save settings: {}", e);
+            }
+        }
+    }
+}
+
+/// Handle toggle widget changes (StateScoped implementation)
+pub fn fullscreen_toggle_system(
+    mut toggle_events: EventReader<ToggleChangedEvent>,
+    mut settings: ResMut<GameSettings>,
+    toggle_query: Query<&crate::user_interface::toggle::Toggle, With<FullscreenToggle>>,
+) {
+    for event in toggle_events.read() {
+        if let Ok(toggle) = toggle_query.get(event.toggle_entity) {
+            settings.fullscreen = toggle.is_on;
+            
+            #[cfg(debug_assertions)]
+            info!("StateScoped fullscreen toggle changed: {} -> {}", event.previous_state, event.new_state);
+            
+            info!("Fullscreen setting updated: {}", toggle.is_on);
+            
+            // Auto-save settings when changed
+            if let Err(e) = settings.save_to_file() {
+                error!("Failed to save graphics settings: {}", e);
             }
         }
     }

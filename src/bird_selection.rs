@@ -17,10 +17,10 @@ impl Plugin for BirdSelectionPlugin {
                     bird_selection_system,
                     selection_highlight_system,
                     update_selection_ui,
-                    cleanup_selection_ui,
                 ).run_if(in_state(AppState::Playing))
             )
-            .add_systems(OnEnter(AppState::Playing), setup_selection_ui);
+            .add_systems(OnEnter(AppState::Playing), setup_selection_ui)
+            .add_systems(OnExit(AppState::Playing), cleanup_selection_ui);
     }
 }
 
@@ -63,7 +63,7 @@ pub struct BirdInfoText;
 pub fn bird_selection_system(
     mut commands: Commands,
     mut selection: ResMut<BirdSelection>,
-    settings: Res<SelectionSettings>,
+    mut settings: ResMut<SelectionSettings>,
     time: Res<Time>,
     mouse_button: Res<ButtonInput<MouseButton>>,
     windows: Query<&Window>,
@@ -76,11 +76,13 @@ pub fn bird_selection_system(
         return;
     }
 
+    info!("left mouse button just pressed (bird_selection_system)");
+
     let Ok(window) = windows.single() else { return };
     let Ok((camera, camera_transform)) = camera_query.single() else { return };
     
     let Some(cursor_position) = window.cursor_position() else { return };
-    
+    info!("cursor_position");
     // Convert screen coordinates to world coordinates
     // For 2D, we can use a simple approach - just offset by camera position
     let camera_pos = camera_transform.translation.truncate();
@@ -99,25 +101,34 @@ pub fn bird_selection_system(
             closest_bird = Some(entity);
         }
     }
+    info!("closest_bird");
 
     // Clear existing highlights
     for highlight_entity in &highlight_query {
         commands.entity(highlight_entity).despawn();
     }
 
+    info!("cleared_highlights");
+
     if let Some(bird_entity) = closest_bird {
+        info!("bird selected");
         // Check for double-click to toggle info card
         let current_time = time.elapsed().as_secs_f64();
         if let Some(last_selected) = selection.selected_bird {
             if last_selected == bird_entity && 
                current_time - selection.last_selected_time < settings.double_click_time {
                 // Double-click detected - toggle info card
-                selection.selected_bird = if settings.show_info_card { Some(bird_entity) } else { None };
-            } else {
+                settings.show_info_card = !settings.show_info_card;
                 selection.selected_bird = Some(bird_entity);
+            } else {
+                // Single click - select bird and show info card
+                selection.selected_bird = Some(bird_entity);
+                settings.show_info_card = true;
             }
         } else {
+            // First click - select bird and show info card
             selection.selected_bird = Some(bird_entity);
+            settings.show_info_card = true;
         }
         
         selection.last_selected_time = current_time;
@@ -134,8 +145,10 @@ pub fn bird_selection_system(
             ));
         }
     } else {
-        // Clicked on empty space - deselect
+        // Clicked on empty space - deselect and hide info card
         selection.selected_bird = None;
+        settings.show_info_card = false;
+        info!("bird deselected");
     }
 }
 
@@ -154,29 +167,33 @@ pub fn selection_highlight_system(
 
 /// System to set up the selection UI
 pub fn setup_selection_ui(mut commands: Commands) {
+    info!("Setting up bird selection UI");
     // Create the info card container (initially hidden)
-    commands.spawn((
+    let card_entity = commands.spawn((
         Node {
             position_type: PositionType::Absolute,
             bottom: Val::Px(20.0),
             right: Val::Px(20.0),
-            width: Val::Px(300.0),
-            min_height: Val::Px(200.0),
+            width: Val::Px(280.0),
+            min_height: Val::Px(120.0),
             flex_direction: FlexDirection::Column,
             padding: UiRect::all(Val::Px(16.0)),
             row_gap: Val::Px(8.0),
             ..default()
         },
-        BackgroundColor(Color::srgba(0.15, 0.15, 0.2, 0.95)),
+        BackgroundColor(Color::srgba(0.2, 0.2, 0.3, 0.9)),
+        BorderColor(Color::srgb(0.8, 0.8, 0.8)),
         BorderRadius::all(Val::Px(8.0)),
+        ZIndex(1000), // High z-index to ensure it appears above other UI
         Visibility::Hidden,
         BirdInfoCard,
     )).with_children(|card| {
         // Title
+        /*
         card.spawn((
             Text::new("Bird Information"),
             TextFont {
-                font_size: 18.0,
+                font_size: 11.0,
                 ..default()
             },
             TextColor(Color::srgb(1.0, 1.0, 1.0)),
@@ -185,18 +202,20 @@ pub fn setup_selection_ui(mut commands: Commands) {
                 ..default()
             },
         ));
+        */
         
         // Info text container
         card.spawn((
             Text::new("No bird selected"),
             TextFont {
-                font_size: 14.0,
+                font_size: 11.0,
                 ..default()
             },
             TextColor(Color::srgb(0.9, 0.9, 0.9)),
             BirdInfoText,
         ));
-    });
+    }).id();
+    info!("Created bird info card with entity: {:?}", card_entity);
 }
 
 /// System to update the selection UI
@@ -207,14 +226,17 @@ pub fn update_selection_ui(
     mut card_query: Query<&mut Visibility, (With<BirdInfoCard>, Without<BirdInfoText>)>,
     mut text_query: Query<&mut Text, With<BirdInfoText>>,
 ) {
-    let Ok(mut card_visibility) = card_query.single_mut() else { return };
-    let Ok(mut info_text) = text_query.single_mut() else { return };
+    let Ok(mut card_visibility) = card_query.single_mut() else { 
+        return 
+    };
+    let Ok(mut info_text) = text_query.single_mut() else { 
+        return 
+    };
 
     if let Some(selected_entity) = selection.selected_bird {
         if settings.show_info_card {
             if let Ok((bird, bird_state, blackboard, animated_bird)) = bird_query.get(selected_entity) {
                 *card_visibility = Visibility::Inherited;
-                
                 // Generate info text
                 let species_name = format_species_name(animated_bird.species);
                 let state_description = format_state_description(*bird_state);

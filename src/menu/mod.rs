@@ -13,6 +13,7 @@ pub struct MenuPlugin;
 
 impl Plugin for MenuPlugin {
     fn build(&self, app: &mut App) {
+        info!("Registering MenuPlugin with resolution dropdown setup");
         app
             .init_resource::<MenuState>()
             .init_resource::<GameSettings>()
@@ -39,6 +40,8 @@ impl Plugin for MenuPlugin {
                 resolution_dropdown_system,
                 graphics_quality_dropdown_system,
                 settings_toggle_system,
+                // StateScoped toggle widget system
+                fullscreen_toggle_system,
             ).run_if(in_state(AppState::Settings)))
             .add_systems(Update, load_game_button_system.run_if(in_state(AppState::LoadGame)))
             .add_systems(Update, escape_key_system.run_if(

@@ -649,6 +649,7 @@ pub fn handle_object_placement(
             
             // Place object on left click
             if mouse_button.just_pressed(MouseButton::Left) {
+                info!("left mouse button just pressed (handle_object_placement)");
                 if let Some(item_type) = &catalog_state.selected_item {
                     place_events.write(PlaceObjectEvent {
                         item_type: item_type.clone(),
