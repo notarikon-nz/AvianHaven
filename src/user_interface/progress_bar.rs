@@ -135,6 +135,7 @@ impl std::fmt::Debug for ProgressBarVisuals {
 pub struct ProgressAnimation {
     pub target_fraction: f32,
     pub current_display_fraction: f32,
+    pub start_fraction: f32, // Where the animation started from
     pub start_time: f64,
     pub duration: f32,
     pub is_animating: bool,
@@ -320,11 +321,12 @@ pub fn progress_bar_update_system(
         &ProgressBarVisuals,
         &ProgressBarParts,
         Option<&mut ProgressAnimation>,
-    ), Changed<ProgressBar>>,
+    ), (With<ProgressBarRoot>, Or<(Changed<ProgressBar>, Added<ProgressBar>)>)>,
     mut q_fills: Query<&mut Node, With<ProgressBarFill>>,
     mut evw_changed: EventWriter<ProgressChangedEvent>,
     time: Res<Time>,
 ) {
+    
     for (entity, progress, visuals, parts, animation) in &mut q_progress_bars {
         let target_fraction = progress.fraction();
         
@@ -335,11 +337,12 @@ pub fn progress_bar_update_system(
             new_value: progress.current,
             change_kind: determine_change_kind(&progress),
         });
-        
         if let Ok(mut fill_style) = q_fills.get_mut(parts.fill) {
             if let Some(mut animation) = animation {
                 // Use fixed duration from visuals
                 animation.duration = visuals.animation_duration;
+                // Record where this animation is starting from
+                animation.start_fraction = animation.current_display_fraction;
                 animation.target_fraction = target_fraction;
                 animation.start_time = time.elapsed_secs_f64();
                 animation.is_animating = true;
@@ -348,6 +351,8 @@ pub fn progress_bar_update_system(
                 let target_percentage = calculate_fill_percentage(progress, visuals);
                 update_fill_style(&mut fill_style, target_percentage, visuals);
             }
+        } else {
+            warn!("Could not find fill entity {:?} in q_fills query", parts.fill);
         }
         
         // Mark as completed if at max
@@ -378,8 +383,9 @@ pub fn progress_bar_animation_system(
             let t = (elapsed / animation.duration.max(0.001)).clamp(0.0, 1.0);
             
             let eased_t = visuals.easing.sample(t);
-            animation.current_display_fraction = animation.current_display_fraction
-                + (animation.target_fraction - animation.current_display_fraction) * eased_t;
+            
+            // Proper lerp from start_fraction to target_fraction
+            animation.current_display_fraction = animation.start_fraction.lerp(animation.target_fraction, eased_t);
             
             // Update fill - convert fraction to percentage for styling
             if let Ok(mut fill_style) = q_fills.get_mut(parts.fill) {
@@ -388,6 +394,8 @@ pub fn progress_bar_animation_system(
                     _ => animation.current_display_fraction * 100.0,
                 };
                 update_fill_style(&mut fill_style, display_percentage, visuals);
+            } else {
+                warn!("animation_system: Could not find fill entity {:?}", parts.fill);
             }
             
             // Check if animation complete
@@ -620,13 +628,13 @@ impl<'w, 's, 'a> ProgressBarBuilder<'w, 's, 'a> {
         // Spawn fill
         let fill_node = match self.visuals.orientation {
             ProgressOrientation::Horizontal => Node {
-                width: Val::Percent(initial_percentage),
+                width: Val::Percent(initial_percentage.max(10.0)), // Ensure minimum visibility for debugging
                 height: Val::Percent(100.0),
                 ..default()
             },
             ProgressOrientation::Vertical => Node {
                 width: Val::Percent(100.0),
-                height: Val::Percent(initial_percentage),
+                height: Val::Percent(initial_percentage.max(10.0)), // Ensure minimum visibility for debugging
                 ..default()
             },
         };
@@ -683,7 +691,8 @@ impl<'w, 's, 'a> ProgressBarBuilder<'w, 's, 'a> {
                 target_fraction: initial_fraction,
                 current_display_fraction: initial_fraction,
                 start_time: 0.0,
-                duration: 0.0,
+                start_fraction: 0.0,
+                duration: self.visuals.animation_duration, // Initialize with proper duration!
                 is_animating: false,
             });
         }

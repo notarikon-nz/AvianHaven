@@ -43,6 +43,8 @@ mod hanabi_effects; // Phase 4: GPU-accelerated particle effects
 mod predator_prey; // Phase 4: Predator-prey dynamics
 mod ui_diagnostic; // UI diagnostic and testing tools
 mod bird_selection; // Bird selection system with info cards
+mod automated_testing; // Automated testing system with time acceleration
+mod debug_console; // In-game debug console with ~ toggle
 
 use user_interface::UserInterfacePlugin;
 use bird::BirdPlugin;
@@ -79,6 +81,8 @@ use hanabi_effects::HanabiEffectsPlugin;
 use predator_prey::PredatorPreyPlugin;
 use bird_selection::BirdSelectionPlugin;
 use loading_screen::LoadingScreenPlugin;
+use automated_testing::AutomatedTestingPlugin;
+use debug_console::DebugConsolePlugin;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, Default, States)]
 #[states(scoped_entities)]
@@ -142,6 +146,8 @@ fn main() {
         .add_plugins(ui_diagnostic::UiDiagnosticPlugin)
         .add_plugins(BirdSelectionPlugin)
         .add_plugins(LoadingScreenPlugin)
+        .add_plugins(AutomatedTestingPlugin)
+        .add_plugins(DebugConsolePlugin)
         .add_systems(Startup, setup)
         .add_systems(PostUpdate, robust_despawn_system)
         .run();

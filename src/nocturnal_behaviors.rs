@@ -16,6 +16,7 @@ impl Plugin for NocturnalBehaviorPlugin {
             .add_event::<MigrationEvent>()
             .add_systems(Startup, setup_nocturnal_sites)
             .add_systems(Update, (
+                initialize_nocturnal_behavior,
                 nocturnal_activity_cycle_system,
                 owl_hunting_system,
                 roost_selection_system,
@@ -272,15 +273,23 @@ fn nocturnal_activity_cycle_system(
         
         // Modify bird AI behavior based on nocturnal state
         if activity_modifier < 0.3 {
-            // Low activity - seek roost or rest
-            if *bird_state != BirdState::Resting {
-                *bird_state = BirdState::Resting;
+            // Low activity - diurnal birds should rest during deep night
+            // Only allow emergency behaviors to override rest
+            match *bird_state {
+                BirdState::Fleeing => {
+                    // Allow fleeing to continue (emergency)
+                },
+                _ => {
+                    *bird_state = BirdState::Resting;
+                }
             }
         } else if activity_modifier > 0.8 {
             // High activity - normal or hunting behavior
             if matches!(traits.activity_pattern, ActivityPattern::Nocturnal) && is_night {
-                // Nocturnal hunters become more active (this would need access to blackboard separately)
-                *bird_state = BirdState::Wandering;
+                // Nocturnal hunters become more active
+                if *bird_state == BirdState::Resting {
+                    *bird_state = BirdState::Wandering;
+                }
             }
         }
     }
@@ -531,6 +540,25 @@ fn night_migration_system(
                 distance: migration_distance,
             });
         }
+    }
+}
+
+// System to add NocturnalBehavior component to birds that don't have it
+fn initialize_nocturnal_behavior(
+    mut commands: Commands,
+    bird_query: Query<(Entity, &Bird), (With<BirdAI>, Without<NocturnalBehavior>)>,
+) {
+    for (entity, bird) in bird_query.iter() {
+        let traits = bird.species.nocturnal_traits();
+        
+        commands.entity(entity).insert(NocturnalBehavior {
+            traits,
+            current_roost: None,
+            hunting_success_rate: 0.5,
+            energy_level: 0.8,
+            last_hunt_time: 0.0,
+            roost_arrival_time: None,
+        });
     }
 }
 

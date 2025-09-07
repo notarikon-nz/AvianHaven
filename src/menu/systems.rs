@@ -10,6 +10,16 @@ use crate::user_interface::scrollable::ScrollableBuilder;
 use crate::user_interface::tab_group::*;
 use crate::audio::resources::AudioSettings;
 
+// Startup Systems
+
+pub fn load_settings_on_startup(mut commands: Commands) {
+    let settings = GameSettings::load_from_file();
+    info!("Loaded settings from file: resolution={}x{}, master_volume={:.2}, fullscreen={}", 
+        settings.window_resolution.0, settings.window_resolution.1, 
+        settings.master_volume, settings.fullscreen);
+    commands.insert_resource(settings);
+}
+
 // Setup Systems
 
 pub fn setup_main_menu(mut commands: Commands, asset_server: Res<AssetServer>) {

@@ -39,6 +39,24 @@ pub fn evaluate_behavior_tree(blackboard: &Blackboard, time_state: &TimeState, w
     let internal = &blackboard.internal;
     let world = &blackboard.world_knowledge;
     
+    // HIGHEST PRIORITY: Nocturnal activity patterns - check if bird should be resting
+    let current_hour = time_state.hour as f32;
+    let is_night = current_hour >= 20.0 || current_hour <= 6.0;
+    let is_dusk = current_hour >= 18.0 && current_hour <= 20.0;
+    let is_dawn = current_hour >= 5.0 && current_hour <= 7.0;
+    
+    // Most birds (except nocturnal) should be resting during nighttime
+    if is_night {
+        // During deep night hours (21-5), most diurnal birds should be resting
+        let deep_night = current_hour >= 21.0 || current_hour <= 5.0;
+        if deep_night {
+            // Only emergency needs override rest for diurnal birds at night
+            if internal.hunger < 0.9 && internal.thirst < 0.9 && internal.fear < 0.5 {
+                return BirdState::Resting;
+            }
+        }
+    }
+    
     // Highest priority: Weather-induced fear and shelter seeking
     let weather = weather_state.current_weather;
     let weather_fear = weather.weather_fear_factor();

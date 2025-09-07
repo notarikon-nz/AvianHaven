@@ -13,6 +13,8 @@ impl Plugin for PredatorPreyPlugin {
             .add_event::<PredatorAttackEvent>()
             .add_event::<AlertCallEvent>()
             .add_systems(Update, (
+                setup_predator_traits,
+                predator_spawning_system,
                 predator_hunting_system,
                 prey_response_system,
                 alert_call_system,
@@ -81,6 +83,79 @@ pub struct AlertCallEvent {
     pub predator_location: Vec3,
     pub urgency: f32,
     pub call_range: f32,
+}
+
+// Predator spawning system - occasionally spawn predators in the environment
+pub fn predator_spawning_system(
+    mut commands: Commands,
+    mut predator_manager: ResMut<PredatorManager>,
+    bird_query: Query<Entity, With<BirdAI>>,
+    predator_query: Query<Entity, With<Predator>>,
+    time: Res<Time>,
+    asset_server: Res<AssetServer>,
+) {
+    // Update spawn cooldown
+    predator_manager.attack_cooldown.tick(time.delta());
+    
+    // Only spawn if there are prey birds and not too many predators
+    let prey_count = bird_query.iter().count();
+    let predator_count = predator_query.iter().count();
+    
+    if prey_count < 5 || predator_count >= 2 {
+        return;
+    }
+    
+    // Spawn a predator occasionally
+    if predator_manager.attack_cooldown.finished() {
+        if rand::random::<f32>() < 0.05 { // 5% chance when cooldown expires
+            spawn_predator(&mut commands, &asset_server);
+            predator_manager.attack_cooldown = Timer::from_seconds(120.0, TimerMode::Once);
+            info!("Spawned predator");
+        } else {
+            predator_manager.attack_cooldown = Timer::from_seconds(30.0, TimerMode::Once);
+        }
+    }
+}
+
+// Helper function to spawn a predator
+fn spawn_predator(commands: &mut Commands, asset_server: &AssetServer) {
+    use crate::bird::{Bird, BirdSpecies};
+    use bevy_rapier2d::prelude::*;
+    
+    let predator_species = match rand::random::<u32>() % 5 {
+        0 => BirdSpecies::CoopersHawk,
+        1 => BirdSpecies::RedTailedHawk,
+        2 => BirdSpecies::PeregrineFalcon,
+        3 => BirdSpecies::GreatHornedOwl,
+        _ => BirdSpecies::BarredOwl,
+    };
+    
+    // Spawn at edge of play area
+    let angle = rand::random::<f32>() * std::f32::consts::TAU;
+    let spawn_distance = 800.0;
+    let spawn_pos = Vec3::new(
+        angle.cos() * spawn_distance,
+        angle.sin() * spawn_distance,
+        0.0,
+    );
+    
+    let sprite_path = format!("sprites/birds/{:?}.png", predator_species).to_lowercase();
+    
+    commands.spawn((
+        Sprite {
+            image: asset_server.load(sprite_path),
+            custom_size: Some(Vec2::splat(32.0)),
+            ..default()
+        },
+        Transform::from_translation(spawn_pos),
+        RigidBody::Dynamic,
+        Velocity::default(),
+        Collider::ball(16.0),
+        Bird { species: predator_species },
+        crate::bird_ai::components::BirdAI::default(),
+        crate::bird_ai::components::Blackboard::default(),
+        crate::bird_ai::components::BirdState::Wandering,
+    ));
 }
 
 // Predator hunting system
@@ -291,7 +366,7 @@ pub fn setup_predator_traits(
             // Add predator component
             commands.entity(entity).insert(Predator {
                 hunting_style: match bird.species {
-                    BirdSpecies::CoopersHawk | BirdSpecies::RedTailedHawk => HuntingStyle::Pursuit,
+                    BirdSpecies::CoopersHawk => HuntingStyle::Pursuit,
                     BirdSpecies::RedTailedHawk => HuntingStyle::Soaring,
                     BirdSpecies::PeregrineFalcon => HuntingStyle::Soaring,
                     BirdSpecies::GreatHornedOwl | BirdSpecies::BarredOwl => HuntingStyle::Ambush,
@@ -337,7 +412,7 @@ pub fn setup_predator_traits(
 // Get preferred prey species for each predator
 fn get_preferred_prey(predator_species: BirdSpecies) -> Vec<BirdSpecies> {
     match predator_species {
-        BirdSpecies::CoopersHawk | BirdSpecies::RedTailedHawk => {
+        BirdSpecies::CoopersHawk => {
             vec![
                 BirdSpecies::HouseFinch,
                 BirdSpecies::Sparrow,

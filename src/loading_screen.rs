@@ -6,7 +6,7 @@ const BACKGROUND_COLOR: Color = Color::srgb(0.1, 0.1, 0.1);
 const TEXT_COLOR: Color = Color::srgb(0.9, 0.9, 0.9);
 const PROGRESS_BAR_BACKGROUND: Color = Color::srgb(0.3, 0.3, 0.3);
 const PROGRESS_BAR_FILL: Color = Color::srgb(0.2, 0.6, 0.8);
-const TEXT_FONT_SIZE: f32 = 36.0;
+const TEXT_FONT_SIZE: f32 = 30.0;
 
 pub struct LoadingScreenPlugin;
 
@@ -88,7 +88,7 @@ fn setup_loading_screen(mut commands: Commands) {
         .with_value(0.0, 1.0) // Use 0.0-1.0 range for simpler fraction handling
         .with_size(Val::Px(300.0), Val::Px(20.0))
         .with_visuals(progress_bar_visuals)
-        .with_animation(true)
+        .with_animation(false) // Disable animation temporarily to test basic functionality
         .spawn();
     
     // Add children to root

@@ -105,44 +105,17 @@ pub fn territorial_behavior_system(
     }
 }
 
+// This system is now handled by the dedicated predator-prey system
+// Keeping it minimal to avoid conflicts
 pub fn predator_avoidance_system(
     mut bird_query: Query<(Entity, &Transform, &mut Velocity, &Bird, &mut BirdState), With<BirdAI>>,
-    predator_query: Query<&Transform, (With<Bird>, Without<BirdAI>)>, // Future: dedicated predator entities
     mut commands: Commands,
-    time: Res<Time>,
 ) {
-    // For now, simulate predator presence occasionally
-    static mut PREDATOR_TIMER: f32 = 0.0;
-    
-    unsafe {
-        PREDATOR_TIMER += time.delta().as_secs_f32();
-        
-        // Simulate predator event every 60-120 seconds  
-        if PREDATOR_TIMER > 90.0 {
-            let mut rng = rand::rng();
-            if rng.random::<f32>() < 0.1 {
-                PREDATOR_TIMER = 0.0;
-                
-                info!("Predator spotted! Birds scatter!");
-                
-                // All birds flee
-                for (entity, transform, mut velocity, _bird, mut state) in bird_query.iter_mut() {
-                    *state = BirdState::Fleeing;
-                    
-                    // Flee in random direction away from center
-                    let bird_pos = transform.translation.truncate();
-                    let flee_direction = if bird_pos.length() > 10.0 {
-                        bird_pos.normalize() // Away from center
-                    } else {
-                        Vec2::new(rng.random_range(-1.0..1.0), rng.random_range(-1.0..1.0)).normalize()
-                    };
-                    
-                    velocity.linvel = flee_direction * 150.0; // Fast escape
-                    
-                    // Add predator avoidance component if not present
-                    commands.entity(entity).insert(PredatorAvoidance::default());
-                }
-            }
+    // This system now just ensures PredatorAvoidance components are added when needed
+    for (entity, _transform, _velocity, _bird, state) in bird_query.iter_mut() {
+        // Add predator avoidance component if bird is fleeing and doesn't have it
+        if *state == BirdState::Fleeing {
+            commands.entity(entity).try_insert(PredatorAvoidance::default());
         }
     }
 }

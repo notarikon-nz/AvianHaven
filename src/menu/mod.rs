@@ -16,11 +16,11 @@ impl Plugin for MenuPlugin {
         info!("Registering MenuPlugin with resolution dropdown setup");
         app
             .init_resource::<MenuState>()
-            .init_resource::<GameSettings>()
             .init_resource::<crate::ui_widgets::CursorPosition>()
             .add_event::<MenuNavigationEvent>()
             .add_event::<crate::user_interface::slider::SliderValueChangedEvent>()
             .add_event::<crate::user_interface::dropdown::DropdownChangedEvent>()
+            .add_systems(Startup, load_settings_on_startup)
             .add_systems(OnEnter(AppState::MainMenu), setup_main_menu) // Re-enabled as fallback
             .add_systems(OnEnter(AppState::Settings), (setup_settings_menu, setup_audio_sliders_system, setup_resolution_dropdown_system).chain())
             .add_systems(OnEnter(AppState::LoadGame), setup_load_game_menu)

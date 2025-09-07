@@ -15,7 +15,7 @@ impl Plugin for LunexUiPlugin {
             .add_systems(Startup, setup_lunex_system)
             .add_systems(OnEnter(crate::AppState::MainMenu), setup_lunex_main_menu)
             .add_systems(OnExit(crate::AppState::MainMenu), cleanup_lunex_main_menu)
-            .add_systems(Update, handle_lunex_main_menu_clicks.run_if(in_state(crate::AppState::MainMenu)))
+            .add_systems(Update, handle_lunex_main_menu_clicks.run_if(in_state(crate::AppState::MainMenu).and(crate::debug_console::console_is_not_visible)))
             .add_systems(Update, (
                 create_lunex_settings_buttons,
                 handle_lunex_button_clicks,
@@ -37,7 +37,7 @@ impl Plugin for LunexUiPlugin {
             .add_systems(OnEnter(crate::AppState::Catalog), setup_lunex_catalog)
             .add_systems(OnExit(crate::AppState::Catalog), cleanup_lunex_catalog)
             .add_systems(Update, (
-                handle_lunex_catalog_navigation,
+                handle_lunex_catalog_navigation.run_if(crate::debug_console::console_is_not_visible),
                 update_catalog_currency_display,
                 debug_lunex_catalog_state,
                 catalog_health_monitor,
