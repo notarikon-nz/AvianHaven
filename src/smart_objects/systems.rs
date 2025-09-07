@@ -7,6 +7,7 @@ use crate::environment::resources::{TimeState, WeatherState};
 use std::collections::HashMap;
 use crate::notifications::{resources::ShowNotificationEvent, components::NotificationType};
 use crate::catalog::resources::PlayerInventory;
+use crate::garden_lighting::{spawn_solar_light, spawn_garden_lamp};
 
 pub fn setup_smart_object_registry(
     mut registry: ResMut<SmartObjectRegistry>,
@@ -56,19 +57,35 @@ pub fn handle_spawn_smart_object_events(
     time: Res<Time>,
 ) {
     for event in events.read() {
-        let definition = registry.get_definition(&event.definition_id).cloned();
-        if let Some(definition) = definition {
-            spawn_smart_object_from_definition(
-                &mut commands,
-                &mut registry,
-                &asset_server,
-                &definition,
-                event.position,
-                event.custom_modifications.as_ref(),
-                time.elapsed_secs_f64(),
-            );
-        } else {
-            error!("Smart object definition not found: {}", event.definition_id);
+        // Handle specialized lighting objects
+        match event.definition_id.as_str() {
+            "solar_light" => {
+                let entity = spawn_solar_light(&mut commands, event.position);
+                info!("Spawned solar light at {:?}", event.position);
+                continue;
+            },
+            "garden_lamp" => {
+                let entity = spawn_garden_lamp(&mut commands, event.position);
+                info!("Spawned garden lamp at {:?}", event.position);
+                continue;
+            },
+            _ => {
+                // Handle regular smart objects
+                let definition = registry.get_definition(&event.definition_id).cloned();
+                if let Some(definition) = definition {
+                    spawn_smart_object_from_definition(
+                        &mut commands,
+                        &mut registry,
+                        &asset_server,
+                        &definition,
+                        event.position,
+                        event.custom_modifications.as_ref(),
+                        time.elapsed_secs_f64(),
+                    );
+                } else {
+                    error!("Smart object definition not found: {}", event.definition_id);
+                }
+            }
         }
     }
 }

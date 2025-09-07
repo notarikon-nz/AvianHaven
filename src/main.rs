@@ -45,6 +45,7 @@ mod ui_diagnostic; // UI diagnostic and testing tools
 mod bird_selection; // Bird selection system with info cards
 mod automated_testing; // Automated testing system with time acceleration
 mod debug_console; // In-game debug console with ~ toggle
+mod garden_lighting; // Garden lighting system with solar lights and moth attraction
 
 use user_interface::UserInterfacePlugin;
 use bird::BirdPlugin;
@@ -83,6 +84,7 @@ use bird_selection::BirdSelectionPlugin;
 use loading_screen::LoadingScreenPlugin;
 use automated_testing::AutomatedTestingPlugin;
 use debug_console::DebugConsolePlugin;
+use garden_lighting::GardenLightingPlugin;
 
 #[derive(Debug, Clone, Copy, Eq, PartialEq, Hash, Default, States)]
 #[states(scoped_entities)]
@@ -148,6 +150,7 @@ fn main() {
         .add_plugins(LoadingScreenPlugin)
         .add_plugins(AutomatedTestingPlugin)
         .add_plugins(DebugConsolePlugin)
+        .add_plugins(GardenLightingPlugin)
         .add_systems(Startup, setup)
         .add_systems(PostUpdate, robust_despawn_system)
         .run();
@@ -161,6 +164,8 @@ fn setup(mut commands: Commands) {
             .with_rotation(Quat::from_rotation_x(0.0)), // 2.5D angled view like Neko Atsume
         // Ensure orthographic projection uses full window
         Projection::Orthographic(OrthographicProjection::default_2d()),
+        // Add 2D lighting component for bevy_light_2d
+        bevy_light_2d::prelude::Light2d::default(),
         photo_mode::components::PhotoTarget,
         photo_mode::components::CameraControls {
             zoom_level: 1.0,
